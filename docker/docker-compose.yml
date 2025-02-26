@@ -1,0 +1,32 @@
+name: leetcode-monkey
+
+services:
+  lm-pg:
+    image: postgres:17.2
+    container_name: lm-pg
+    restart: no
+    healthcheck:
+      test: "psql -U root lm_database -c ''"
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123123
+      POSTGRES_MULTIPLE_DATABASES: lm_database
+    volumes:
+      - lm-pg-data:/var/lib/postgresql
+      - ./postgres:/docker-entrypoint-initdb.d
+
+  lm-redis:
+    image: redis:7.4.2-alpine
+    container_name: lm-redis
+    restart: no
+    ports:
+      - '6379:6379'
+
+volumes:
+  lm-pg-data:

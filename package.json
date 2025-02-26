@@ -1,0 +1,45 @@
+{
+  "name": "fng-leetcode-monkey",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "start:dev": "tsx --env-file=.env src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "lint:fix": "eslint . --fix",
+    "format:fix": "prettier --write .",
+    "valid": "pnpm run lint:fix && pnpm run format:fix && pnpm run build",
+    "migrate": "pnpm drizzle-kit migrate --config src/pg/drizzleConfig.ts",
+    "migrate:drop": "pnpm drizzle-kit drop --config src/pg/drizzleConfig.ts",
+    "migrate:create": "pnpm drizzle-kit generate --config src/pg/drizzleConfig.ts",
+    "migrate:clean": "pnpm tsx test/clearDb.ts && pnpm run migrate",
+    "generate:leetcode-api": "pnpm graphql-codegen --config src/graphql/graphqlCodegenConfig.ts"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.13.1",
+    "cron": "^4.1.0",
+    "drizzle-orm": "^0.40.0",
+    "grammy": "^1.28.0",
+    "graphql": "^16.10.0",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "drizzle-kit": "^0.30.5",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "prettier": "^3.5.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.0.7"
+  },
+  "packageManager": "pnpm@10.5.0+sha512.11106a5916c7406fe4b8cb8e3067974b8728f47308a4f5ac5e850304afa6f57e2847d7950dfe78877d8d36bfb401d381c4215db3a4c3547ffa63c14333a6fa51",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
