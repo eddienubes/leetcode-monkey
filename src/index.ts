@@ -1,5 +1,5 @@
 import { Bot } from '@/bot/Bot'
-import { myChatMemberHandler } from '@/bot/events'
+import { myChatMemberEvent } from '@/bot/events'
 import { PgService } from '@/pg/PgService'
 import { LeetCodeUsersDao } from '@/leetcode-users/LeetCodeUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
@@ -14,7 +14,7 @@ export const main = async (): Promise<void> => {
 
   const instances = [bot, tgBot, pgService, lcUsersDao]
 
-  await myChatMemberHandler(tgBot, tgChatsDao)
+  await myChatMemberEvent(tgBot, tgChatsDao)
   await signUpCommand(tgBot)
 
   for (const instance of instances) {

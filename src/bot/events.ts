@@ -1,7 +1,7 @@
 import { createHandler } from '@/bot/createHandler'
 import { TgChatInsert, TgChatsDao } from '@/tg/TgChatsDao'
 
-export const myChatMemberHandler = createHandler(
+export const myChatMemberEvent = createHandler(
   async (bot, tgChatDao: TgChatsDao) => {
     bot.on('my_chat_member', async (ctx, next) => {
       const update = ctx.myChatMember
