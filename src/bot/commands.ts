@@ -1,7 +1,5 @@
 import { createHandler } from '@/bot/createHandler'
 import { createConversation } from '@grammyjs/conversations'
-import { Context, InputFile } from 'grammy'
-import dedent from 'dedent'
 import { BotCtx, Convo } from '@/bot/Bot'
 import { fmt, link } from '@grammyjs/parse-mode'
 import { LeetCodeApiClient } from '@/leetcode/LeetCodeApiClient'
@@ -29,20 +27,23 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
       //   },
       // )
 
-      const urlCtx = await convo.waitFor('message:text', {
-        maxMilliseconds: 60 * 1000, // 1 minute
-      })
+      const urlCtx = await convo.waitFor('message').andFrom(ctx.from!.id)
+
+      if (!urlCtx.message?.text) {
+        await ctx.reply("You didn't send a valid URL. Please try again.")
+        return
+      }
 
       try {
         const url = new URL(urlCtx.message.text)
         const [domain, userSlug] = url.toString().split('/u/')
-        const submissions = convo.external(
-          async () => await lcApi.getAcceptedSubmissions(userSlug),
+        const submissions = await convo.external(
+          async () => await lcApi.getProfile(userSlug),
         )
         console.log(submissions)
       } catch (e) {
-        const submissions = convo.external(
-          async () => await lcApi.getAcceptedSubmissions(urlCtx.message.text),
+        const submissions = await convo.external(
+          async () => await lcApi.getProfile(urlCtx.message.text),
         )
         console.log(submissions)
       }
