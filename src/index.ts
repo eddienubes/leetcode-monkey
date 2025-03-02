@@ -3,7 +3,7 @@ import { myChatMemberEvent } from '@/bot/events'
 import { PgService } from '@/pg/PgService'
 import { LeetCodeUsersDao } from '@/leetcode-users/LeetCodeUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
-import { signUpCommand } from '@/bot/commands'
+import { connectLcCommand } from '@/bot/commands'
 import { LeetCodeApiClient } from "@/leetcode/LeetCodeApiClient";
 
 export const main = async (): Promise<void> => {
@@ -17,7 +17,7 @@ export const main = async (): Promise<void> => {
   const instances = [bot, tgBot, pgService, lcUsersDao]
 
   await myChatMemberEvent(tgBot, tgChatsDao)
-  await signUpCommand(tgBot, lcApi)
+  await connectLcCommand(tgBot, lcApi, lcUsersDao, tgChatsDao)
 
   for (const instance of instances) {
     if ('onModuleInit' in instance) {

@@ -1,11 +1,18 @@
-import { boolean, pgTable, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  pgTable,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core'
 
 const timestamps = {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at')
     .notNull()
     .$onUpdate(() => new Date())
-    .defaultNow()
+    .defaultNow(),
 }
 
 export const tgChats = pgTable('tg_chats', {
@@ -13,6 +20,7 @@ export const tgChats = pgTable('tg_chats', {
   tgId: varchar('tg_id').notNull().unique(),
   type: varchar('type').notNull(),
   title: varchar('title'),
+  role: varchar('role').notNull(),
 
   username: varchar('username'),
   /**
@@ -45,42 +53,47 @@ export const tgChats = pgTable('tg_chats', {
    */
   inviteLink: varchar('invite_link'),
 
-  /**
-   * Is bot removed from the chat or blocked by the user in case of private chat
-   */
-  isRemoved: boolean('is_removed').notNull().default(false),
-
-  ...timestamps
+  ...timestamps,
 })
 
 export const leetCodeUsers = pgTable('leetcode_users', {
   uuid: uuid('uuid').primaryKey().defaultRandom(),
   slug: varchar().notNull().unique(),
+  realName: varchar(),
+  avatarUrl: varchar(),
 
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at')
     .notNull()
     .$onUpdate(() => new Date())
-    .defaultNow()
+    .defaultNow(),
 })
 
-export const leetCodeUsersToTgChats = pgTable('leetcode_users_to_tg_chats', {
-  leetcodeUserUuid: uuid('leetcode_user_uuid')
-    .notNull()
-    .references(() => leetCodeUsers.uuid),
-  tgChatUuid: uuid('tg_chat_uuid').notNull().references(() => tgChats.uuid),
-  active: boolean('active').notNull().default(true),
-  ...timestamps
-}, (t) => [unique().on(t.leetcodeUserUuid, t.tgChatUuid)]);
+export const leetCodeUsersToTgChats = pgTable(
+  'leetcode_users_to_tg_chats',
+  {
+    leetcodeUserUuid: uuid('leetcode_user_uuid')
+      .notNull()
+      .references(() => leetCodeUsers.uuid),
+    tgChatUuid: uuid('tg_chat_uuid')
+      .notNull()
+      .references(() => tgChats.uuid),
+    isActive: boolean('is_active').notNull().default(true),
+    ...timestamps,
+  },
+  (t) => [unique().on(t.leetcodeUserUuid, t.tgChatUuid)],
+)
 
-
-export const leetCodeUserSettingsEntries = pgTable('leetcode_user_settings_entries', {
-  notificationsEnabled: boolean().notNull().default(false),
-  leetcodeUserUuid: uuid('leetcode_user_uuid')
-    .notNull()
-    .references(() => leetCodeUsers.uuid),
-  ...timestamps
-});
+export const leetCodeUserSettingsEntries = pgTable(
+  'leetcode_user_settings_entries',
+  {
+    notificationsEnabled: boolean().notNull().default(false),
+    leetcodeUserUuid: uuid('leetcode_user_uuid')
+      .notNull()
+      .references(() => leetCodeUsers.uuid),
+    ...timestamps,
+  },
+)
 
 export const acceptedSubmissions = pgTable('accepted_submissions', {
   leetcodeUserUuid: uuid('leetcode_user_uuid')
@@ -89,5 +102,5 @@ export const acceptedSubmissions = pgTable('accepted_submissions', {
   problemSlug: varchar().notNull(),
   title: varchar().notNull(),
   leetCodeId: varchar().notNull(),
-  ...timestamps
-});
+  ...timestamps,
+})

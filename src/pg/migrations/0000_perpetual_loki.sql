@@ -17,6 +17,8 @@ CREATE TABLE "leetcode_user_settings_entries" (
 CREATE TABLE "leetcode_users" (
 	"uuid" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"slug" varchar NOT NULL,
+	"realName" varchar,
+	"avatarUrl" varchar,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "leetcode_users_slug_unique" UNIQUE("slug")
@@ -25,6 +27,7 @@ CREATE TABLE "leetcode_users" (
 CREATE TABLE "leetcode_users_to_tg_chats" (
 	"leetcode_user_uuid" uuid NOT NULL,
 	"tg_chat_uuid" uuid NOT NULL,
+	"active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "leetcode_users_to_tg_chats_leetcode_user_uuid_tg_chat_uuid_unique" UNIQUE("leetcode_user_uuid","tg_chat_uuid")

@@ -1,5 +1,5 @@
 import { createHandler } from '@/bot/createHandler'
-import { TgChatInsert, TgChatsDao } from '@/tg/TgChatsDao'
+import { TgChatsDao } from '@/tg/TgChatsDao'
 
 export const myChatMemberEvent = createHandler(
   async (bot, tgChatDao: TgChatsDao) => {
@@ -11,7 +11,8 @@ export const myChatMemberEvent = createHandler(
         `my_chat_member: ${chat.id}, status change from ${update.old_chat_member.status} to ${update.new_chat_member.status}`,
       )
 
-      const props: TgChatInsert = {
+      await tgChatDao.upsert({
+        role: update.new_chat_member.status,
         tgId: chat.id.toString(),
         type: chat.type,
         title: chat.title,
@@ -20,29 +21,9 @@ export const myChatMemberEvent = createHandler(
           ? `${chat.first_name} ${chat.last_name}`
           : null,
         isForum: chat.is_forum,
-      }
+      })
 
-      if (
-        ['member', 'creator', 'administrator'].includes(
-          update.new_chat_member.status,
-        )
-      ) {
-        await tgChatDao.upsert({
-          ...props,
-          isRemoved: false,
-        })
-        return await next()
-      }
-
-      if (['left', 'kicked'].includes(update.new_chat_member.status)) {
-        await tgChatDao.upsert({
-          ...props,
-          isRemoved: true,
-        })
-        return await next()
-      }
-
-      await next()
+      return await next()
     })
   },
 )

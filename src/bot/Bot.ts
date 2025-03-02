@@ -1,5 +1,5 @@
 import { config } from '@/config'
-import { Bot as TgBot, Context } from 'grammy'
+import { Bot as TgBot, Context, session, SessionFlavor } from 'grammy'
 import {
   Conversation,
   ConversationFlavor,
@@ -7,14 +7,22 @@ import {
 } from '@grammyjs/conversations'
 import { hydrateReply, ParseModeFlavor } from '@grammyjs/parse-mode'
 import { hydrate, HydrateFlavor } from '@grammyjs/hydrate'
+import { createSession, Session } from '@/bot/createSession'
+import { MenuFlavor } from '@grammyjs/menu'
 
-export type BotCtx = ParseModeFlavor<HydrateFlavor<ConversationFlavor<Context>>>
+export type BotCtx = ParseModeFlavor<
+  HydrateFlavor<
+    ConversationFlavor<Context & SessionFlavor<Session> & MenuFlavor>
+  >
+>
+
 export type Convo = Conversation<BotCtx, BotCtx>
 
 export class Bot {
   private readonly bot = new TgBot<BotCtx>(config.bot.token)
 
   constructor() {
+    this.bot.use(createSession())
     this.bot.use(
       conversations<BotCtx, BotCtx>({
         plugins: [hydrateReply, hydrate()],
