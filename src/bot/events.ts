@@ -1,4 +1,4 @@
-import { createHandler } from '@/bot/createHandler'
+import { createHandler } from '@/bot/handle'
 import { TgChatsDao } from '@/tg/TgChatsDao'
 
 export const myChatMemberEvent = createHandler(

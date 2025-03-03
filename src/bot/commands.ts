@@ -1,4 +1,4 @@
-import { createHandler } from '@/bot/createHandler'
+import { createHandler } from '@/bot/handle'
 import { createConversation } from '@grammyjs/conversations'
 import { BotCtx, Convo } from '@/bot/Bot'
 import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
@@ -32,13 +32,16 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
         helper.abort()
       })
 
-      const msg1 = await ctx.replyFmt(message, {
-        reply_markup: menu,
-        link_preview_options: {
-          is_disabled: true,
-        },
-      })
-      messagesToDelete.push(msg1.message_id)
+      {
+        const msg = await ctx.replyFmt(message, {
+          reply_markup: menu,
+          link_preview_options: {
+            is_disabled: true,
+          },
+        })
+
+        messagesToDelete.push(msg.message_id)
+      }
 
       // await ctx.api.sendAnimation(
       //   reply.chat.id,
@@ -53,7 +56,7 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
       const profile = await helper.waitFor({
         event: 'message:text',
         maxAttempts: 3,
-        timeoutMs: 60 * 1000, // 1 minute
+        timeoutMs: 300 * 1000, // 1 minute
         beforeTry: async (ctx) => {
           messagesToDelete.push(ctx.message.message_id)
           await ctx.react('👀')
@@ -82,9 +85,6 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
           messagesToDelete.push(ctx.message.message_id)
 
           return submissions
-        },
-        success: async (ctx) => {
-          await ctx.react('👍')
         },
         catch: async (ctx) => {
           await ctx.react('👎')
@@ -116,24 +116,21 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
         isActive: false,
       })
 
+      const username = ctx.message?.from?.username || ''
+      const firstName = ctx.message?.from?.first_name || ''
+      const lastName = ctx.message?.from?.last_name || ''
+      const name = username || `${firstName} ${lastName}`.trim()
+
       await ctx.replyFmt(
-        fmt`Connected! Now ${bold(profile.matchedUser.profile.realName)} (${mentionUser(ctx.message!.from.username!, ctx.message!.from.id)}) will get notifications for submissions. 🎉`,
+        fmt`Connected! Now ${bold(profile.matchedUser.profile.realName)} (${mentionUser(name, ctx.message!.from.id)}) will get notifications for their LeetCode submissions. 🎉`,
       )
     }
 
-    bot.use(
-      createConversation(convoImpl, {
-        parallel: true,
-        id: name,
-      }),
-    )
+    bot.use(createConversation(convoImpl, name))
 
     bot.command(['sign', 'sing', 'connect'], async (ctx) => {
+      await ctx.conversation.exitAll()
       await ctx.conversation.enter(name)
-    })
-
-    bot.command('another', async (ctx) => {
-      await ctx.replyFmt('Another command')
     })
   },
 )

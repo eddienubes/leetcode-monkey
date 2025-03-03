@@ -21,6 +21,7 @@
     "@grammyjs/hydrate": "^1.4.1",
     "@grammyjs/menu": "^1.3.0",
     "@grammyjs/parse-mode": "^1.11.1",
+    "@grammyjs/storage-file": "^2.5.1",
     "cron": "^4.1.0",
     "dedent": "^1.5.3",
     "drizzle-orm": "^0.40.0",

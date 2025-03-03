@@ -23,6 +23,9 @@ importers:
       '@grammyjs/parse-mode':
         specifier: ^1.11.1
         version: 1.11.1(grammy@1.35.0)
+      '@grammyjs/storage-file':
+        specifier: ^2.5.1
+        version: 2.5.1
       cron:
         specifier: ^4.1.0
         version: 4.1.0
@@ -584,6 +587,9 @@ packages:
     engines: {node: '>=14.13.1'}
     peerDependencies:
       grammy: ^1.20.1
+
+  '@grammyjs/storage-file@2.5.1':
+    resolution: {integrity: sha512-16jrn2IzgJgIZUtcFiA/PI4WBNfHt1dAoimrRzwPyHvM1otNuKwWAAxA6l3m7ys6YrOLlONu4q4swEkPMOT9YA==}
 
   '@grammyjs/types@3.19.0':
     resolution: {integrity: sha512-N0MS+RJG+AGSNuka1GWVj88oyK1oti4I0eQq6jGo4hic3P9MwFfnHjGQuIExZ3tlJUrZYwC/T7gk4Tu3+guJyg==}
@@ -2000,6 +2006,8 @@ snapshots:
   '@grammyjs/parse-mode@1.11.1(grammy@1.35.0)':
     dependencies:
       grammy: 1.35.0
+
+  '@grammyjs/storage-file@2.5.1': {}
 
   '@grammyjs/types@3.19.0': {}
 

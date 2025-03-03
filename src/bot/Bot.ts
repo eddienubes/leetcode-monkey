@@ -4,11 +4,14 @@ import {
   Conversation,
   ConversationFlavor,
   conversations,
+  uniformStorage,
 } from '@grammyjs/conversations'
 import { hydrateReply, ParseModeFlavor } from '@grammyjs/parse-mode'
 import { hydrate, HydrateFlavor } from '@grammyjs/hydrate'
-import { createSession, Session } from '@/bot/createSession'
+import { createSession, Session } from '@/bot/session'
 import { MenuFlavor } from '@grammyjs/menu'
+import { FileAdapter } from '@grammyjs/storage-file'
+import { createRamStorage } from '@/bot/ramStorage'
 
 export type BotCtx = ParseModeFlavor<
   HydrateFlavor<
@@ -26,6 +29,7 @@ export class Bot {
     this.bot.use(
       conversations<BotCtx, BotCtx>({
         plugins: [hydrateReply, hydrate()],
+        storage: createRamStorage(),
       }),
     )
     this.bot.use(hydrateReply)

@@ -78,20 +78,17 @@ export const createConvoHelper = async <C extends Convo>(
         })
       }
 
-      // const expiresAt = opts.timeoutMs
-      //   ? (await convo.now()) + opts.timeoutMs
-      //   : undefined
-
       if (controller?.signal.aborted) {
         console.log('sync aborted')
         await convo.halt({ next: true })
       }
 
       while (attempts > 0) {
-        console.log('waiting for event, attempts', attempts)
         const eventCtx = await convo
           .waitFor(opts.event)
-          .unless(Context.has.filterQuery('::bot_command'))
+          .unless(Context.has.filterQuery('::bot_command'), {
+            next: true,
+          })
 
         try {
           await opts.beforeTry?.(eventCtx)
