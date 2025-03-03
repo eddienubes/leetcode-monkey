@@ -1,6 +1,7 @@
 import { BotCtx, Convo } from '@/bot/Bot'
 import { FilterQuery, Filter, GrammyError, Context } from 'grammy'
 import { TgCannotDeleteMessageError } from '@/common/errors'
+import { ConvoStorage } from '@/bot/ramConvoStorage'
 
 export type WaitForOptions<E extends FilterQuery, R> = {
   event: E
@@ -22,64 +23,47 @@ export type ConvoHelper = {
 
 export const createConvoHelper = async <C extends Convo>(
   convo: C,
+  convoStorage: ConvoStorage,
+  ctx: BotCtx,
 ): Promise<ConvoHelper> => {
-  const ctx = await convo.external(async (ctx) => ctx)
-
-  const execFinally = async (cb?: (ctx: BotCtx) => Promise<unknown>) => {
-    try {
-      await cb?.(ctx)
-    } catch (e) {
-      if (e instanceof GrammyError) {
+  const createFinally = async (cb?: (ctx: BotCtx) => Promise<unknown>) => {
+    return async (ctx: BotCtx) => {
+      try {
+        await cb?.(ctx)
+      } catch (e) {
+        if (e instanceof GrammyError) {
+          console.log(
+            new TgCannotDeleteMessageError(
+              `convoHelper: finally failed, ${e.message}`,
+            ),
+          )
+          return
+        }
         console.log(
-          new TgCannotDeleteMessageError(
-            `convoHelper: finally failed, ${e.message}`,
-          ),
+          new TgCannotDeleteMessageError(`convoHelper: finally failed`, e),
         )
-        return
       }
-      console.log(
-        new TgCannotDeleteMessageError(`convoHelper: finally failed`, e),
-      )
     }
   }
 
-  const timeouts: NodeJS.Timeout[] = await convo.external(async () => [])
-
-  const controller = await convo.external(async () => {
-    console.log('creating controller')
-    const controller = new AbortController()
-
-    controller.signal.addEventListener(
-      'abort',
-      async () => {
-        for (const timeout of timeouts) {
-          clearTimeout(timeout)
-        }
-      },
-      { once: true },
-    )
-
-    return controller
-  })
-
   return {
-    abort: () => controller.abort(),
+    abort: () => convoStorage.delete(ctx),
     waitFor: async (opts) => {
       let attempts = opts.maxAttempts ?? 1
 
-      if (opts.timeoutMs) {
-        await convo.external(async () => {
-          const timeout = setTimeout(async () => {
-            controller.abort()
-            await execFinally(opts.finally)
-          }, opts.timeoutMs)
+      const finallyCb = await createFinally(opts.finally)
 
-          timeouts.push(timeout)
+      if (opts.timeoutMs) {
+        await convo.external(async (ctx) => {
+          setTimeout(async () => {
+            convoStorage.delete(ctx)
+            await finallyCb(ctx)
+          }, opts.timeoutMs)
         })
       }
 
-      if (controller?.signal.aborted) {
-        console.log('sync aborted')
+      if (!convoStorage.has(ctx)) {
+        console.log('registry does not have ctx')
         await convo.halt({ next: true })
       }
 
@@ -97,7 +81,7 @@ export const createConvoHelper = async <C extends Convo>(
           )
           if (value !== null && value !== undefined) {
             await opts.success?.(eventCtx)
-            await execFinally(opts.finally)
+            await finallyCb(eventCtx)
             return value as Exclude<Awaited<typeof value>, undefined | null>
           } else {
             await opts.catch?.(eventCtx)
@@ -109,7 +93,8 @@ export const createConvoHelper = async <C extends Convo>(
         }
 
         if (attempts <= 0) {
-          controller.abort()
+          await finallyCb(eventCtx)
+          break
         }
       }
 

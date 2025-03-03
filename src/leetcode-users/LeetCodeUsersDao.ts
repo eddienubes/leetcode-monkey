@@ -1,15 +1,19 @@
 import { PgDao } from '@/pg/PgDao'
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm'
-import { leetCodeUsers, leetCodeUsersToTgChats } from '@/pg/schema'
+import { eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
+import {
+  leetCodeUsers,
+  leetCodeUsersToUsersInChats,
+  tgUsersToTgChats,
+} from '@/pg/schema'
 import { PgService } from '@/pg/PgService'
 
 export type LeetCodeUserSelect = InferSelectModel<typeof leetCodeUsers>
 export type LeetCodeUserInsert = InferInsertModel<typeof leetCodeUsers>
-export type LeetCodeUserToTgChatSelect = InferSelectModel<
-  typeof leetCodeUsersToTgChats
+export type LeetCodeUserToUserInChatSelect = InferSelectModel<
+  typeof leetCodeUsersToUsersInChats
 >
-export type LeetCodeUserToTgChatInsert = InferInsertModel<
-  typeof leetCodeUsersToTgChats
+export type LeetCodeUserToUserInChatInsert = InferInsertModel<
+  typeof leetCodeUsersToUsersInChats
 >
 
 export class LeetCodeUsersDao extends PgDao {
@@ -33,23 +37,6 @@ export class LeetCodeUsersDao extends PgDao {
     return updated
   }
 
-  async upsertTgChatReference(
-    to: LeetCodeUserToTgChatInsert,
-  ): Promise<LeetCodeUserToTgChatSelect> {
-    const [upserted] = await this.client
-      .insert(leetCodeUsersToTgChats)
-      .values(to)
-      .onConflictDoUpdate({
-        target: [
-          leetCodeUsersToTgChats.leetcodeUserUuid,
-          leetCodeUsersToTgChats.tgChatUuid,
-        ],
-        set: to,
-      })
-      .returning()
-    return upserted
-  }
-
   async upsert(user: LeetCodeUserInsert): Promise<LeetCodeUserSelect> {
     const [upserted] = await this.client
       .insert(leetCodeUsers)
@@ -60,5 +47,31 @@ export class LeetCodeUsersDao extends PgDao {
       })
       .returning()
     return upserted
+  }
+
+  async connectLeetCodeUserToUserInChat(
+    entry: LeetCodeUserToUserInChatInsert,
+  ): Promise<LeetCodeUserToUserInChatSelect> {
+    const [hit] = await this.client
+      .insert(leetCodeUsersToUsersInChats)
+      .values(entry)
+      .onConflictDoUpdate({
+        target: [leetCodeUsersToUsersInChats.userInChatUuid],
+        set: entry,
+      })
+      .returning()
+
+    return hit
+  }
+
+  async disconnectLeetCodeUserFromUserInChat(
+    userInChatUuid: string,
+  ): Promise<void> {
+    await this.client
+      .update(leetCodeUsersToUsersInChats)
+      .set({
+        isActive: false,
+      })
+      .where(eq(leetCodeUsersToUsersInChats.userInChatUuid, userInChatUuid))
   }
 }

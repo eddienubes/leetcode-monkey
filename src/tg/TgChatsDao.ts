@@ -1,11 +1,13 @@
 import { PgDao } from '@/pg/PgDao'
 import { PgService } from '@/pg/PgService'
 import { eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
-import { tgChats } from '@/pg/schema'
+import { tgChats, tgUsersToTgChats } from '@/pg/schema'
 import { NotFoundError } from '@/common/errors'
 
 export type TgChatSelect = InferSelectModel<typeof tgChats>
 export type TgChatInsert = InferInsertModel<typeof tgChats>
+export type TgUsersToTgChatsSelect = InferSelectModel<typeof tgUsersToTgChats>
+export type TgUsersToTgChatsInsert = InferInsertModel<typeof tgUsersToTgChats>
 
 export class TgChatsDao extends PgDao {
   constructor(pgService: PgService) {
@@ -34,5 +36,26 @@ export class TgChatsDao extends PgDao {
       })
       .returning()
     return upserted
+  }
+
+  async addUserToChat(
+    tgUserUuid: string,
+    tgChatUuid: string,
+  ): Promise<TgUsersToTgChatsSelect> {
+    const [hit] = await this.client
+      .insert(tgUsersToTgChats)
+      .values({
+        tgUserUuid,
+        tgChatUuid,
+      })
+      .onConflictDoUpdate({
+        target: [tgUsersToTgChats.tgUserUuid, tgUsersToTgChats.tgChatUuid],
+        set: {
+          tgUserUuid,
+          tgChatUuid,
+        },
+      })
+      .returning()
+    return hit
   }
 }

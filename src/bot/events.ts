@@ -1,8 +1,8 @@
-import { createHandler } from '@/bot/handle'
+import { createHandler } from '@/bot/handler'
 import { TgChatsDao } from '@/tg/TgChatsDao'
 
 export const myChatMemberEvent = createHandler(
-  async (bot, tgChatDao: TgChatsDao) => {
+  async (bot, convoStorage, tgChatDao: TgChatsDao) => {
     bot.on('my_chat_member', async (ctx, next) => {
       const update = ctx.myChatMember
       const chat = update.chat
@@ -27,3 +27,10 @@ export const myChatMemberEvent = createHandler(
     })
   },
 )
+
+export const cbQueryEvent = createHandler(async (bot, convoStorage) => {
+  bot.on('callback_query', async (ctx, next) => {
+    await ctx.answerCallbackQuery()
+    // no-op
+  })
+})

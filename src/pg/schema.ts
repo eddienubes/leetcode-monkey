@@ -56,41 +56,54 @@ export const tgChats = pgTable('tg_chats', {
   ...timestamps,
 })
 
+export const tgUsers = pgTable('tg_users', {
+  uuid: uuid('uuid').primaryKey().defaultRandom(),
+  tgId: varchar('tg_id').notNull().unique(),
+  isBot: boolean('is_bot').notNull().default(false),
+  firstName: varchar('first_name').notNull(),
+  lastName: varchar('last_name'),
+  username: varchar('username'),
+  languageCode: varchar('language_code'),
+  isPremium: boolean('is_premium').notNull().default(false),
+
+  ...timestamps,
+})
+
 export const leetCodeUsers = pgTable('leetcode_users', {
   uuid: uuid('uuid').primaryKey().defaultRandom(),
   slug: varchar().notNull().unique(),
   realName: varchar(),
   avatarUrl: varchar(),
 
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at')
-    .notNull()
-    .$onUpdate(() => new Date())
-    .defaultNow(),
+  ...timestamps,
 })
 
-export const leetCodeUsersToTgChats = pgTable(
-  'leetcode_users_to_tg_chats',
+export const tgUsersToTgChats = pgTable(
+  'tg_users_to_tg_chats',
   {
-    leetcodeUserUuid: uuid('leetcode_user_uuid')
-      .notNull()
-      .references(() => leetCodeUsers.uuid),
+    uuid: uuid('uuid').primaryKey().defaultRandom(),
     tgChatUuid: uuid('tg_chat_uuid')
       .notNull()
       .references(() => tgChats.uuid),
-    isActive: boolean('is_active').notNull().default(true),
+    tgUserUuid: uuid('tg_user_uuid')
+      .notNull()
+      .references(() => tgUsers.uuid),
     ...timestamps,
   },
-  (t) => [unique().on(t.leetcodeUserUuid, t.tgChatUuid)],
+  (t) => [unique().on(t.tgUserUuid, t.tgChatUuid)],
 )
 
-export const leetCodeUserSettingsEntries = pgTable(
-  'leetcode_user_settings_entries',
+export const leetCodeUsersToUsersInChats = pgTable(
+  'leetcode_users_to_users_in_chats',
   {
-    notificationsEnabled: boolean().notNull().default(false),
-    leetcodeUserUuid: uuid('leetcode_user_uuid')
+    userInChatUuid: uuid('user_in_chat_uuid')
+      .notNull()
+      .unique()
+      .references(() => tgUsersToTgChats.uuid),
+    leetCodeUserUuid: uuid('leetcode_user_uuid')
       .notNull()
       .references(() => leetCodeUsers.uuid),
+    isActive: boolean('is_active').notNull().default(true),
     ...timestamps,
   },
 )

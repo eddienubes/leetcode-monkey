@@ -1,23 +1,27 @@
-import { createHandler } from '@/bot/handle'
+import { createHandler } from '@/bot/handler'
 import { createConversation } from '@grammyjs/conversations'
-import { BotCtx, Convo } from '@/bot/Bot'
+import { BotCtx, BotCtxExtra, Convo } from '@/bot/Bot'
 import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
 import { LeetCodeApiClient } from '@/leetcode/LeetCodeApiClient'
 import { createConvoHelper } from '@/bot/convoHelper'
 import { LeetCodeUsersDao } from '@/leetcode-users/LeetCodeUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
+import { tgUsersMiddleware } from '@/bot/middlewares'
+import { TgUsersDao } from '@/tg/TgUsersDao'
 
 export const connectLcCommand = createHandler(
   async (
     bot,
+    convoStorage,
     lcApi: LeetCodeApiClient,
     lcUsersDao: LeetCodeUsersDao,
+    tgUsersDao: TgUsersDao,
     tgChatsDao: TgChatsDao,
   ) => {
     const name = 'connect'
 
-    const convoImpl = async (convo: Convo, ctx: BotCtx) => {
-      const helper = await createConvoHelper(convo)
+    const convoImpl = async (convo: Convo, ctx: BotCtx, extra: BotCtxExtra) => {
+      const helper = await createConvoHelper(convo, convoStorage, ctx)
 
       const message = fmt`
 Let's connect your ${link('LeetCode', 'https://leetcode.com')} account! 👋
@@ -56,7 +60,7 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
       const profile = await helper.waitFor({
         event: 'message:text',
         maxAttempts: 3,
-        timeoutMs: 300 * 1000, // 1 minute
+        timeoutMs: 60 * 1000, // 1 minute
         beforeTry: async (ctx) => {
           messagesToDelete.push(ctx.message.message_id)
           await ctx.react('👀')
@@ -102,18 +106,18 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
         },
       })
 
-      const tgChat = await tgChatsDao.getByTgId(ctx.chatId?.toString()!)
+      await convo.external(async () => {
+        const lcUser = await lcUsersDao.upsert({
+          slug: profile.matchedUser.username,
+          realName: profile.matchedUser.profile.realName,
+          avatarUrl: profile.matchedUser.profile.userAvatar,
+        })
 
-      const lcUser = await lcUsersDao.upsert({
-        slug: profile.matchedUser.username,
-        realName: profile.matchedUser.profile.realName,
-        avatarUrl: profile.matchedUser.profile.userAvatar,
-      })
-
-      await lcUsersDao.upsertTgChatReference({
-        leetcodeUserUuid: lcUser.uuid,
-        tgChatUuid: tgChat.uuid,
-        isActive: false,
+        await lcUsersDao.connectLeetCodeUserToUserInChat({
+          leetCodeUserUuid: lcUser.uuid,
+          userInChatUuid: extra.userToChat!.uuid,
+          isActive: true,
+        })
       })
 
       const username = ctx.message?.from?.username || ''
@@ -126,26 +130,44 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
       )
     }
 
+    const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
+
     bot.use(createConversation(convoImpl, name))
 
-    bot.command(['sign', 'sing', 'connect'], async (ctx) => {
+    bot.command(['sign', 'sing', 'connect'], m, async (ctx) => {
       await ctx.conversation.exitAll()
-      await ctx.conversation.enter(name)
+      await ctx.conversation.enter(name, {
+        user: ctx.user!,
+        tgChat: ctx.tgChat!,
+        userToChat: ctx.userToChat!,
+      } satisfies BotCtxExtra)
     })
   },
 )
 
 export const disconnectLcCommand = createHandler(
-  async (bot, lcUsersDao: LeetCodeUsersDao, tgChatsDao: TgChatsDao) => {
-    const name = 'disconnect'
-    const convoImpl = async (convo: Convo, ctx: BotCtx) => {
-      // const helper = createConvoHelper(convo)
-    }
+  async (
+    bot,
+    convoStorage,
+    tgUsersDao: TgUsersDao,
+    lcUsersDao: LeetCodeUsersDao,
+    tgChatsDao: TgChatsDao,
+  ) => {
+    const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
-    bot.use(createConversation(convoImpl, name))
+    bot.command(['disconnect', 'signout'], m, async (ctx) => {
+      const userToChat = ctx.userToChat!
 
-    bot.command(['disconnect', 'signout'], async (ctx) => {
-      await ctx.conversation.enter(name)
+      await lcUsersDao.disconnectLeetCodeUserFromUserInChat(userToChat.uuid)
+
+      const username = ctx.message?.from?.username || ''
+      const firstName = ctx.message?.from?.first_name || ''
+      const lastName = ctx.message?.from?.last_name || ''
+      const name = username || `${firstName} ${lastName}`.trim()
+
+      await ctx.replyFmt(
+        fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your LeetCode submissions anymore. 😔`,
+      )
     })
   },
 )
