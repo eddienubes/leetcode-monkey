@@ -1,17 +1,39 @@
 import { PgDao } from '@/pg/PgDao'
-import { eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
 import {
+  and,
+  desc,
+  eq,
+  inArray,
+  InferInsertModel,
+  InferSelectModel,
+  ne,
+  not,
+} from 'drizzle-orm'
+import {
+  acceptedSubmissions,
+  leetCodeChatSettings,
   leetCodeUsers,
   leetCodeUsersToUsersInChats,
+  tgChats,
+  tgUsers,
   tgUsersToTgChats,
 } from '@/pg/schema'
 import { PgService } from '@/pg/PgService'
+import { TgUsersToTgChatsSelect } from '@/tg/TgChatsDao'
+import { LeetCodeApiClient } from '@/leetcode/LeetCodeApiClient'
 
 export type LeetCodeUserSelect = InferSelectModel<typeof leetCodeUsers>
 export type LeetCodeUserInsert = InferInsertModel<typeof leetCodeUsers>
 export type LeetCodeUserToUserInChatSelect = InferSelectModel<
   typeof leetCodeUsersToUsersInChats
 >
+export type LeetCodeUserToUserInChatSelectWithRelations = {
+  leetCodeUser: LeetCodeUserSelect
+  userInChat: TgUsersToTgChatsSelect
+}
+export type SubmissionInsert = InferInsertModel<typeof acceptedSubmissions>
+export type SubmissionSelect = InferSelectModel<typeof acceptedSubmissions>
+
 export type LeetCodeUserToUserInChatInsert = InferInsertModel<
   typeof leetCodeUsersToUsersInChats
 >
@@ -49,6 +71,29 @@ export class LeetCodeUsersDao extends PgDao {
     return upserted
   }
 
+  async getAllActiveLeetCodeChatUsers() {
+    const lcUsers = this.client
+      .select()
+      .from(leetCodeUsersToUsersInChats)
+      .innerJoin(
+        leetCodeUsers,
+        eq(leetCodeUsersToUsersInChats.leetCodeUserUuid, leetCodeUsers.uuid),
+      )
+      .innerJoin(
+        tgUsersToTgChats,
+        eq(leetCodeUsersToUsersInChats.userInChatUuid, tgUsersToTgChats.uuid),
+      )
+      .innerJoin(tgUsers, eq(tgUsersToTgChats.tgUserUuid, tgUsers.uuid))
+      .innerJoin(tgChats, eq(tgUsersToTgChats.tgChatUuid, tgChats.uuid))
+      .innerJoin(
+        leetCodeChatSettings,
+        eq(leetCodeChatSettings.tgChatUuid, tgChats.uuid),
+      )
+      .where(eq(leetCodeUsersToUsersInChats.isActive, true))
+
+    return lcUsers
+  }
+
   async connectLeetCodeUserToUserInChat(
     entry: LeetCodeUserToUserInChatInsert,
   ): Promise<LeetCodeUserToUserInChatSelect> {
@@ -73,5 +118,40 @@ export class LeetCodeUsersDao extends PgDao {
         isActive: false,
       })
       .where(eq(leetCodeUsersToUsersInChats.userInChatUuid, userInChatUuid))
+  }
+
+  async addSubmissions(
+    submissions: SubmissionInsert[],
+  ): Promise<SubmissionSelect[]> {
+    const ss = await this.client
+      .insert(acceptedSubmissions)
+      .values(submissions)
+      .onConflictDoUpdate({
+        target: [acceptedSubmissions.slug],
+        set: {
+          updatedAt: new Date(),
+        },
+      })
+      .returning()
+    return ss
+  }
+
+  async getSubmissionsBySlugs(
+    lcUserUuid: string,
+    slugs: string[],
+  ): Promise<SubmissionSelect[]> {
+    const ss = await this.client
+      .select()
+      .from(acceptedSubmissions)
+      .where(
+        and(
+          eq(acceptedSubmissions.leetcodeUserUuid, lcUserUuid),
+          inArray(acceptedSubmissions.slug, slugs),
+        ),
+      )
+      .orderBy(desc(acceptedSubmissions.createdAt))
+      .limit(LeetCodeApiClient.MAX_RECENT_SUBMISSIONS)
+
+    return ss
   }
 }

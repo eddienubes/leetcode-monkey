@@ -32,8 +32,8 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
       ])
 
       const menu = convo.menu().text('Cancel', async (ctx) => {
-        await ctx.deleteMessages(messagesToDelete)
         helper.abort()
+        await ctx.deleteMessages(messagesToDelete)
       })
 
       {

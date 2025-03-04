@@ -6,6 +6,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
 
 const timestamps = {
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -93,6 +94,20 @@ export const tgUsersToTgChats = pgTable(
   (t) => [unique().on(t.tgUserUuid, t.tgChatUuid)],
 )
 
+export const tgUsersToTgChatsRelation = relations(
+  tgUsersToTgChats,
+  ({ one }) => ({
+    tgChat: one(tgChats, {
+      fields: [tgUsersToTgChats.tgChatUuid],
+      references: [tgChats.uuid],
+    }),
+    tgUser: one(tgUsers, {
+      fields: [tgUsersToTgChats.tgUserUuid],
+      references: [tgUsers.uuid],
+    }),
+  }),
+)
+
 export const leetCodeUsersToUsersInChats = pgTable(
   'leetcode_users_to_users_in_chats',
   {
@@ -108,12 +123,36 @@ export const leetCodeUsersToUsersInChats = pgTable(
   },
 )
 
+export const leetCodeChatSettings = pgTable('leetcode_chat_settings', {
+  tgChatUuid: uuid('tg_chat_uuid')
+    .notNull()
+    .unique()
+    .references(() => tgChats.uuid),
+  isActive: boolean('is_active').notNull().default(true),
+  ...timestamps,
+})
+
+export const leetCodeUsersToUsersInChatsRelation = relations(
+  leetCodeUsersToUsersInChats,
+  ({ one }) => ({
+    leetCodeUser: one(leetCodeUsers, {
+      fields: [leetCodeUsersToUsersInChats.leetCodeUserUuid],
+      references: [leetCodeUsers.uuid],
+    }),
+    userInChat: one(tgUsersToTgChats, {
+      fields: [leetCodeUsersToUsersInChats.userInChatUuid],
+      references: [tgUsersToTgChats.uuid],
+    }),
+  }),
+)
+
 export const acceptedSubmissions = pgTable('accepted_submissions', {
   leetcodeUserUuid: uuid('leetcode_user_uuid')
     .notNull()
     .references(() => leetCodeUsers.uuid),
-  problemSlug: varchar().notNull(),
+  slug: varchar('slug').notNull().unique(),
   title: varchar().notNull(),
-  leetCodeId: varchar().notNull(),
+  leetCodeId: varchar('leetcode_id').notNull(),
+  submittedAt: timestamp('submitted_at').notNull(),
   ...timestamps,
 })

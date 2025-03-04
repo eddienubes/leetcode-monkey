@@ -3,6 +3,7 @@ import { LEETCODE_QUERIES } from './queries/leetcode'
 import { LeetCodeRecentAcceptedSubmissions, LeetCodeUserProfile } from "@/leetcode/types/types";
 
 export class LeetCodeApiClient {
+  static MAX_RECENT_SUBMISSIONS = 20
   private readonly client = new ApolloClient({
     uri: 'https://leetcode.com/graphql',
     cache: new InMemoryCache(),

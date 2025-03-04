@@ -7,6 +7,7 @@ import { connectLcCommand, disconnectLcCommand } from '@/bot/commands'
 import { LeetCodeApiClient } from '@/leetcode/LeetCodeApiClient'
 import { createRamConvoStorage } from '@/bot/ramConvoStorage'
 import { TgUsersDao } from '@/tg/TgUsersDao'
+import { LeetCodeCronJob } from "@/leetcode/LeetCodeCronJob";
 
 export const main = async (): Promise<void> => {
   const convoStorage = createRamConvoStorage()
@@ -17,6 +18,7 @@ export const main = async (): Promise<void> => {
   const lcUsersDao = new LeetCodeUsersDao(pgService)
   const tgChatsDao = new TgChatsDao(pgService)
   const lcApi = new LeetCodeApiClient()
+  const lcCronJob = new LeetCodeCronJob(lcUsersDao, lcApi)
 
   const instances = [
     bot,
@@ -27,6 +29,7 @@ export const main = async (): Promise<void> => {
     lcApi,
     tgChatsDao,
     tgUsersDao,
+    lcCronJob
   ]
 
   await myChatMemberEvent(tgBot, convoStorage, tgChatsDao)

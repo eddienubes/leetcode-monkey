@@ -1,5 +1,5 @@
 {
-  "id": "b75461ca-88f4-404c-9355-279945fce309",
+  "id": "e312aa65-adb5-4d16-8345-25c5408626e0",
   "prevId": "4d1b4f0c-e37b-43dd-8ecb-622492f3d2da",
   "version": "7",
   "dialect": "postgresql",
@@ -14,8 +14,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "problemSlug": {
-          "name": "problemSlug",
+        "slug": {
+          "name": "slug",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
@@ -26,9 +26,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "leetCodeId": {
-          "name": "leetCodeId",
+        "leetcode_id": {
+          "name": "leetcode_id",
           "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "submitted_at": {
+          "name": "submitted_at",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
@@ -64,7 +70,77 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "accepted_submissions_slug_unique": {
+          "name": "accepted_submissions_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.leetcode_chat_settings": {
+      "name": "leetcode_chat_settings",
+      "schema": "",
+      "columns": {
+        "tg_chat_uuid": {
+          "name": "tg_chat_uuid",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "leetcode_chat_settings_tg_chat_uuid_tg_chats_uuid_fk": {
+          "name": "leetcode_chat_settings_tg_chat_uuid_tg_chats_uuid_fk",
+          "tableFrom": "leetcode_chat_settings",
+          "tableTo": "tg_chats",
+          "columnsFrom": [
+            "tg_chat_uuid"
+          ],
+          "columnsTo": [
+            "uuid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "leetcode_chat_settings_tg_chat_uuid_unique": {
+          "name": "leetcode_chat_settings_tg_chat_uuid_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "tg_chat_uuid"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

@@ -7,8 +7,11 @@ export const config = {
     migrations: {
       schema: 'public',
       table: 'drizzle_migrations',
-      out: 'src/pg/migrations'
+      out: 'src/pg/migrations',
     },
     schema: './src/pg/schema.ts',
+  },
+  cron: {
+    leetcodeCronJobInterval: process.env.CRON_LEETCODE_JOB_INTERVAL as string,
   },
 }

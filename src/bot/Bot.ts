@@ -4,7 +4,6 @@ import {
   Conversation,
   ConversationFlavor,
   conversations,
-  ConversationStorage,
 } from '@grammyjs/conversations'
 import { hydrateReply, ParseModeFlavor } from '@grammyjs/parse-mode'
 import { hydrate, HydrateFlavor } from '@grammyjs/hydrate'
@@ -55,6 +54,6 @@ export class Bot {
   }
 
   async onModuleInit(): Promise<void> {
-    await this.bot.start()
+    void this.bot.start()
   }
 }

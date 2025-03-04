@@ -11,7 +11,7 @@ export const myChatMemberEvent = createHandler(
         `my_chat_member: ${chat.id}, status change from ${update.old_chat_member.status} to ${update.new_chat_member.status}`,
       )
 
-      await tgChatDao.upsert({
+      const tgChat = await tgChatDao.upsert({
         role: update.new_chat_member.status,
         tgId: chat.id.toString(),
         type: chat.type,
@@ -22,6 +22,13 @@ export const myChatMemberEvent = createHandler(
           : null,
         isForum: chat.is_forum,
       })
+
+      await tgChatDao.createSettings({
+        tgChatUuid: tgChat.uuid,
+        isActive: true,
+      })
+
+      ctx.tgChat = tgChat
 
       return await next()
     })
