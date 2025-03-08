@@ -12,6 +12,10 @@ export const config = {
     schema: './src/pg/schema.ts',
   },
   cron: {
-    leetcodeCronJobInterval: process.env.CRON_LEETCODE_JOB_INTERVAL as string,
+    lcCronJobInterval: process.env.CRON_lc_JOB_INTERVAL as string,
+  },
+  redis: {
+    host: process.env.REDIS_HOST as string,
+    port: parseInt(process.env.REDIS_PORT as string, 10),
   },
 }

@@ -1,4 +1,4 @@
-name: leetcode-monkey
+name: lc-monkey
 
 services:
   lm-pg:
@@ -27,6 +27,18 @@ services:
     restart: no
     ports:
       - '6379:6379'
+
+  lm-bullboard:
+    image: venatum/bull-board:2.2
+    container_name: lm-bullboard
+    restart: no
+    ports:
+      - "3000:3000"
+    environment:
+      REDIS_HOST: lm-redis
+      REDIS_PORT: 6379
+    depends_on:
+      - lm-redis
 
 volumes:
   lm-pg-data:

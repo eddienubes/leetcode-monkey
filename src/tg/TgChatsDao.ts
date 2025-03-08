@@ -1,18 +1,18 @@
 import { PgDao } from '@/pg/PgDao'
 import { PgService } from '@/pg/PgService'
 import { eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
-import { leetCodeChatSettings, tgChats, tgUsersToTgChats } from '@/pg/schema'
+import { lcChatSettings, tgChats, tgUsersToTgChats } from '@/pg/schema'
 import { NotFoundError } from '@/common/errors'
 
 export type TgChatSelect = InferSelectModel<typeof tgChats>
 export type TgChatInsert = InferInsertModel<typeof tgChats>
 export type TgUsersToTgChatsSelect = InferSelectModel<typeof tgUsersToTgChats>
 export type TgUsersToTgChatsInsert = InferInsertModel<typeof tgUsersToTgChats>
-export type LeetCodeChatSettingsInsert = InferInsertModel<
-  typeof leetCodeChatSettings
+export type lcChatSettingsInsert = InferInsertModel<
+  typeof lcChatSettings
 >
-export type LeetCodeChatSettingsSelect = InferSelectModel<
-  typeof leetCodeChatSettings
+export type lcChatSettingsSelect = InferSelectModel<
+  typeof lcChatSettings
 >
 
 export class TgChatsDao extends PgDao {
@@ -66,13 +66,13 @@ export class TgChatsDao extends PgDao {
   }
 
   async createSettings(
-    insert: LeetCodeChatSettingsInsert,
-  ): Promise<LeetCodeChatSettingsSelect> {
+    insert: lcChatSettingsInsert,
+  ): Promise<lcChatSettingsSelect> {
     const [created] = await this.client
-      .insert(leetCodeChatSettings)
+      .insert(lcChatSettings)
       .values(insert)
       .onConflictDoUpdate({
-        target: [leetCodeChatSettings.tgChatUuid],
+        target: [lcChatSettings.tgChatUuid],
         set: {
           tgChatUuid: insert.tgChatUuid,
         },
@@ -82,13 +82,13 @@ export class TgChatsDao extends PgDao {
   }
 
   async upsertSettings(
-    insert: LeetCodeChatSettingsInsert,
-  ): Promise<LeetCodeChatSettingsSelect> {
+    insert: lcChatSettingsInsert,
+  ): Promise<lcChatSettingsSelect> {
     const [upserted] = await this.client
-      .insert(leetCodeChatSettings)
+      .insert(lcChatSettings)
       .values(insert)
       .onConflictDoUpdate({
-        target: [leetCodeChatSettings.tgChatUuid],
+        target: [lcChatSettings.tgChatUuid],
         set: insert,
       })
       .returning()

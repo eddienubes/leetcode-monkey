@@ -2,9 +2,9 @@ import { createHandler } from '@/bot/handler'
 import { createConversation } from '@grammyjs/conversations'
 import { BotCtx, BotCtxExtra, Convo } from '@/bot/Bot'
 import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
-import { LeetCodeApiClient } from '@/leetcode/LeetCodeApiClient'
+import { LcApiClient } from '@/lc/LcApiClient'
 import { createConvoHelper } from '@/bot/convoHelper'
-import { LeetCodeUsersDao } from '@/leetcode-users/LeetCodeUsersDao'
+import { LcUsersDao } from '@/lc-users/LcUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { TgUsersDao } from '@/tg/TgUsersDao'
@@ -13,8 +13,8 @@ export const connectLcCommand = createHandler(
   async (
     bot,
     convoStorage,
-    lcApi: LeetCodeApiClient,
-    lcUsersDao: LeetCodeUsersDao,
+    lcApi: LcApiClient,
+    lcUsersDao: LcUsersDao,
     tgUsersDao: TgUsersDao,
     tgChatsDao: TgChatsDao,
   ) => {
@@ -24,8 +24,8 @@ export const connectLcCommand = createHandler(
       const helper = await createConvoHelper(convo, convoStorage, ctx)
 
       const message = fmt`
-Let's connect your ${link('LeetCode', 'https://leetcode.com')} account! 👋
-Please send me your ${link('username', 'https://leetcode.com/profile')} or profile URL.
+Let's connect your ${link('lc', 'https://lc.com')} account! 👋
+Please send me your ${link('username', 'https://lc.com/profile')} or profile URL.
     `
       const messagesToDelete: number[] = await convo.external(async () => [
         ctx.message?.message_id!,
@@ -113,8 +113,8 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
           avatarUrl: profile.matchedUser.profile.userAvatar,
         })
 
-        await lcUsersDao.connectLeetCodeUserToUserInChat({
-          leetCodeUserUuid: lcUser.uuid,
+        await lcUsersDao.connectlcUserToUserInChat({
+          lcUserUuid: lcUser.uuid,
           userInChatUuid: extra.userToChat!.uuid,
           isActive: true,
         })
@@ -126,7 +126,7 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
       const name = username || `${firstName} ${lastName}`.trim()
 
       await ctx.replyFmt(
-        fmt`Connected! Now ${bold(profile.matchedUser.profile.realName)} (${mentionUser(name, ctx.message!.from.id)}) will get notifications for their LeetCode submissions. 🎉`,
+        fmt`Connected! Now ${bold(profile.matchedUser.profile.realName)} (${mentionUser(name, ctx.message!.from.id)}) will get notifications for their lc submissions. 🎉`,
       )
     }
 
@@ -150,7 +150,7 @@ export const disconnectLcCommand = createHandler(
     bot,
     convoStorage,
     tgUsersDao: TgUsersDao,
-    lcUsersDao: LeetCodeUsersDao,
+    lcUsersDao: LcUsersDao,
     tgChatsDao: TgChatsDao,
   ) => {
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
@@ -158,7 +158,7 @@ export const disconnectLcCommand = createHandler(
     bot.command(['disconnect', 'signout'], m, async (ctx) => {
       const userToChat = ctx.userToChat!
 
-      await lcUsersDao.disconnectLeetCodeUserFromUserInChat(userToChat.uuid)
+      await lcUsersDao.disconnectlcUserFromUserInChat(userToChat.uuid)
 
       const username = ctx.message?.from?.username || ''
       const firstName = ctx.message?.from?.first_name || ''
@@ -166,7 +166,7 @@ export const disconnectLcCommand = createHandler(
       const name = username || `${firstName} ${lastName}`.trim()
 
       await ctx.replyFmt(
-        fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your LeetCode submissions anymore. 😔`,
+        fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your lc submissions anymore. 😔`,
       )
     })
   },

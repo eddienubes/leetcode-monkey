@@ -70,7 +70,7 @@ export const tgUsers = pgTable('tg_users', {
   ...timestamps,
 })
 
-export const leetCodeUsers = pgTable('leetcode_users', {
+export const lcUsers = pgTable('lc_users', {
   uuid: uuid('uuid').primaryKey().defaultRandom(),
   slug: varchar().notNull().unique(),
   realName: varchar(),
@@ -108,22 +108,22 @@ export const tgUsersToTgChatsRelation = relations(
   }),
 )
 
-export const leetCodeUsersToUsersInChats = pgTable(
-  'leetcode_users_to_users_in_chats',
+export const lcUsersToUsersInChats = pgTable(
+  'lc_users_to_users_in_chats',
   {
     userInChatUuid: uuid('user_in_chat_uuid')
       .notNull()
       .unique()
       .references(() => tgUsersToTgChats.uuid),
-    leetCodeUserUuid: uuid('leetcode_user_uuid')
+    lcUserUuid: uuid('lc_user_uuid')
       .notNull()
-      .references(() => leetCodeUsers.uuid),
+      .references(() => lcUsers.uuid),
     isActive: boolean('is_active').notNull().default(true),
     ...timestamps,
   },
 )
 
-export const leetCodeChatSettings = pgTable('leetcode_chat_settings', {
+export const lcChatSettings = pgTable('lc_chat_settings', {
   tgChatUuid: uuid('tg_chat_uuid')
     .notNull()
     .unique()
@@ -132,27 +132,35 @@ export const leetCodeChatSettings = pgTable('leetcode_chat_settings', {
   ...timestamps,
 })
 
-export const leetCodeUsersToUsersInChatsRelation = relations(
-  leetCodeUsersToUsersInChats,
+export const lcUsersToUsersInChatsRelation = relations(
+  lcUsersToUsersInChats,
   ({ one }) => ({
-    leetCodeUser: one(leetCodeUsers, {
-      fields: [leetCodeUsersToUsersInChats.leetCodeUserUuid],
-      references: [leetCodeUsers.uuid],
+    lcUser: one(lcUsers, {
+      fields: [lcUsersToUsersInChats.lcUserUuid],
+      references: [lcUsers.uuid],
     }),
     userInChat: one(tgUsersToTgChats, {
-      fields: [leetCodeUsersToUsersInChats.userInChatUuid],
+      fields: [lcUsersToUsersInChats.userInChatUuid],
       references: [tgUsersToTgChats.uuid],
     }),
   }),
 )
 
 export const acceptedSubmissions = pgTable('accepted_submissions', {
-  leetcodeUserUuid: uuid('leetcode_user_uuid')
+  lcUserUuid: uuid('lc_user_uuid')
     .notNull()
-    .references(() => leetCodeUsers.uuid),
+    .references(() => lcUsers.uuid),
+  lcProblemUuid: uuid('lc_problem_uuid')
+    .notNull()
+    .references(() => lcProblems.uuid),
+  submittedAt: timestamp('submitted_at').notNull(),
+  ...timestamps,
+})
+
+export const lcProblems = pgTable('lc_problems', {
+  uuid: uuid('uuid').primaryKey().defaultRandom(),
   slug: varchar('slug').notNull().unique(),
   title: varchar().notNull(),
-  leetCodeId: varchar('leetcode_id').notNull(),
-  submittedAt: timestamp('submitted_at').notNull(),
+  lcId: varchar('lc_id').notNull(),
   ...timestamps,
 })

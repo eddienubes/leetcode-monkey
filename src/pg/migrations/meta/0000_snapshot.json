@@ -8,8 +8,8 @@
       "name": "accepted_submissions",
       "schema": "",
       "columns": {
-        "leetcode_user_uuid": {
-          "name": "leetcode_user_uuid",
+        "lc_user_uuid": {
+          "name": "lc_user_uuid",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -26,8 +26,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "leetCodeId": {
-          "name": "leetCodeId",
+        "lcId": {
+          "name": "lcId",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
@@ -49,12 +49,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "accepted_submissions_leetcode_user_uuid_leetcode_users_uuid_fk": {
-          "name": "accepted_submissions_leetcode_user_uuid_leetcode_users_uuid_fk",
+        "accepted_submissions_lc_user_uuid_lc_users_uuid_fk": {
+          "name": "accepted_submissions_lc_user_uuid_lc_users_uuid_fk",
           "tableFrom": "accepted_submissions",
-          "tableTo": "leetcode_users",
+          "tableTo": "lc_users",
           "columnsFrom": [
-            "leetcode_user_uuid"
+            "lc_user_uuid"
           ],
           "columnsTo": [
             "uuid"
@@ -69,8 +69,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.leetcode_user_settings_entries": {
-      "name": "leetcode_user_settings_entries",
+    "public.lc_user_settings_entries": {
+      "name": "lc_user_settings_entries",
       "schema": "",
       "columns": {
         "notificationsEnabled": {
@@ -80,8 +80,8 @@
           "notNull": true,
           "default": false
         },
-        "leetcode_user_uuid": {
-          "name": "leetcode_user_uuid",
+        "lc_user_uuid": {
+          "name": "lc_user_uuid",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -103,12 +103,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "leetcode_user_settings_entries_leetcode_user_uuid_leetcode_users_uuid_fk": {
-          "name": "leetcode_user_settings_entries_leetcode_user_uuid_leetcode_users_uuid_fk",
-          "tableFrom": "leetcode_user_settings_entries",
-          "tableTo": "leetcode_users",
+        "lc_user_settings_entries_lc_user_uuid_lc_users_uuid_fk": {
+          "name": "lc_user_settings_entries_lc_user_uuid_lc_users_uuid_fk",
+          "tableFrom": "lc_user_settings_entries",
+          "tableTo": "lc_users",
           "columnsFrom": [
-            "leetcode_user_uuid"
+            "lc_user_uuid"
           ],
           "columnsTo": [
             "uuid"
@@ -123,8 +123,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.leetcode_users": {
-      "name": "leetcode_users",
+    "public.lc_users": {
+      "name": "lc_users",
       "schema": "",
       "columns": {
         "uuid": {
@@ -171,8 +171,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "leetcode_users_slug_unique": {
-          "name": "leetcode_users_slug_unique",
+        "lc_users_slug_unique": {
+          "name": "lc_users_slug_unique",
           "nullsNotDistinct": false,
           "columns": [
             "slug"
@@ -183,12 +183,12 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.leetcode_users_to_tg_chats": {
-      "name": "leetcode_users_to_tg_chats",
+    "public.lc_users_to_tg_chats": {
+      "name": "lc_users_to_tg_chats",
       "schema": "",
       "columns": {
-        "leetcode_user_uuid": {
-          "name": "leetcode_user_uuid",
+        "lc_user_uuid": {
+          "name": "lc_user_uuid",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -223,12 +223,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "leetcode_users_to_tg_chats_leetcode_user_uuid_leetcode_users_uuid_fk": {
-          "name": "leetcode_users_to_tg_chats_leetcode_user_uuid_leetcode_users_uuid_fk",
-          "tableFrom": "leetcode_users_to_tg_chats",
-          "tableTo": "leetcode_users",
+        "lc_users_to_tg_chats_lc_user_uuid_lc_users_uuid_fk": {
+          "name": "lc_users_to_tg_chats_lc_user_uuid_lc_users_uuid_fk",
+          "tableFrom": "lc_users_to_tg_chats",
+          "tableTo": "lc_users",
           "columnsFrom": [
-            "leetcode_user_uuid"
+            "lc_user_uuid"
           ],
           "columnsTo": [
             "uuid"
@@ -236,9 +236,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "leetcode_users_to_tg_chats_tg_chat_uuid_tg_chats_uuid_fk": {
-          "name": "leetcode_users_to_tg_chats_tg_chat_uuid_tg_chats_uuid_fk",
-          "tableFrom": "leetcode_users_to_tg_chats",
+        "lc_users_to_tg_chats_tg_chat_uuid_tg_chats_uuid_fk": {
+          "name": "lc_users_to_tg_chats_tg_chat_uuid_tg_chats_uuid_fk",
+          "tableFrom": "lc_users_to_tg_chats",
           "tableTo": "tg_chats",
           "columnsFrom": [
             "tg_chat_uuid"
@@ -252,11 +252,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "leetcode_users_to_tg_chats_leetcode_user_uuid_tg_chat_uuid_unique": {
-          "name": "leetcode_users_to_tg_chats_leetcode_user_uuid_tg_chat_uuid_unique",
+        "lc_users_to_tg_chats_lc_user_uuid_tg_chat_uuid_unique": {
+          "name": "lc_users_to_tg_chats_lc_user_uuid_tg_chat_uuid_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "leetcode_user_uuid",
+            "lc_user_uuid",
             "tg_chat_uuid"
           ]
         }

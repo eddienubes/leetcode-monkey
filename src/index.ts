@@ -1,13 +1,14 @@
 import { Bot } from '@/bot/Bot'
 import { cbQueryEvent, myChatMemberEvent } from '@/bot/events'
 import { PgService } from '@/pg/PgService'
-import { LeetCodeUsersDao } from '@/leetcode-users/LeetCodeUsersDao'
+import { LcUsersDao } from '@/lc-users/LcUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
 import { connectLcCommand, disconnectLcCommand } from '@/bot/commands'
-import { LeetCodeApiClient } from '@/leetcode/LeetCodeApiClient'
+import { LcApiClient } from '@/lc/LcApiClient'
 import { createRamConvoStorage } from '@/bot/ramConvoStorage'
 import { TgUsersDao } from '@/tg/TgUsersDao'
-import { LeetCodeCronJob } from "@/leetcode/LeetCodeCronJob";
+import { LcPullSubmissionsCronJob } from '@/lc/LcPullSubmissionsCronJob'
+import { TgSubmissionsNotifier } from '@/lc/TgSubmissionsNotifier'
 
 export const main = async (): Promise<void> => {
   const convoStorage = createRamConvoStorage()
@@ -15,10 +16,15 @@ export const main = async (): Promise<void> => {
   const tgBot = bot.getBot()
   const pgService = new PgService()
   const tgUsersDao = new TgUsersDao(pgService)
-  const lcUsersDao = new LeetCodeUsersDao(pgService)
+  const lcUsersDao = new LcUsersDao(pgService)
   const tgChatsDao = new TgChatsDao(pgService)
-  const lcApi = new LeetCodeApiClient()
-  const lcCronJob = new LeetCodeCronJob(lcUsersDao, lcApi)
+  const lcApi = new LcApiClient()
+  const tgSubmissionsNotifier = new TgSubmissionsNotifier(tgBot)
+  const lcCronJob = new LcPullSubmissionsCronJob(
+    lcUsersDao,
+    lcApi,
+    tgSubmissionsNotifier,
+  )
 
   const instances = [
     bot,
@@ -29,26 +35,20 @@ export const main = async (): Promise<void> => {
     lcApi,
     tgChatsDao,
     tgUsersDao,
-    lcCronJob
+    lcCronJob,
+    tgSubmissionsNotifier,
   ]
 
-  await myChatMemberEvent(tgBot, convoStorage, tgChatsDao)
-  await connectLcCommand(
-    tgBot,
+  const inject = {
+    bot: tgBot,
     convoStorage,
-    lcApi,
-    lcUsersDao,
-    tgUsersDao,
-    tgChatsDao,
-  )
-  await disconnectLcCommand(
-    tgBot,
-    convoStorage,
-    tgUsersDao,
-    lcUsersDao,
-    tgChatsDao,
-  )
-  await cbQueryEvent(tgBot, convoStorage)
+    pgService,
+  }
+
+  await myChatMemberEvent(inject, tgChatsDao)
+  await connectLcCommand(inject, lcApi, lcUsersDao, tgUsersDao, tgChatsDao)
+  await disconnectLcCommand(inject, tgUsersDao, lcUsersDao, tgChatsDao)
+  await cbQueryEvent(inject)
 
   for (const instance of instances) {
     if ('onModuleInit' in instance) {
