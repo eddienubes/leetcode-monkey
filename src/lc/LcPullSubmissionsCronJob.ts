@@ -2,7 +2,7 @@ import { LcUsersDao } from '@/lc-users/LcUsersDao'
 import { LcApiClient } from '@/lc/LcApiClient'
 import { config } from '@/config'
 import { Job, Queue, Worker } from 'bullmq'
-import { sleepForRandomMs } from '@/common/utils'
+import { sleepForRandomMs, unixTimestampToDate } from '@/common/utils'
 import { LcSaveSubmissionsWorker } from '@/lc/LcSaveSubmissionsWorker'
 
 export class LcPullSubmissionsCronJob {
@@ -35,14 +35,33 @@ export class LcPullSubmissionsCronJob {
     for (const lcUser of lcUsers) {
       console.log('processing', lcUser.lc_users.slug)
 
+      const latestSubmission = await this.lcUsersDao.getLatestSubmission(
+        lcUser.lc_users.uuid,
+      )
+
+      console.log(latestSubmission?.submittedAt)
+
       const ss = await this.lcApi.getAcceptedSubmissions(lcUser.lc_users.slug)
 
       console.log(
-        `Got ${ss.recentAcSubmissionList.length} submissions for ${lcUser.lc_users.slug}`,
+        ss.recentAcSubmissionList.length,
+        ss.recentAcSubmissionList[0].titleSlug,
+        unixTimestampToDate(ss.recentAcSubmissionList[0].timestamp),
+      )
+
+      const newSubmissions = ss.recentAcSubmissionList.filter(
+        (s) =>
+          // no latest submission or the submission is newer than the latest submission
+          !latestSubmission ||
+          unixTimestampToDate(s.timestamp) > latestSubmission.submittedAt,
+      )
+
+      console.log(
+        `Got ${newSubmissions.length} new submissions for ${lcUser.lc_users.slug}`,
       )
 
       await this.lcSaveSubmissionsWorker.add(
-        ss.recentAcSubmissionList.map((s) => ({
+        newSubmissions.map((s) => ({
           lcUser: lcUser.lc_users,
           lcUserInChat: lcUser.lc_users_to_users_in_chats,
           lcChatSettings: lcUser.lc_chat_settings,
@@ -53,7 +72,6 @@ export class LcPullSubmissionsCronJob {
       )
 
       await sleepForRandomMs(1000, 3000)
-
 
       // const newSubmissions = submissions.filter((s) => s.isCreated)
 

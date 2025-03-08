@@ -22,5 +22,5 @@ describe('lc Api Client', () => {
       const problem = await lc.getProblem('two-sum')
       console.log(problem)
     })
-  });
+  })
 })

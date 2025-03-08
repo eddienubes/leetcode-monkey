@@ -1,5 +1,6 @@
 import { createHandler } from '@/bot/handler'
 import { TgChatsDao } from '@/tg/TgChatsDao'
+import { TgMemberStatus } from '@/bot/types'
 
 export const myChatMemberEvent = createHandler(
   async (bot, convoStorage, tgChatDao: TgChatsDao) => {
@@ -23,10 +24,25 @@ export const myChatMemberEvent = createHandler(
         isForum: chat.is_forum,
       })
 
-      await tgChatDao.createSettings({
-        tgChatUuid: tgChat.uuid,
-        isActive: true,
-      })
+      const positiveStatuses: TgMemberStatus[] = [
+        'administrator',
+        'member',
+        'creator',
+      ]
+
+      if (positiveStatuses.includes(update.new_chat_member.status)) {
+        await tgChatDao.upsertSettings({
+          tgChatUuid: tgChat.uuid,
+          isActive: true,
+          isActiveToggledAt: new Date(),
+        })
+      } else {
+        await tgChatDao.upsertSettings({
+          tgChatUuid: tgChat.uuid,
+          isActive: false,
+          isActiveToggledAt: new Date(),
+        })
+      }
 
       ctx.tgChat = tgChat
 

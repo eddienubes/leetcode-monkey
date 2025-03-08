@@ -117,6 +117,7 @@ export const lcUsersToUsersInChats = pgTable('lc_users_to_users_in_chats', {
     .notNull()
     .references(() => lcUsers.uuid),
   isActive: boolean('is_active').notNull().default(true),
+  isActiveToggledAt: timestamp('is_active_toggled_at').notNull(),
   ...timestamps,
 })
 
@@ -126,6 +127,7 @@ export const lcChatSettings = pgTable('lc_chat_settings', {
     .unique()
     .references(() => tgChats.uuid),
   isActive: boolean('is_active').notNull().default(true),
+  isActiveToggledAt: timestamp('is_active_toggled_at').notNull(),
   ...timestamps,
 })
 
@@ -143,26 +145,25 @@ export const lcUsersToUsersInChatsRelation = relations(
   }),
 )
 
-export const acceptedSubmissions = pgTable(
-  'accepted_submissions',
-  {
-    lcUserUuid: uuid('lc_user_uuid')
-      .notNull()
-      .references(() => lcUsers.uuid),
-    lcProblemUuid: uuid('lc_problem_uuid')
-      .notNull()
-      .references(() => lcProblems.uuid),
-    submittedAt: timestamp('submitted_at').notNull(),
-    ...timestamps,
-  },
-  (t) => [unique().on(t.lcUserUuid, t.lcProblemUuid)],
-)
+export const acceptedSubmissions = pgTable('accepted_submissions', {
+  lcUserUuid: uuid('lc_user_uuid')
+    .notNull()
+    .references(() => lcUsers.uuid),
+  lcProblemUuid: uuid('lc_problem_uuid')
+    .notNull()
+    .references(() => lcProblems.uuid),
+  submittedAt: timestamp('submitted_at').notNull().unique(),
+  ...timestamps,
+})
+
+export type LcProblemDifficulty = 'easy' | 'medium' | 'hard'
 
 export const lcProblems = pgTable('lc_problems', {
   uuid: uuid('uuid').primaryKey().defaultRandom(),
   slug: varchar('slug').notNull().unique(),
   title: varchar().notNull(),
-  difficulty: varchar().notNull().$type<'easy' | 'medium' | 'hard'>(),
+  difficulty: varchar().notNull().$type<LcProblemDifficulty>(),
   lcId: varchar('lc_id').notNull(),
+  topics: varchar('topics').array().notNull().default([]),
   ...timestamps,
 })

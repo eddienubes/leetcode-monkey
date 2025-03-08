@@ -10,6 +10,7 @@ CREATE TABLE "accepted_submissions" (
 CREATE TABLE "lc_chat_settings" (
 	"tg_chat_uuid" uuid NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
+	"is_active_toggled_at" timestamp NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "lc_chat_settings_tg_chat_uuid_unique" UNIQUE("tg_chat_uuid")
@@ -40,6 +41,7 @@ CREATE TABLE "lc_users_to_users_in_chats" (
 	"user_in_chat_uuid" uuid NOT NULL,
 	"lc_user_uuid" uuid NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
+	"is_active_toggled_at" timestamp NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "lc_users_to_users_in_chats_user_in_chat_uuid_unique" UNIQUE("user_in_chat_uuid")

@@ -1,9 +1,6 @@
+import { LcUserSelect, LcUserToUserInChatSelect } from '@/lc-users/LcUsersDao'
 import {
-  LcUserSelect,
-  LcUserToUserInChatSelect,
-} from '@/lc-users/LcUsersDao'
-import {
-  lcChatSettingsSelect,
+  LcChatSettingsSelect,
   TgChatSelect,
   TgUsersToTgChatsSelect,
 } from '@/tg/TgChatsDao'
@@ -15,5 +12,5 @@ export interface GetAllActiveLcChatUsersHit {
   tg_users_to_tg_chats: TgUsersToTgChatsSelect
   tg_users: TgUserSelect
   tg_chats: TgChatSelect
-  lc_chat_settings: lcChatSettingsSelect
+  lc_chat_settings: LcChatSettingsSelect
 }

@@ -4,7 +4,9 @@ import {
   SubmissionSelect,
 } from '@/lc-users/LcUsersDao'
 import { TgUserSelect } from '@/tg/TgUsersDao'
-import { lcChatSettingsSelect, TgChatSelect } from '@/tg/TgChatsDao'
+import { LcChatSettingsSelect, TgChatSelect } from '@/tg/TgChatsDao'
+import { LcProblemSelect } from '@/lc/LcProblemsDao'
+import { ToJsonType } from '@/common/types'
 
 export interface LcRecentAcceptedSubmissions {
   recentAcSubmissionList: {
@@ -15,22 +17,21 @@ export interface LcRecentAcceptedSubmissions {
   }[]
 }
 
-export interface TgSubmissionNotifyJob {
+export type TgSubmissionNotifyJob = ToJsonType<{
   submission: SubmissionSelect
   tgUser: TgUserSelect
   tgChat: TgChatSelect
   lcUser: LcUserSelect
   lcUserInChat: LcUserToUserInChatSelect
-  lcChatSettings: lcChatSettingsSelect
-}
+  lcChatSettings: LcChatSettingsSelect
+  lcProblem: LcProblemSelect
+}>
 
 export interface LcSaveSubmissionJob {
-  entries: {
-    submission: LcRecentAcceptedSubmissions['recentAcSubmissionList'][number]
-    tgUser: TgUserSelect
-    tgChat: TgChatSelect
-    lcUser: LcUserSelect
-    lcUserInChat: LcUserToUserInChatSelect
-    lcChatSettings: lcChatSettingsSelect
-  }[]
+  submission: LcRecentAcceptedSubmissions['recentAcSubmissionList'][number]
+  tgUser: TgUserSelect
+  tgChat: TgChatSelect
+  lcUser: LcUserSelect
+  lcUserInChat: LcUserToUserInChatSelect
+  lcChatSettings: LcChatSettingsSelect
 }

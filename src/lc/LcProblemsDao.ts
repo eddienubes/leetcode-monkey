@@ -1,5 +1,5 @@
 import { PgDao } from '@/pg/PgDao'
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm'
+import { eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
 import { PgService } from '@/pg/PgService'
 import { lcProblems } from '@/pg/schema'
 
@@ -34,5 +34,12 @@ export class LcProblemsDao extends PgDao {
       })
       .returning()
     return upserted
+  }
+
+  async getBySlug(slug: string): Promise<LcProblemSelect | null> {
+    const hit = await this.client.query.lcProblems.findFirst({
+      where: eq(lcProblems.slug, slug),
+    })
+    return hit || null
   }
 }

@@ -14,9 +14,9 @@ export default defineConfig({
 
     poolOptions: {
       forks: {
-        execArgv: ['--env-file=.env']
-      }
-    }
+        execArgv: ['--env-file=.env'],
+      },
+    },
   },
   plugins: [tsconfigPaths()],
 })

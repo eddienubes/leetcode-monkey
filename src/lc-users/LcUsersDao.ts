@@ -1,16 +1,5 @@
 import { PgDao } from '@/pg/PgDao'
-import {
-  and,
-  desc,
-  eq,
-  getTableColumns,
-  inArray,
-  InferInsertModel,
-  InferSelectModel,
-  ne,
-  not,
-  sql,
-} from 'drizzle-orm'
+import { desc, eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
 import {
   acceptedSubmissions,
   lcChatSettings,
@@ -22,7 +11,6 @@ import {
 } from '@/pg/schema'
 import { PgService } from '@/pg/PgService'
 import { TgUsersToTgChatsSelect } from '@/tg/TgChatsDao'
-import { LcApiClient } from '@/lc/LcApiClient'
 import { GetAllActiveLcChatUsersHit } from '@/lc-users/types'
 
 export type LcUserSelect = InferSelectModel<typeof lcUsers>
@@ -125,38 +113,36 @@ export class LcUsersDao extends PgDao {
   async addSubmissions(
     submissions: SubmissionInsert[],
   ): Promise<SubmissionSelect[]> {
+    if (!submissions.length) {
+      return []
+    }
+
     const ss = await this.client
       .insert(acceptedSubmissions)
       .values(submissions)
       .onConflictDoUpdate({
         target: [
-          acceptedSubmissions.lcUserUuid,
-          acceptedSubmissions.lcProblemUuid,
+          acceptedSubmissions.submittedAt,
         ],
         set: {
           updatedAt: new Date(),
         },
       })
+      .returning()
 
     return ss
   }
 
-  async getSubmissionsBySlugs(
+  async getLatestSubmission(
     lcUserUuid: string,
-    slugs: string[],
-  ): Promise<SubmissionSelect[]> {
+  ): Promise<SubmissionSelect | null> {
     const ss = await this.client
       .select()
       .from(acceptedSubmissions)
-      .where(
-        and(
-          eq(acceptedSubmissions.lcUserUuid, lcUserUuid),
-          inArray(acceptedSubmissions.slug, slugs),
-        ),
-      )
-      .orderBy(desc(acceptedSubmissions.createdAt))
-      .limit(LcApiClient.MAX_RECENT_SUBMISSIONS)
+      .where(eq(acceptedSubmissions.lcUserUuid, lcUserUuid))
+      .orderBy(desc(acceptedSubmissions.submittedAt))
+      .limit(1)
 
-    return ss
+    return ss[0] || null
   }
 }

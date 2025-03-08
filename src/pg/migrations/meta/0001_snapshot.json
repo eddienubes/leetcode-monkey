@@ -1,6 +1,6 @@
 {
-  "id": "8b238e72-08de-4bd4-aff1-a0e5ddf61687",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "fd495291-5db4-4f4e-95da-efd91003a7fb",
+  "prevId": "8b238e72-08de-4bd4-aff1-a0e5ddf61687",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -72,12 +72,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "accepted_submissions_lc_user_uuid_lc_problem_uuid_unique": {
-          "name": "accepted_submissions_lc_user_uuid_lc_problem_uuid_unique",
+        "accepted_submissions_submitted_at_unique": {
+          "name": "accepted_submissions_submitted_at_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "lc_user_uuid",
-            "lc_problem_uuid"
+            "submitted_at"
           ]
         }
       },

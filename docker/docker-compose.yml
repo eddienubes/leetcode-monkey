@@ -33,7 +33,7 @@ services:
     container_name: lm-bullboard
     restart: no
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       REDIS_HOST: lm-redis
       REDIS_PORT: 6379

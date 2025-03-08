@@ -8,6 +8,16 @@ export class LcApiClient {
   private readonly client = new ApolloClient({
     uri: 'https://leetcode.com/graphql',
     cache: new InMemoryCache(),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: 'no-cache',
+        errorPolicy: 'all'
+      },
+      query: {
+        fetchPolicy: 'no-cache',
+        errorPolicy: 'all'
+      }
+    }
   })
   private readonly leetcode = new LeetCode()
 

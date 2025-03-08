@@ -8,12 +8,8 @@ export type TgChatSelect = InferSelectModel<typeof tgChats>
 export type TgChatInsert = InferInsertModel<typeof tgChats>
 export type TgUsersToTgChatsSelect = InferSelectModel<typeof tgUsersToTgChats>
 export type TgUsersToTgChatsInsert = InferInsertModel<typeof tgUsersToTgChats>
-export type lcChatSettingsInsert = InferInsertModel<
-  typeof lcChatSettings
->
-export type lcChatSettingsSelect = InferSelectModel<
-  typeof lcChatSettings
->
+export type LcChatSettingsInsert = InferInsertModel<typeof lcChatSettings>
+export type LcChatSettingsSelect = InferSelectModel<typeof lcChatSettings>
 
 export class TgChatsDao extends PgDao {
   constructor(pgService: PgService) {
@@ -65,25 +61,9 @@ export class TgChatsDao extends PgDao {
     return hit
   }
 
-  async createSettings(
-    insert: lcChatSettingsInsert,
-  ): Promise<lcChatSettingsSelect> {
-    const [created] = await this.client
-      .insert(lcChatSettings)
-      .values(insert)
-      .onConflictDoUpdate({
-        target: [lcChatSettings.tgChatUuid],
-        set: {
-          tgChatUuid: insert.tgChatUuid,
-        },
-      })
-      .returning()
-    return created
-  }
-
   async upsertSettings(
-    insert: lcChatSettingsInsert,
-  ): Promise<lcChatSettingsSelect> {
+    insert: LcChatSettingsInsert,
+  ): Promise<LcChatSettingsSelect> {
     const [upserted] = await this.client
       .insert(lcChatSettings)
       .values(insert)

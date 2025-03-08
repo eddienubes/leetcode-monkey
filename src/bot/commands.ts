@@ -24,7 +24,7 @@ export const connectLcCommand = createHandler(
       const helper = await createConvoHelper(convo, convoStorage, ctx)
 
       const message = fmt`
-Let's connect your ${link('lc', 'https://lc.com')} account! 👋
+Let's connect your ${link('LeetCode', 'https://lc.com')} account! 👋
 Please send me your ${link('username', 'https://lc.com/profile')} or profile URL.
     `
       const messagesToDelete: number[] = await convo.external(async () => [
@@ -84,11 +84,15 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
             userSlug = text
           }
 
-          const submissions = await lcApi.getProfile(userSlug)
+          const profile = await lcApi.getProfile(userSlug)
+
+          if (!profile.matchedUser) {
+            return null
+          }
 
           messagesToDelete.push(ctx.message.message_id)
 
-          return submissions
+          return profile
         },
         catch: async (ctx) => {
           await ctx.react('👎')
@@ -108,15 +112,16 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
 
       await convo.external(async () => {
         const lcUser = await lcUsersDao.upsert({
-          slug: profile.matchedUser.username,
-          realName: profile.matchedUser.profile.realName,
-          avatarUrl: profile.matchedUser.profile.userAvatar,
+          slug: profile.matchedUser?.username!,
+          realName: profile.matchedUser?.profile.realName,
+          avatarUrl: profile.matchedUser?.profile.userAvatar,
         })
 
         await lcUsersDao.connectlcUserToUserInChat({
           lcUserUuid: lcUser.uuid,
           userInChatUuid: extra.userToChat!.uuid,
           isActive: true,
+          isActiveToggledAt: new Date(),
         })
       })
 
@@ -126,7 +131,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
       const name = username || `${firstName} ${lastName}`.trim()
 
       await ctx.replyFmt(
-        fmt`Connected! Now ${bold(profile.matchedUser.profile.realName)} (${mentionUser(name, ctx.message!.from.id)}) will get notifications for their lc submissions. 🎉`,
+        fmt`Connected! Now ${bold(profile.matchedUser?.profile.realName!)} (${mentionUser(name, ctx.message!.from.id)}) will get notifications for their LeetCode submissions. 🎉`,
       )
     }
 
