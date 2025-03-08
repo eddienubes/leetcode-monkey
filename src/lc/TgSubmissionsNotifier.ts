@@ -24,6 +24,10 @@ export class TgSubmissionsNotifier {
   constructor(private readonly bot: Bot<BotCtx>) {}
 
   async add(job: TgSubmissionNotifyJob[]): Promise<void> {
+    if (!job.length) {
+      return
+    }
+
     await this.queue.addBulk(
       job.map((j) => ({
         name: `${j.lcUser.slug}:${j.submission.slug}`,

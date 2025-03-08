@@ -4,9 +4,10 @@ import { config } from '@/config'
 import { Job, Queue, Worker } from 'bullmq'
 import { sleepForRandomMs } from '@/common/utils'
 import { TgSubmissionsNotifier } from '@/lc/TgSubmissionsNotifier'
+import { LcSaveSubmissionJob } from '@/lc/types/types'
 
 export class LcSaveSubmissionsWorker {
-  private readonly queueName = 'lc-save-submissions-cron'
+  private readonly queueName = 'lc-save-submissions'
   private readonly queue = new Queue(this.queueName, {
     connection: {
       host: config.redis.host,
@@ -26,45 +27,30 @@ export class LcSaveSubmissionsWorker {
     private readonly tgSubmissionsNotifier: TgSubmissionsNotifier,
   ) {}
 
-  async run(job: Job) {
-    console.log('Running job', job.id)
+  async add(jobs: LcSaveSubmissionJob[]): Promise<void> {
+    await this.queue.addBulk(
+      jobs.map((job) => ({
+        name: `${job.lcUser.slug}-${job.submission.id}`,
+        data: job,
+        opts: {
+          // removeOnComplete: true,
+          // removeOnFail: true,
+        },
+      })),
+    )
+  }
 
-    const lcUsers = await this.lcUsersDao.getAllActivelcChatUsers()
-    console.log('processing', lcUsers.length, 'users')
-
-    for (const lcUser of lcUsers) {
-      console.log('processing', lcUser.lc_users.slug)
-
-      const ss = await this.lcApi.getAcceptedSubmissions(
-        lcUser.lc_users.slug,
-      )
-
-      const submissions = await this.lcUsersDao.addSubmissions(
-        ss.recentAcSubmissionList.map((s) => ({
-          lcUserUuid: lcUser.lc_users.uuid,
-          slug: s.titleSlug,
-          title: s.title,
-          lcId: s.id,
-          // s.timestamp is unix in seconds
-          submittedAt: new Date(parseInt(s.timestamp, 10) * 1000),
-        })),
-      )
-
-      const newSubmissions = submissions.filter((s) => s.isCreated)
-
-      await this.tgSubmissionsNotifier.add(
-        newSubmissions.map((s) => ({
-          tgUser: lcUser.tg_users,
-          tgChat: lcUser.tg_chats,
-          lcUser: lcUser.lc_users,
-          lcUserInChat: lcUser.lc_users_to_users_in_chats,
-          lcChatSettings: lcUser.lc_chat_settings,
-          submission: s,
-        })),
-      )
-
-      await sleepForRandomMs(1000, 3000)
-    }
+  async run(job: Job<LcSaveSubmissionJob>) {
+    const submissions = await this.lcUsersDao.addSubmissions(
+      ss.recentAcSubmissionList.map((s) => ({
+        lcUserUuid: lcUser.lc_users.uuid,
+        // slug: s.titleSlug,
+        // title: s.title,
+        // lcId: s.id,
+        // // s.timestamp is unix in seconds
+        // submittedAt: new Date(parseInt(s.timestamp, 10) * 1000),
+      })),
+    )
   }
 
   async onModuleInit(): Promise<void> {

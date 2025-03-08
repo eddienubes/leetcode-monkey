@@ -6,7 +6,7 @@ describe('lc Api Client', () => {
   describe('getProfile', () => {
     it('should get profile', async () => {
       const profile = await lc.getProfile('eddienubes')
-      console.log(profile.matchedUser.profile.userAvatar)
+      console.log(profile.matchedUser?.profile.userAvatar)
     })
   })
 

@@ -3,7 +3,7 @@ import { LcApiClient } from '@/lc/LcApiClient'
 import { config } from '@/config'
 import { Job, Queue, Worker } from 'bullmq'
 import { sleepForRandomMs } from '@/common/utils'
-import { TgSubmissionsNotifier } from '@/lc/TgSubmissionsNotifier'
+import { LcSaveSubmissionsWorker } from '@/lc/LcSaveSubmissionsWorker'
 
 export class LcPullSubmissionsCronJob {
   private readonly queueName = 'lc-pull-submissions-cron'
@@ -23,47 +23,50 @@ export class LcPullSubmissionsCronJob {
   constructor(
     private readonly lcUsersDao: LcUsersDao,
     private readonly lcApi: LcApiClient,
-    private readonly tgSubmissionsNotifier: TgSubmissionsNotifier,
+    private readonly lcSaveSubmissionsWorker: LcSaveSubmissionsWorker,
   ) {}
 
   async run(job: Job) {
     console.log('Running job', job.id)
 
-    const lcUsers = await this.lcUsersDao.getAllActivelcChatUsers()
+    const lcUsers = await this.lcUsersDao.getAllActiveLcChatUsers()
     console.log('processing', lcUsers.length, 'users')
 
     for (const lcUser of lcUsers) {
       console.log('processing', lcUser.lc_users.slug)
 
-      const ss = await this.lcApi.getAcceptedSubmissions(
-        lcUser.lc_users.slug,
+      const ss = await this.lcApi.getAcceptedSubmissions(lcUser.lc_users.slug)
+
+      console.log(
+        `Got ${ss.recentAcSubmissionList.length} submissions for ${lcUser.lc_users.slug}`,
       )
 
-      const submissions = await this.lcUsersDao.addSubmissions(
+      await this.lcSaveSubmissionsWorker.add(
         ss.recentAcSubmissionList.map((s) => ({
-          lcUserUuid: lcUser.lc_users.uuid,
-          slug: s.titleSlug,
-          title: s.title,
-          lcId: s.id,
-          // s.timestamp is unix in seconds
-          submittedAt: new Date(parseInt(s.timestamp, 10) * 1000),
-        })),
-      )
-
-      const newSubmissions = submissions.filter((s) => s.isCreated)
-
-      await this.tgSubmissionsNotifier.add(
-        newSubmissions.map((s) => ({
-          tgUser: lcUser.tg_users,
-          tgChat: lcUser.tg_chats,
           lcUser: lcUser.lc_users,
           lcUserInChat: lcUser.lc_users_to_users_in_chats,
           lcChatSettings: lcUser.lc_chat_settings,
           submission: s,
+          tgUser: lcUser.tg_users,
+          tgChat: lcUser.tg_chats,
         })),
       )
 
       await sleepForRandomMs(1000, 3000)
+
+
+      // const newSubmissions = submissions.filter((s) => s.isCreated)
+
+      // await this.tgSubmissionsNotifier.add(
+      //   newSubmissions.map((s) => ({
+      //     tgUser: lcUser.tg_users,
+      //     tgChat: lcUser.tg_chats,
+      //     lcUser: lcUser.lc_users,
+      //     lcUserInChat: lcUser.lc_users_to_users_in_chats,
+      //     lcChatSettings: lcUser.lc_chat_settings,
+      //     submission: s,
+      //   })),
+      // )
     }
   }
 

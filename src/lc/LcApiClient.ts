@@ -1,27 +1,20 @@
-import { ApolloClient, gql, InMemoryCache } from '@apollo/client/core'
-import { lc_QUERIES } from './queries/lc'
-import {
-  LcProblemDetails,
-  lcRecentAcceptedSubmissions,
-  lcUserProfile,
-} from '@/lc/types/types'
+import { ApolloClient, InMemoryCache } from '@apollo/client/core'
+import { LC_QUERIES } from './queries/lc'
+import { LcRecentAcceptedSubmissions } from '@/lc/types/types'
+import { Problem, UserProfile, LeetCode } from 'leetcode-query'
 
 export class LcApiClient {
   static MAX_RECENT_SUBMISSIONS = 20
   private readonly client = new ApolloClient({
-    uri: 'https://lc.com/graphql',
+    uri: 'https://leetcode.com/graphql',
     cache: new InMemoryCache(),
   })
+  private readonly leetcode = new LeetCode()
 
-  async getProfile(userSlug: string): Promise<lcUserProfile> {
-    const results = await this.client.query({
-      query: lc_QUERIES.profile,
-      variables: {
-        username: userSlug,
-      },
-    })
+  async getProfile(userSlug: string): Promise<UserProfile> {
+    const hit = await this.leetcode.user(userSlug)
 
-    return results.data
+    return hit
   }
 
   /**
@@ -29,9 +22,9 @@ export class LcApiClient {
    */
   async getAcceptedSubmissions(
     userSlug: string,
-  ): Promise<lcRecentAcceptedSubmissions> {
+  ): Promise<LcRecentAcceptedSubmissions> {
     const results = await this.client.query({
-      query: lc_QUERIES.acceptedSubmissions,
+      query: LC_QUERIES.acceptedSubmissions,
       variables: {
         username: userSlug,
       },
@@ -40,14 +33,8 @@ export class LcApiClient {
     return results.data
   }
 
-  async getProblem(slug: string): Promise<LcProblemDetails> {
-    const results = await this.client.query({
-      query: lc_QUERIES.problem,
-      variables: {
-        titleSlug: slug,
-      },
-    })
-
-    return results.data
+  async getProblem(slug: string): Promise<Problem> {
+    const hit = await this.leetcode.problem(slug)
+    return hit
   }
 }

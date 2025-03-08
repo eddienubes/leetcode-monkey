@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1740692509578,
-      "tag": "0000_perpetual_loki",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1740694107663,
-      "tag": "0001_amazing_mother_askani",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1740694983040,
-      "tag": "0002_cuddly_landau",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1741040174170,
-      "tag": "0003_busy_lady_deathstrike",
+      "when": 1741465153846,
+      "tag": "0000_white_living_tribunal",
       "breakpoints": true
     }
   ]

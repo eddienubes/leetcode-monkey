@@ -23,7 +23,7 @@ import {
 import { PgService } from '@/pg/PgService'
 import { TgUsersToTgChatsSelect } from '@/tg/TgChatsDao'
 import { LcApiClient } from '@/lc/LcApiClient'
-import { GetAllActivelcChatUsersHit } from '@/lc-users/types'
+import { GetAllActiveLcChatUsersHit } from '@/lc-users/types'
 
 export type LcUserSelect = InferSelectModel<typeof lcUsers>
 export type LcUserInsert = InferInsertModel<typeof lcUsers>
@@ -47,18 +47,12 @@ export class LcUsersDao extends PgDao {
   }
 
   async create(user: LcUserInsert): Promise<LcUserSelect> {
-    const [created] = await this.client
-      .insert(lcUsers)
-      .values(user)
-      .returning()
+    const [created] = await this.client.insert(lcUsers).values(user).returning()
     return created
   }
 
   async update(user: LcUserInsert): Promise<LcUserSelect> {
-    const [updated] = await this.client
-      .update(lcUsers)
-      .set(user)
-      .returning()
+    const [updated] = await this.client.update(lcUsers).set(user).returning()
     return updated
   }
 
@@ -74,25 +68,30 @@ export class LcUsersDao extends PgDao {
     return upserted
   }
 
-  async getAllActivelcChatUsers(): Promise<
-    GetAllActivelcChatUsersHit[]
-  > {
+  async getAllActiveLcChatUsers(): Promise<GetAllActiveLcChatUsersHit[]> {
+    const latestSubmission = this.client
+      .selectDistinctOn([acceptedSubmissions.lcUserUuid])
+      .from(acceptedSubmissions)
+      .orderBy(
+        acceptedSubmissions.lcUserUuid,
+        desc(acceptedSubmissions.submittedAt),
+      )
+      .as('latest_submission')
+
     const hits = this.client
       .select()
       .from(lcUsersToUsersInChats)
-      .innerJoin(
-        lcUsers,
-        eq(lcUsersToUsersInChats.lcUserUuid, lcUsers.uuid),
-      )
+      .innerJoin(lcUsers, eq(lcUsersToUsersInChats.lcUserUuid, lcUsers.uuid))
       .innerJoin(
         tgUsersToTgChats,
         eq(lcUsersToUsersInChats.userInChatUuid, tgUsersToTgChats.uuid),
       )
       .innerJoin(tgUsers, eq(tgUsersToTgChats.tgUserUuid, tgUsers.uuid))
       .innerJoin(tgChats, eq(tgUsersToTgChats.tgChatUuid, tgChats.uuid))
-      .innerJoin(
-        lcChatSettings,
-        eq(lcChatSettings.tgChatUuid, tgChats.uuid),
+      .innerJoin(lcChatSettings, eq(lcChatSettings.tgChatUuid, tgChats.uuid))
+      .leftJoin(
+        latestSubmission,
+        eq(lcUsersToUsersInChats.lcUserUuid, latestSubmission.lcUserUuid),
       )
       .where(eq(lcUsersToUsersInChats.isActive, true))
 
@@ -114,9 +113,7 @@ export class LcUsersDao extends PgDao {
     return hit
   }
 
-  async disconnectlcUserFromUserInChat(
-    userInChatUuid: string,
-  ): Promise<void> {
+  async disconnectlcUserFromUserInChat(userInChatUuid: string): Promise<void> {
     await this.client
       .update(lcUsersToUsersInChats)
       .set({
@@ -127,22 +124,18 @@ export class LcUsersDao extends PgDao {
 
   async addSubmissions(
     submissions: SubmissionInsert[],
-  ): Promise<(SubmissionSelect & { isCreated: boolean })[]> {
+  ): Promise<SubmissionSelect[]> {
     const ss = await this.client
       .insert(acceptedSubmissions)
       .values(submissions)
       .onConflictDoUpdate({
-        target: [acceptedSubmissions.slug],
+        target: [
+          acceptedSubmissions.lcUserUuid,
+          acceptedSubmissions.lcProblemUuid,
+        ],
         set: {
           updatedAt: new Date(),
         },
-      })
-      .returning({
-        ...getTableColumns(acceptedSubmissions),
-        // a hack to figure out if the submission was created or updated
-        // https://sigpwned.com/2023/08/10/postgres-upsert-created-or-updated/
-        // https://stackoverflow.com/a/39204667
-        isCreated: sql<boolean>`xmax = 0`,
       })
 
     return ss

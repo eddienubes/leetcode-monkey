@@ -2,9 +2,11 @@ import { LcUsersDao } from '@/lc-users/LcUsersDao'
 import { PgService } from '@/pg/PgService'
 import crypto from 'node:crypto'
 import { randomAlphaNumStr } from '@/common/utils'
+import { LcProblemsDao } from '@/lc/LcProblemsDao'
 
 describe('LcUsersDao', () => {
   const pgService = new PgService()
+  const lcProblemsDao = new LcProblemsDao(pgService)
   const dao = new LcUsersDao(pgService)
 
   describe('CRUD', () => {
@@ -18,9 +20,11 @@ describe('LcUsersDao', () => {
     })
   })
 
-  describe('getAllActivelcChatUsers', () => {
+  describe('getAllActiveLcChatUsers', () => {
     it('should get', async () => {
-      const users = await dao.getAllActivelcChatUsers()
+      const users = await dao.getAllActiveLcChatUsers()
+
+      console.log(users)
 
       expect(users).toBeDefined()
     })
@@ -31,23 +35,21 @@ describe('LcUsersDao', () => {
       const user = await dao.create({
         slug: crypto.randomUUID(),
       })
-      const slug = randomAlphaNumStr(10)
+      const problem = await lcProblemsDao.create({
+        slug: randomAlphaNumStr(10),
+        title: randomAlphaNumStr(10),
+        difficulty: 'medium',
+        lcId: randomAlphaNumStr(10),
+      })
+
       const ss = await dao.addSubmissions([
         {
-          slug,
           lcUserUuid: user.uuid,
-          title: randomAlphaNumStr(10),
-          lcId: randomAlphaNumStr(10),
           submittedAt: new Date(1710865483 * 1000),
+          lcProblemUuid: problem.uuid,
         },
       ])
-      expect(ss[0].slug).toEqual(slug)
-      expect(ss[0].isCreated).toEqual(true)
-
-      const ss2 = await dao.addSubmissions(ss)
-
-      expect(ss2[0].slug).toEqual(slug)
-      expect(ss2[0].isCreated).toEqual(false)
+      expect(ss[0].submittedAt).toEqual(expect.any(Date))
     })
   })
 })
