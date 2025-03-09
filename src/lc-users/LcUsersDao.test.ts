@@ -55,9 +55,13 @@ describe('LcUsersDao', () => {
 
   describe('getLeaderboard', () => {
     it('should get leaderboard', async () => {
-      const hits = await dao.getLeaderboard(new Date('2023-01-01'))
+      const tgChat = 'ec1890b6-58dd-4558-afcb-feb8bcf1e7e9'
+      const hits = await dao.getLeaderboard(tgChat, new Date('2023-01-01'))
 
-      expect(hits.length).toBeGreaterThanOrEqual(0)
+      // console.log(hits.hits[0])
+
+      expect(hits.hits.length).toBeGreaterThanOrEqual(0)
+      expect(hits.total).toBeGreaterThanOrEqual(0)
     })
   })
 })

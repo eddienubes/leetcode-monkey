@@ -1,6 +1,7 @@
 import { PgDao } from '@/pg/PgDao'
 import {
   and,
+  count,
   desc,
   eq,
   getTableColumns,
@@ -164,11 +165,17 @@ export class LcUsersDao extends PgDao {
    * sort by the number of unique submissions
    * group by tgUserUuid
    * calculate score based on the number of unique submissions
+   * @param tgChatUuid
    * @param since
    * @param offset
    * @param limit
    */
-  async getLeaderboard(since: Date, offset = 0, limit = 10) {
+  async getLeaderboard(
+    tgChatUuid: string,
+    since: Date,
+    offset = 0,
+    limit = 10,
+  ) {
     const distinctSubmissions = this.client
       .selectDistinctOn([acceptedSubmissions.lcProblemUuid])
       .from(acceptedSubmissions)
@@ -177,7 +184,8 @@ export class LcUsersDao extends PgDao {
     const statsQuery = this.client.$with('stats').as(
       this.client
         .select({
-          tgUserUuid: tgUsers.uuid,
+          tgUserUuid: sql`${tgUsers.uuid}`.as('tg_user_uuid'),
+          lcUserUuid: sql`${lcUsers.uuid}`.as('lc_user_uuid'),
           easy: sql<number>`(count(${lcProblems.difficulty}) filter ( where ${lcProblems.difficulty} = 'easy' ))::integer`.as(
             'easy',
           ),
@@ -210,9 +218,10 @@ export class LcUsersDao extends PgDao {
           and(
             inArray(tgChats.role, ['member', 'administrator']),
             gte(lcChatSettings.leaderboardStartedAt, since),
+            eq(tgChats.uuid, tgChatUuid),
           ),
         )
-        .groupBy(tgUsers.uuid),
+        .groupBy(tgUsers.uuid, lcUsers.uuid),
     )
 
     const query = this.client
@@ -221,7 +230,8 @@ export class LcUsersDao extends PgDao {
         easy: statsQuery.easy,
         medium: statsQuery.medium,
         hard: statsQuery.hard,
-        ...getTableColumns(tgUsers),
+        user: tgUsers,
+        lcUser: lcUsers,
         score:
           sql<number>`(${statsQuery.easy} * ${LC_SCORE_COEFFICIENTS.easy} + ${statsQuery.medium} * ${LC_SCORE_COEFFICIENTS.medium} + ${statsQuery.hard} * ${LC_SCORE_COEFFICIENTS.hard})::integer`.as(
             'score',
@@ -229,12 +239,20 @@ export class LcUsersDao extends PgDao {
       })
       .from(statsQuery)
       .innerJoin(tgUsers, eq(tgUsers.uuid, statsQuery.tgUserUuid))
+      .innerJoin(lcUsers, eq(lcUsers.uuid, statsQuery.lcUserUuid))
       .orderBy(desc(sql`score`))
       .offset(offset)
       .limit(limit)
 
     const hits = await query
 
-    return hits
+    const countHit = await this.client
+      .with(statsQuery)
+      .select({
+        count: count(),
+      })
+      .from(statsQuery)
+
+    return { hits, total: countHit[0].count }
   }
 }

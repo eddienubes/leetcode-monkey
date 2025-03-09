@@ -23,7 +23,7 @@ export class PgService {
   }
 
   getClient(): PostgresDatabase {
-    return this.client
+    return this.getTransaction() || this.client
   }
 
   getTransaction(): PostgresDatabase | null {

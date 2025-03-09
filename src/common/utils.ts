@@ -10,6 +10,10 @@ export const randomAlphaNumStr = (length: number): string => {
   return crypto.randomBytes(length).toString('base64')
 }
 
+export const randomInt = (min = 0, max = Number.MAX_SAFE_INTEGER): number => {
+  return crypto.randomInt(min, max)
+}
+
 export const unixTimestampToDate = (timestamp: number | string): Date => {
   if (typeof timestamp === 'string') {
     timestamp = parseInt(timestamp, 10)
@@ -28,4 +32,14 @@ export const unixTimestampToDate = (timestamp: number | string): Date => {
  */
 export const fakeSerialize = <T>(obj: T): ToJsonType<T> => {
   return obj as ToJsonType<T>
+}
+
+export const getDatePlusDays = (days: number, jitter = false): Date => {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  date.setTime(
+    date.getTime() +
+      (jitter ? randomInt(-1000 * 60 * 60 * 24, 1000 * 60 * 60 * 24) : 0),
+  )
+  return date
 }
