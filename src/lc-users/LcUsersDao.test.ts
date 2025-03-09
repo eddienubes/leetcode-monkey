@@ -52,4 +52,12 @@ describe('LcUsersDao', () => {
       expect(ss[0].submittedAt).toEqual(expect.any(Date))
     })
   })
+
+  describe('getLeaderboard', () => {
+    it('should get leaderboard', async () => {
+      const hits = await dao.getLeaderboard(new Date('2023-01-01'))
+
+      expect(hits.length).toBeGreaterThanOrEqual(0)
+    })
+  })
 })

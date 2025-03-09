@@ -7,6 +7,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+import { TgMemberStatus } from '@/bot/types'
 
 const timestamps = {
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -21,7 +22,7 @@ export const tgChats = pgTable('tg_chats', {
   tgId: varchar('tg_id').notNull().unique(),
   type: varchar('type').notNull(),
   title: varchar('title'),
-  role: varchar('role').notNull(),
+  role: varchar('role').notNull().$type<TgMemberStatus>(),
 
   username: varchar('username'),
   /**
@@ -128,6 +129,7 @@ export const lcChatSettings = pgTable('lc_chat_settings', {
     .references(() => tgChats.uuid),
   isActive: boolean('is_active').notNull().default(true),
   isActiveToggledAt: timestamp('is_active_toggled_at').notNull(),
+  leaderboardStartedAt: timestamp('leaderboard_started_at').notNull(),
   ...timestamps,
 })
 

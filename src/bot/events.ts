@@ -24,23 +24,12 @@ export const myChatMemberEvent = createHandler(
         isForum: chat.is_forum,
       })
 
-      const positiveStatuses: TgMemberStatus[] = [
-        'administrator',
-        'member',
-        'creator',
-      ]
-
-      if (positiveStatuses.includes(update.new_chat_member.status)) {
+      if (tgChat.isCreated) {
         await tgChatDao.upsertSettings({
           tgChatUuid: tgChat.uuid,
           isActive: true,
           isActiveToggledAt: new Date(),
-        })
-      } else {
-        await tgChatDao.upsertSettings({
-          tgChatUuid: tgChat.uuid,
-          isActive: false,
-          isActiveToggledAt: new Date(),
+          leaderboardStartedAt: new Date(),
         })
       }
 

@@ -1,6 +1,6 @@
 import { LcProblemsDao, LcProblemSelect } from '@/lc/LcProblemsDao'
 import { LcApiClient } from '@/lc/LcApiClient'
-import { LcProblemDifficulty, lcProblems } from '@/pg/schema'
+import { LcProblemDifficulty } from '@/pg/schema'
 import { Problem } from 'leetcode-query'
 
 export class LcProblemsService {

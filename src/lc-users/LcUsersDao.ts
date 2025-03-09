@@ -1,8 +1,20 @@
 import { PgDao } from '@/pg/PgDao'
-import { desc, eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  gt,
+  gte,
+  inArray,
+  InferInsertModel,
+  InferSelectModel,
+  sql,
+} from 'drizzle-orm'
 import {
   acceptedSubmissions,
   lcChatSettings,
+  lcProblems,
   lcUsers,
   lcUsersToUsersInChats,
   tgChats,
@@ -12,6 +24,8 @@ import {
 import { PgService } from '@/pg/PgService'
 import { TgUsersToTgChatsSelect } from '@/tg/TgChatsDao'
 import { GetAllActiveLcChatUsersHit } from '@/lc-users/types'
+import { TgMemberStatus } from '@/bot/types'
+import { LC_SCORE_COEFFICIENTS } from '@/lc/constants'
 
 export type LcUserSelect = InferSelectModel<typeof lcUsers>
 export type LcUserInsert = InferInsertModel<typeof lcUsers>
@@ -121,9 +135,7 @@ export class LcUsersDao extends PgDao {
       .insert(acceptedSubmissions)
       .values(submissions)
       .onConflictDoUpdate({
-        target: [
-          acceptedSubmissions.submittedAt,
-        ],
+        target: [acceptedSubmissions.submittedAt],
         set: {
           updatedAt: new Date(),
         },
@@ -144,5 +156,85 @@ export class LcUsersDao extends PgDao {
       .limit(1)
 
     return ss[0] || null
+  }
+
+  /**
+   * should retrieve all LC users in the chat
+   * count unique submissions across difficulties
+   * sort by the number of unique submissions
+   * group by tgUserUuid
+   * calculate score based on the number of unique submissions
+   * @param since
+   * @param offset
+   * @param limit
+   */
+  async getLeaderboard(since: Date, offset = 0, limit = 10) {
+    const distinctSubmissions = this.client
+      .selectDistinctOn([acceptedSubmissions.lcProblemUuid])
+      .from(acceptedSubmissions)
+      .as('submissions')
+
+    const statsQuery = this.client.$with('stats').as(
+      this.client
+        .select({
+          tgUserUuid: tgUsers.uuid,
+          easy: sql<number>`(count(${lcProblems.difficulty}) filter ( where ${lcProblems.difficulty} = 'easy' ))::integer`.as(
+            'easy',
+          ),
+          medium:
+            sql<number>`(count(${lcProblems.difficulty}) filter ( where ${lcProblems.difficulty} = 'medium' ))::integer`.as(
+              'medium',
+            ),
+          hard: sql<number>`(count(${lcProblems.difficulty}) filter ( where ${lcProblems.difficulty} = 'hard' ))::integer`.as(
+            'hard',
+          ),
+        })
+        .from(lcUsersToUsersInChats)
+        .innerJoin(
+          tgUsersToTgChats,
+          eq(tgUsersToTgChats.uuid, lcUsersToUsersInChats.userInChatUuid),
+        )
+        .innerJoin(tgChats, eq(tgChats.uuid, tgUsersToTgChats.tgChatUuid))
+        .innerJoin(lcChatSettings, eq(lcChatSettings.tgChatUuid, tgChats.uuid))
+        .innerJoin(tgUsers, eq(tgUsers.uuid, tgUsersToTgChats.tgUserUuid))
+        .innerJoin(lcUsers, eq(lcUsers.uuid, lcUsersToUsersInChats.lcUserUuid))
+        .leftJoin(
+          distinctSubmissions,
+          eq(distinctSubmissions.lcUserUuid, lcUsers.uuid),
+        )
+        .leftJoin(
+          lcProblems,
+          eq(lcProblems.uuid, distinctSubmissions.lcProblemUuid),
+        )
+        .where(
+          and(
+            inArray(tgChats.role, ['member', 'administrator']),
+            gte(lcChatSettings.leaderboardStartedAt, since),
+          ),
+        )
+        .groupBy(tgUsers.uuid),
+    )
+
+    const query = this.client
+      .with(statsQuery)
+      .select({
+        easy: statsQuery.easy,
+        medium: statsQuery.medium,
+        hard: statsQuery.hard,
+        ...getTableColumns(tgUsers),
+        score:
+          sql<number>`(${statsQuery.easy} * ${LC_SCORE_COEFFICIENTS.easy} + ${statsQuery.medium} * ${LC_SCORE_COEFFICIENTS.medium} + ${statsQuery.hard} * ${LC_SCORE_COEFFICIENTS.hard})::integer`.as(
+            'score',
+          ),
+      })
+      .from(statsQuery)
+      .innerJoin(tgUsers, eq(tgUsers.uuid, statsQuery.tgUserUuid))
+      .orderBy(desc(sql`score`))
+      .offset(offset)
+      .limit(limit)
+
+    const hits = await query
+
+    return hits
   }
 }

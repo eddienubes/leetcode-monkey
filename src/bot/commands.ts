@@ -8,6 +8,8 @@ import { LcUsersDao } from '@/lc-users/LcUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { TgUsersDao } from '@/tg/TgUsersDao'
+import { tgChats } from '@/pg/schema'
+import { Menu } from '@grammyjs/menu'
 
 export const connectLcCommand = createHandler(
   async (
@@ -174,5 +176,32 @@ export const disconnectLcCommand = createHandler(
         fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your lc submissions anymore. 😔`,
       )
     })
+  },
+)
+
+export const leaderboardCommand = createHandler(
+  async (
+    bot,
+    convoStorage,
+    tgUsersDao: TgUsersDao,
+    tgChatsDao: TgChatsDao,
+    lcUsersDao: LcUsersDao,
+  ) => {
+    const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
+
+    bot.command(
+      ['leaderboard', 'lederboard', 'lb', 'scoreboard', 'rating'],
+      m,
+      async (ctx) => {
+        const tgChat = ctx.tgChat!
+
+        const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
+        const leaderboard = await lcUsersDao.getLeaderboard(
+          chatSettings.leaderboardStartedAt,
+        )
+
+
+      },
+    )
   },
 )

@@ -1,6 +1,12 @@
 import { PgDao } from '@/pg/PgDao'
 import { PgService } from '@/pg/PgService'
-import { eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
+import {
+  eq,
+  getTableColumns,
+  InferInsertModel,
+  InferSelectModel,
+  sql,
+} from 'drizzle-orm'
 import { lcChatSettings, tgChats, tgUsersToTgChats } from '@/pg/schema'
 import { NotFoundError } from '@/common/errors'
 
@@ -28,7 +34,9 @@ export class TgChatsDao extends PgDao {
     return hit
   }
 
-  async upsert(chat: TgChatInsert): Promise<TgChatSelect> {
+  async upsert(
+    chat: TgChatInsert,
+  ): Promise<TgChatSelect & { isCreated: boolean }> {
     const [upserted] = await this.client
       .insert(tgChats)
       .values(chat)
@@ -36,7 +44,13 @@ export class TgChatsDao extends PgDao {
         target: [tgChats.tgId],
         set: chat,
       })
-      .returning()
+      .returning({
+        ...getTableColumns(tgChats),
+        // a hack to figure out if the submission was created or updated
+        // https://sigpwned.com/2023/08/10/postgres-upsert-created-or-updated/
+        // https://stackoverflow.com/a/39204667
+        isCreated: sql<boolean>`xmax = 0 as isCreated`,
+      })
     return upserted
   }
 
@@ -73,5 +87,19 @@ export class TgChatsDao extends PgDao {
       })
       .returning()
     return upserted
+  }
+
+  async getSettings(tgChatUuid: string): Promise<LcChatSettingsSelect> {
+    const hit = await this.client.query.lcChatSettings.findFirst({
+      where: eq(lcChatSettings.tgChatUuid, tgChatUuid),
+    })
+
+    if (!hit) {
+      throw new NotFoundError(
+        `LC Chat settings with tg chat uuid ${tgChatUuid} not found`,
+      )
+    }
+
+    return hit
   }
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "lc_chat_settings" ADD COLUMN "leaderboard_started_at" timestamp NOT NULL;

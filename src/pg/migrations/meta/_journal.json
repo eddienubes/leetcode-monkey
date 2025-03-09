@@ -22,6 +22,13 @@
       "when": 1741472667387,
       "tag": "0002_early_alice",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1741510720453,
+      "tag": "0003_glamorous_proteus",
+      "breakpoints": true
     }
   ]
 }
