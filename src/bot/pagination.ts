@@ -82,8 +82,6 @@ export const createPagination = <T, K>(
      * Once to reassemble the menu, and once to render it due to submenu
      */
     const cb = PageCb.from(ctx.match)
-    console.log('Rendering page', cb.page, cb.nextPage)
-
     const res = await fetch(ctx, cb.page)
 
     if (cb.page > 0) {

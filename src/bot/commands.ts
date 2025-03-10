@@ -199,7 +199,6 @@ export const leaderboardCommand = createHandler(
       fetch: async (ctx, page) => {
         const tgChat = ctx.tgChat!
         const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
-        console.log('Offset is', page * limit)
         const lb = await lcUsersDao.getLeaderboard(
           tgChat.uuid,
           chatSettings.leaderboardStartedAt,
@@ -217,7 +216,7 @@ export const leaderboardCommand = createHandler(
       },
       render: async (ctx, fetch, page) => {
         return fmt`
-🔥${bold('Leaderboard')} ${page + 1} VS ${fetch.items.fromPage + 1}
+🔥${bold('Leaderboard')}
 
 ${fetch.items.hits
   .map((item, i) => {
