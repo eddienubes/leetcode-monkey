@@ -1,3 +1,3 @@
-# lc Monkey Telegram Bot
+# LC Monkey Telegram Bot
 
 ## FLG :)

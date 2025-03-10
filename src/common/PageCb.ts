@@ -1,29 +1,30 @@
 import { parseIntOrDefault } from '@/common/utils'
 
+/**
+ * Pagination utility class for handling page numbers in a format suitable for
+ * grammy menu btn payload which is involved in reassembling the menu.
+ */
 export class PageCb {
-  private readonly skipChar = 's'
   private readonly delimiter = '_'
-  // readonly isSkip: boolean
   readonly page: number
+  readonly nextPage: number
 
-  private constructor(match?: string | number) {
-    if (typeof match === 'number') {
-      this.page = match
-      // this.isSkip = false
+  private constructor(match?: string) {
+    if (!match) {
+      this.page = 0
+      this.nextPage = 1
       return
     }
 
-    // first load
-    if (!match || !match.includes(this.delimiter)) {
+    if (!match.includes('_')) {
       this.page = parseIntOrDefault(match, 0)
-      // this.isSkip = true
+      this.nextPage = this.page + 1
       return
     }
 
-    const [s, page] = match.split(this.delimiter)
-
+    const [page, next] = match.split(this.delimiter)
     this.page = parseIntOrDefault(page, 0)
-    // this.isSkip = s === this.skipChar
+    this.nextPage = parseIntOrDefault(next, 1)
   }
 
   static from(match: string | undefined) {
@@ -39,10 +40,6 @@ export class PageCb {
     const prev = this.page - 1
     return PageCb.from(prev.toString())
   }
-
-  // toSkip(): string {
-  //   return `${this.skipChar}${this.delimiter}${this.page}`
-  // }
 
   toString(): string {
     return this.page.toString()

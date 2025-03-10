@@ -47,50 +47,66 @@ const getNamespace = (ctx: BotCtx): string => {
 }
 
 export const createPagination = <T, K>(
+  name: string,
   opts: PaginationOptions<T, K>,
 ): Pagination<T, K> => {
-  // grammy doesn't allow slashes in menu names
-  const name = `p-${randomAlphaNumStr(4)}`.replace(/\//g, '_')
+  // Let's cache the result to avoid double fetch
+  // https://t.me/grammyjs/297229
   const memo = new Memo()
 
-  const menu = new Menu<BotCtx>(name, {
-    onMenuOutdated: false,
-  }).dynamic(async (ctx, range) => {
-    console.log('Render dynamic menu', ctx.match)
-    const cb = PageCb.from(ctx.match)
-
+  const fetch = async (ctx: BotCtx, page: number) => {
     const namespace = getNamespace(ctx)
-
-    // Dynamic cb is called twice per each callback query.
-    // Once to reassemble the menu, and once to render it due to submenu
-    // Let's cache the result to avoid double fetch
-    // https://t.me/grammyjs/297229
-    const fetch = await memo.run<FetchResult<T>, unknown[]>(
+    const res = await memo.run<FetchResult<T>, unknown[]>(
       namespace,
       async () => {
-        return await opts.fetch(ctx, cb.page)
+        return await opts.fetch(ctx, page)
       },
-      cb.page,
+      page,
     )
+
+    return res
+  }
+
+  const runCycle = async (ctx: BotCtx, page: number) => {
+    const res = await fetch(ctx, page)
+
+    const render = await opts.render?.(ctx, res, page)
+    await opts.update(ctx, res, page, render as K)
+  }
+
+  const menu = new Menu<BotCtx>(name, {
+    onMenuOutdated: true,
+  }).dynamic(async (ctx, range) => {
+    /*
+     * Dynamic cb is called twice per each callback query.
+     * Once to reassemble the menu, and once to render it due to submenu
+     */
+    const cb = PageCb.from(ctx.match)
+    console.log('Rendering page', cb.page, cb.nextPage)
+
+    const res = await fetch(ctx, cb.page)
 
     if (cb.page > 0) {
       range.submenu(
         {
           text: '⬅️',
-          payload: cb.prev().toString(),
+          payload: cb.toString(),
         },
         name,
         async (ctx) => {
           const cb = PageCb.from(ctx.match)
-          ctx.match = cb.toString()
-          const render = await opts.render?.(ctx, fetch, cb.page)
-          await opts.update(ctx, fetch, cb.page, render as K)
+
+          // Setup previous page render
+          const prev = cb.prev()
+          ctx.match = prev.toString()
+
+          await runCycle(ctx, prev.page)
         },
       )
     }
 
-    const totalPages = Math.ceil(fetch.total / opts.limit)
-    console.log(cb.page, totalPages, cb.page < totalPages - 1)
+    const totalPages = Math.ceil(res.total / opts.limit)
+    // console.log(page, totalPages, page < totalPages - 1)
 
     // 1. skip rending next on the last page
     // 2. totalPages counts from 1
@@ -98,14 +114,17 @@ export const createPagination = <T, K>(
       range.submenu(
         {
           text: '➡️',
-          payload: cb.next().toString(),
+          payload: cb.toString(),
         },
         name,
         async (ctx) => {
           const cb = PageCb.from(ctx.match)
-          ctx.match = cb.toString()
-          const render = await opts.render?.(ctx, fetch, cb.page)
-          await opts.update(ctx, fetch, cb.page, render as K)
+
+          // Setup next page render
+          const next = cb.next()
+          ctx.match = next.toString()
+
+          await runCycle(ctx, next.page)
         },
       )
     }

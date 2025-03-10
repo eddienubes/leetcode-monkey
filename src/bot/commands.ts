@@ -194,11 +194,12 @@ export const leaderboardCommand = createHandler(
 
     const limit = 10
 
-    const pag = createPagination({
+    const pag = createPagination('ldb', {
       limit,
       fetch: async (ctx, page) => {
         const tgChat = ctx.tgChat!
         const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
+        console.log('Offset is', page * limit)
         const lb = await lcUsersDao.getLeaderboard(
           tgChat.uuid,
           chatSettings.leaderboardStartedAt,
@@ -208,14 +209,17 @@ export const leaderboardCommand = createHandler(
 
         return {
           total: lb.total,
-          items: lb.hits,
+          items: {
+            fromPage: page,
+            hits: lb.hits,
+          },
         }
       },
       render: async (ctx, fetch, page) => {
         return fmt`
-🔥${bold('Leaderboard')}
+🔥${bold('Leaderboard')} ${page + 1} VS ${fetch.items.fromPage + 1}
 
-${fetch.items
+${fetch.items.hits
   .map((item, i) => {
     const mention =
       item.user.firstName ||
