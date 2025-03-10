@@ -32,6 +32,9 @@ export class Bot {
   private readonly bot = new TgBot<BotCtx>(config.bot.token)
 
   constructor(convoStorage: ConvoStorage) {
+    this.bot.catch(async (error) => {
+      console.log(error.message)
+    })
     this.bot.use(createSession())
     this.bot.use(
       conversations<BotCtx, BotCtx>({

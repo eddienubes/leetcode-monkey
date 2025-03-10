@@ -8,8 +8,10 @@ import { LcUsersDao } from '@/lc-users/LcUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { TgUsersDao } from '@/tg/TgUsersDao'
-import { tgChats } from '@/pg/schema'
-import { Menu, MenuRange } from '@grammyjs/menu'
+import { Menu } from '@grammyjs/menu'
+import { incStrInt, parseIntOrDefault } from '@/common/utils'
+import { Memo } from '@/common/Memo'
+import { PageCb } from '@/common/PageCb'
 
 export const connectLcCommand = createHandler(
   async (
@@ -189,82 +191,170 @@ export const leaderboardCommand = createHandler(
   ) => {
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
+    const memo = new Memo()
+    const leaderboardMenuName = 'leaderboard'
     const limit = 10
 
-    const leaderboardControls = new Menu<BotCtx>('leaderboard-menu').dynamic(
-      async (ctx, range) => {
-        let page = 0
+    const leaderboardMenu = new Menu<BotCtx>(leaderboardMenuName, {
+      onMenuOutdated: false,
+    }).dynamic(async (ctx, range) => {
+      let page = parseIntOrDefault(ctx.match, 0)
 
-        const tgChat = ctx.tgChat!
-        const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
+      const tgChat = ctx.tgChat!
+      const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
 
-        const leaderboard = await lcUsersDao.getLeaderboard(
-          tgChat.uuid,
-          chatSettings.leaderboardStartedAt,
-          page * limit,
-          limit,
+      // Dynamic cb is called twice per each callback query.
+      // Once to reassemble the menu, and once to render it due to submenu
+      // https://t.me/grammyjs/297229
+      const leaderboard = await memo.run(
+        async (chatUuid, since, offset, limit) => {
+          return await lcUsersDao.getLeaderboard(chatUuid, since, offset, limit)
+        },
+        tgChat.uuid,
+        chatSettings.leaderboardStartedAt,
+        page * limit,
+        limit,
+      )
+
+      const totalPages = Math.ceil(leaderboard.total / limit)
+
+      console.log('Render dynamic menu', ctx.match, totalPages)
+
+      if (totalPages <= 1) {
+        return range
+      }
+
+      // first page
+      if (!page) {
+        range.text(
+          {
+            text: '➡️',
+            payload: incStrInt(page, 1),
+          },
+          // leaderboardMenuName,
+          (ctx) => {
+            console.log(`Next page: ${ctx.match}`)
+          },
         )
+        return range
+      }
 
-        const totalPages = Math.ceil(leaderboard.total / limit)
+      // in the middle
+      if (page < totalPages) {
+        range
+          .submenu(
+            {
+              text: '⬅️',
+              payload: incStrInt(page, -1),
+            },
+            leaderboardMenuName,
+            (ctx) => {
+              console.log(`Prev page: ${ctx.match}`)
+            },
+          )
+          .submenu(
+            {
+              text: '➡️',
+              payload: incStrInt(page, 1),
+            },
+            leaderboardMenuName,
+            (ctx) => {
+              console.log(`Next page: ${ctx.match}`)
+            },
+          )
+        return range
+      }
 
-        if (totalPages <= 1) {
-          return range
-        }
+      // last page
+      if (page === totalPages) {
+        range.submenu(
+          {
+            text: '⬅️',
+            payload: incStrInt(page, -1),
+          },
+          leaderboardMenuName,
+          (ctx) => {
+            console.log(`Prev page: ${ctx.match}`)
+          },
+        )
+        return range
+      }
+    })
 
-        // first page
-        if (!page) {
-          range.text(`${page + 1}/${totalPages}`).text('➡️', (ctx) => {
-            ctx.replyFmt(fmt`Page ${page + 1} of ${totalPages}`)
-            page++
-          })
-          return range
-        }
-
-        // in the middle
-        if (page < totalPages) {
-          range.text('⬅️', (ctx) => {
-            ctx.replyFmt(fmt`Page ${page - 1} of ${totalPages}`)
-            page--
-          })
-          range.text(`${page + 1}/${totalPages}`).text('➡️', (ctx) => {
-            ctx.replyFmt(fmt`Page ${page + 1} of ${totalPages}`)
-            page++
-          })
-          return range
-        }
-
-        // last page
-        if (page === totalPages) {
-          range.text('⬅️', (ctx) => {
-            ctx.replyFmt(fmt`Page ${page - 1} of ${totalPages}`)
-            page--
-          })
-          range.text(`${page + 1}/${totalPages}`)
-          return range
-        }
-      },
-    )
-
-    bot.use(m, leaderboardControls)
+    bot.use(m, leaderboardMenu)
 
     bot.command(
-      ['leaderboard', 'lederboard', 'lb', 'scoreboard', 'rating'],
+      ['leaderboard', 'lederboard', 'lb', 'ld', 'scoreboard', 'rating'],
       m,
       async (ctx) => {
-        //         fmt`
-        // ${bold('Leaderboard')} (${leaderboard.total} users)
-        // ${leaderboard.hits.map((h) => {
-        //           const mention =
-        //             h.user.firstName || h.user.username || h.lcUser.realName || h.lcUser.slug
-        //
-        //           return `${mentionUser(mention, parseInt(h.user.tgId, 10))} completed ${h.easy}/${h.medium}/${h.hard}\n`
-        //         })}
-        //             `
-
         await ctx.replyFmt(fmt`Leaderboard`, {
-          reply_markup: leaderboardControls,
+          reply_markup: leaderboardMenu,
+          reply_to_message_id: ctx.message?.message_id,
         })
       },
     )
+  },
+)
+
+export const testCommand = createHandler(
+  async (
+    bot,
+    convoStorage,
+    tgUsersDao: TgUsersDao,
+    tgChatsDao: TgChatsDao,
+    lcUsersDao: LcUsersDao,
+  ) => {
+    const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
+
+    const testMenuName = 'test-menu'
+    const memo = new Memo()
+
+    const menu = new Menu<BotCtx>(testMenuName, {
+      onMenuOutdated: false,
+    }).dynamic(async (ctx, range) => {
+      console.log('Render dynamic menu', ctx.match)
+      const cb = PageCb.fromMatch(ctx.match)
+
+      const message = ctx.message || ctx.callbackQuery?.message
+
+      const total = await memo.run(message?.message_id!, async () => {
+        return 100
+      })
+
+      if (cb.page > 0) {
+        range.submenu(
+          {
+            text: '⬅️',
+            payload: cb.prev().toSkip(),
+          },
+          testMenuName,
+          async (ctx) => {
+            ctx.match = PageCb.fromMatch(ctx.match).toString()
+          },
+        )
+      }
+
+      if (cb.page < total) {
+        range.submenu(
+          {
+            text: '➡️',
+            payload: cb.next().toSkip(),
+          },
+          testMenuName,
+          async (ctx) => {
+            ctx.match = PageCb.fromMatch(ctx.match).toString()
+          },
+        )
+      }
+    })
+
+    bot.use(m, menu)
+
+    bot.command(['test'], m, async (ctx) => {
+      await ctx.replyFmt(fmt`Test`, {
+        reply_markup: menu,
+        reply_to_message_id: ctx.message?.message_id,
+      })
+    })
   },
 )

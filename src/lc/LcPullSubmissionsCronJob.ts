@@ -27,6 +27,7 @@ export class LcPullSubmissionsCronJob {
   ) {}
 
   async run(job: Job) {
+    return;
     console.log('Running job', job.id)
 
     const lcUsers = await this.lcUsersDao.getAllActiveLcChatUsers()

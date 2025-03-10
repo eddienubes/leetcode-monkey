@@ -25,6 +25,7 @@
     "dedent": "^1.5.3",
     "drizzle-orm": "^0.40.0",
     "grammy": "^1.35.0",
+    "grammy-inline-menu": "^9.2.0",
     "graphql": "^16.10.0",
     "leetcode-query": "^1.2.3",
     "postgres": "^3.4.5"

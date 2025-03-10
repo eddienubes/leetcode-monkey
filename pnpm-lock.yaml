@@ -38,6 +38,9 @@ importers:
       grammy:
         specifier: ^1.35.0
         version: 1.35.0
+      grammy-inline-menu:
+        specifier: ^9.2.0
+        version: 9.2.0(grammy@1.35.0)
       graphql:
         specifier: ^16.10.0
         version: 16.10.0
@@ -1311,6 +1314,12 @@ packages:
   globrex@0.1.2:
     resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
 
+  grammy-inline-menu@9.2.0:
+    resolution: {integrity: sha512-QxZQvqKa1GM+WlGTGRuHEdsVOGzh1yjL1klMwX+Ojez6srGKeMeZi5JkUIcxokTocjk0vn11Ex6yIknBr0UbMQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      grammy: ^1.31.0
+
   grammy@1.35.0:
     resolution: {integrity: sha512-Qlu5kVaekL4w5clWSpQcRxwJJoEeU13g8DTALuNbZsDAJuFJNXBuI8EqR6U1m1of7j9NEMQz59sXu+0/KsKjyg==}
     engines: {node: ^12.20.0 || >=14.13.1}
@@ -1708,6 +1717,10 @@ packages:
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
+
+  type-fest@4.37.0:
+    resolution: {integrity: sha512-S/5/0kFftkq27FPNye0XM1e2NsnoD/3FS+pBmbjmmtLT6I+i344KoOf7pvXreaFsDamWeaJX55nczA1m5PsBDg==}
+    engines: {node: '>=16'}
 
   typescript-eslint@8.25.0:
     resolution: {integrity: sha512-TxRdQQLH4g7JkoFlYG3caW5v1S6kEkz8rqt80iQJZUYPq1zD1Ra7HfQBJJ88ABRaMvHAXnwRvRB4V+6sQ9xN5Q==}
@@ -2844,6 +2857,11 @@ snapshots:
 
   globrex@0.1.2: {}
 
+  grammy-inline-menu@9.2.0(grammy@1.35.0):
+    dependencies:
+      grammy: 1.35.0
+      type-fest: 4.37.0
+
   grammy@1.35.0:
     dependencies:
       '@grammyjs/types': 3.19.0
@@ -3202,6 +3220,8 @@ snapshots:
   type-check@0.4.0:
     dependencies:
       prelude-ls: 1.2.1
+
+  type-fest@4.37.0: {}
 
   typescript-eslint@8.25.0(eslint@9.21.0(jiti@2.4.2))(typescript@5.8.2):
     dependencies:

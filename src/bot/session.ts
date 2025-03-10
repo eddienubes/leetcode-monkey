@@ -1,18 +1,17 @@
-import { session } from 'grammy'
+import { MemorySessionStorage, session } from 'grammy'
 import { BotCtx } from '@/bot/Bot'
 
 export type Session = {
-  convos: {
-    toExit: string[]
-  }
+  leaderboardPage?: number
 }
 
+/**
+ * Per chat per user session.
+ */
 export const createSession = () => {
   return session<Session, BotCtx>({
-    initial: () => ({
-      convos: {
-        toExit: [],
-      },
-    }),
+    initial: () => ({}),
+    getSessionKey: (ctx) => `${ctx.chat?.id || ctx.from?.id}`,
+    storage: new MemorySessionStorage<Session>(60 * 60 * 1000), // 1-hour TTL
   })
 }

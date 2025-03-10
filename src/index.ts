@@ -6,7 +6,7 @@ import { TgChatsDao } from '@/tg/TgChatsDao'
 import {
   connectLcCommand,
   disconnectLcCommand,
-  leaderboardCommand,
+  leaderboardCommand, testCommand,
 } from '@/bot/commands'
 import { LcApiClient } from '@/lc/LcApiClient'
 import { createRamConvoStorage } from '@/bot/ramConvoStorage'
@@ -67,6 +67,7 @@ export const main = async (): Promise<void> => {
   await connectLcCommand(inject, lcApi, lcUsersDao, tgUsersDao, tgChatsDao)
   await disconnectLcCommand(inject, tgUsersDao, lcUsersDao, tgChatsDao)
   await leaderboardCommand(inject, tgUsersDao, tgChatsDao, lcUsersDao)
+  await testCommand(inject, tgUsersDao, tgChatsDao, lcUsersDao)
   await cbQueryEvent(inject)
 
   for (const instance of instances) {
