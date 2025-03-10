@@ -54,7 +54,7 @@ export class Memo {
    * @param cb
    * @param args
    */
-  async run<T, A extends any[]>(
+  async run<T, A extends unknown[]>(
     namespace: string | number,
     cb: (...args: A) => Promise<T>,
     ...args: A

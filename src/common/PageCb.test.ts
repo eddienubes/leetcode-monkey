@@ -2,7 +2,7 @@ import { PageCb } from '@/common/PageCb'
 
 describe('PageCb', () => {
   it('should do page things', async () => {
-    const cb = PageCb.fromMatch('1')
+    const cb = PageCb.from('1')
 
     expect(cb.page).toBe(1)
     expect(cb.isSkip).toBe(false)
@@ -26,7 +26,7 @@ describe('PageCb', () => {
   })
 
   it('should work with negative numbers', async () => {
-    const cb = PageCb.fromMatch('-1')
+    const cb = PageCb.from('-1')
 
     expect(cb.page).toBe(-1)
     expect(cb.isSkip).toBe(false)

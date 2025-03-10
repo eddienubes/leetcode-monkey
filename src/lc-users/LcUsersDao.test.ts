@@ -20,9 +20,9 @@ describe('LcUsersDao', () => {
     })
   })
 
-  describe('getAllActiveLcChatUsers', () => {
+  describe('getAllActiveLcUsers', () => {
     it('should get', async () => {
-      const users = await dao.getAllActiveLcChatUsers()
+      const users = await dao.getAllActiveLcUsers()
 
       console.log(users)
 

@@ -27,28 +27,18 @@ export class LcPullSubmissionsCronJob {
   ) {}
 
   async run(job: Job) {
-    return;
+    return
     console.log('Running job', job.id)
 
-    const lcUsers = await this.lcUsersDao.getAllActiveLcChatUsers()
+    const lcUsers = await this.lcUsersDao.getAllActiveLcUsers()
     console.log('processing', lcUsers.length, 'users')
 
-    for (const lcUser of lcUsers) {
-      console.log('processing', lcUser.lc_users.slug)
+    for (const user of lcUsers) {
+      console.log('processing', user.lcUser.slug)
 
-      const latestSubmission = await this.lcUsersDao.getLatestSubmission(
-        lcUser.lc_users.uuid,
-      )
+      const latestSubmission = user.latestSubmission
 
-      console.log(latestSubmission?.submittedAt)
-
-      const ss = await this.lcApi.getAcceptedSubmissions(lcUser.lc_users.slug)
-
-      console.log(
-        ss.recentAcSubmissionList.length,
-        ss.recentAcSubmissionList[0].titleSlug,
-        unixTimestampToDate(ss.recentAcSubmissionList[0].timestamp),
-      )
+      const ss = await this.lcApi.getAcceptedSubmissions(user.lcUser.slug)
 
       const newSubmissions = ss.recentAcSubmissionList.filter(
         (s) =>
@@ -58,21 +48,24 @@ export class LcPullSubmissionsCronJob {
       )
 
       console.log(
-        `Got ${newSubmissions.length} new submissions for ${lcUser.lc_users.slug}`,
+        `Got ${newSubmissions.length} new submissions for ${user.lcUser.slug}`,
       )
 
+      // Push submission notifications to each LC chat
       await this.lcSaveSubmissionsWorker.add(
-        newSubmissions.map((s) => ({
-          lcUser: lcUser.lc_users,
-          lcUserInChat: lcUser.lc_users_to_users_in_chats,
-          lcChatSettings: lcUser.lc_chat_settings,
-          submission: s,
-          tgUser: lcUser.tg_users,
-          tgChat: lcUser.tg_chats,
-        })),
+        user.lcUserInChats.flatMap((userInChat) =>
+          newSubmissions.map((s) => ({
+            lcUser: user.lcUser,
+            lcUserInChat: userInChat.entity,
+            lcChatSettings: userInChat.chatSettings,
+            submission: s,
+            tgUser: user.tgUser,
+            tgChat: user.tgChat,
+          })),
+        ),
       )
 
-      await sleepForRandomMs(1000, 3000)
+      await sleepForRandomMs(500, 1500)
 
       // const newSubmissions = submissions.filter((s) => s.isCreated)
 

@@ -33,7 +33,7 @@ export class Bot {
 
   constructor(convoStorage: ConvoStorage) {
     this.bot.catch(async (error) => {
-      console.log(error.message)
+      console.log(error)
     })
     this.bot.use(createSession())
     this.bot.use(

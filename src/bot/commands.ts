@@ -12,6 +12,7 @@ import { Menu } from '@grammyjs/menu'
 import { incStrInt, parseIntOrDefault } from '@/common/utils'
 import { Memo } from '@/common/Memo'
 import { PageCb } from '@/common/PageCb'
+import { createPagination } from '@/bot/pagination'
 
 export const connectLcCommand = createHandler(
   async (
@@ -121,7 +122,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
           avatarUrl: profile.matchedUser?.profile.userAvatar,
         })
 
-        await lcUsersDao.connectlcUserToUserInChat({
+        await lcUsersDao.connectLcUserToUserInChat({
           lcUserUuid: lcUser.uuid,
           userInChatUuid: extra.userToChat!.uuid,
           isActive: true,
@@ -167,7 +168,7 @@ export const disconnectLcCommand = createHandler(
     bot.command(['disconnect', 'signout'], m, async (ctx) => {
       const userToChat = ctx.userToChat!
 
-      await lcUsersDao.disconnectlcUserFromUserInChat(userToChat.uuid)
+      await lcUsersDao.disconnectLcUserFromUserInChat(userToChat.uuid)
 
       const username = ctx.message?.from?.username || ''
       const firstName = ctx.message?.from?.first_name || ''
@@ -191,170 +192,70 @@ export const leaderboardCommand = createHandler(
   ) => {
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
-    const memo = new Memo()
-    const leaderboardMenuName = 'leaderboard'
     const limit = 10
 
-    const leaderboardMenu = new Menu<BotCtx>(leaderboardMenuName, {
-      onMenuOutdated: false,
-    }).dynamic(async (ctx, range) => {
-      let page = parseIntOrDefault(ctx.match, 0)
-
-      const tgChat = ctx.tgChat!
-      const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
-
-      // Dynamic cb is called twice per each callback query.
-      // Once to reassemble the menu, and once to render it due to submenu
-      // https://t.me/grammyjs/297229
-      const leaderboard = await memo.run(
-        async (chatUuid, since, offset, limit) => {
-          return await lcUsersDao.getLeaderboard(chatUuid, since, offset, limit)
-        },
-        tgChat.uuid,
-        chatSettings.leaderboardStartedAt,
-        page * limit,
-        limit,
-      )
-
-      const totalPages = Math.ceil(leaderboard.total / limit)
-
-      console.log('Render dynamic menu', ctx.match, totalPages)
-
-      if (totalPages <= 1) {
-        return range
-      }
-
-      // first page
-      if (!page) {
-        range.text(
-          {
-            text: '➡️',
-            payload: incStrInt(page, 1),
-          },
-          // leaderboardMenuName,
-          (ctx) => {
-            console.log(`Next page: ${ctx.match}`)
-          },
+    const pag = createPagination({
+      limit,
+      fetch: async (ctx, page) => {
+        const tgChat = ctx.tgChat!
+        const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
+        const lb = await lcUsersDao.getLeaderboard(
+          tgChat.uuid,
+          chatSettings.leaderboardStartedAt,
+          page * limit,
+          limit,
         )
-        return range
-      }
 
-      // in the middle
-      if (page < totalPages) {
-        range
-          .submenu(
-            {
-              text: '⬅️',
-              payload: incStrInt(page, -1),
-            },
-            leaderboardMenuName,
-            (ctx) => {
-              console.log(`Prev page: ${ctx.match}`)
-            },
-          )
-          .submenu(
-            {
-              text: '➡️',
-              payload: incStrInt(page, 1),
-            },
-            leaderboardMenuName,
-            (ctx) => {
-              console.log(`Next page: ${ctx.match}`)
-            },
-          )
-        return range
-      }
+        return {
+          total: lb.total,
+          items: lb.hits,
+        }
+      },
+      render: async (ctx, fetch, page) => {
+        return fmt`
+🔥${bold('Leaderboard')}
 
-      // last page
-      if (page === totalPages) {
-        range.submenu(
-          {
-            text: '⬅️',
-            payload: incStrInt(page, -1),
-          },
-          leaderboardMenuName,
-          (ctx) => {
-            console.log(`Prev page: ${ctx.match}`)
-          },
-        )
-        return range
-      }
+${fetch.items
+  .map((item, i) => {
+    const mention =
+      item.user.firstName ||
+      item.user.username ||
+      item.lcUser.realName ||
+      item.lcUser.slug
+
+    const emojimap: Record<number, string> = {
+      0: '🥇',
+      1: '🥈',
+      2: '🥉',
+    }
+
+    i = i + limit * page
+
+    const order = emojimap[i] || `${i + 1}.`
+
+    return `${order} ${mentionUser(mention, parseInt(item.user.tgId, 10))} - ${item.score} points`
+  })
+  .join('\n')}
+        `
+      },
+      update: async (ctx, fetch, page, render) => {
+        await ctx.editFmtMessageText(render)
+      },
     })
 
-    bot.use(m, leaderboardMenu)
+    bot.use(m, pag.menu)
 
     bot.command(
       ['leaderboard', 'lederboard', 'lb', 'ld', 'scoreboard', 'rating'],
       m,
       async (ctx) => {
-        await ctx.replyFmt(fmt`Leaderboard`, {
-          reply_markup: leaderboardMenu,
-          reply_to_message_id: ctx.message?.message_id,
+        await pag.run(ctx, async (ctx, fetch, render) => {
+          await ctx.replyFmt(render, {
+            reply_to_message_id: ctx.message?.message_id,
+            reply_markup: pag.menu,
+          })
         })
       },
     )
-  },
-)
-
-export const testCommand = createHandler(
-  async (
-    bot,
-    convoStorage,
-    tgUsersDao: TgUsersDao,
-    tgChatsDao: TgChatsDao,
-    lcUsersDao: LcUsersDao,
-  ) => {
-    const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
-
-    const testMenuName = 'test-menu'
-    const memo = new Memo()
-
-    const menu = new Menu<BotCtx>(testMenuName, {
-      onMenuOutdated: false,
-    }).dynamic(async (ctx, range) => {
-      console.log('Render dynamic menu', ctx.match)
-      const cb = PageCb.fromMatch(ctx.match)
-
-      const message = ctx.message || ctx.callbackQuery?.message
-
-      const total = await memo.run(message?.message_id!, async () => {
-        return 100
-      })
-
-      if (cb.page > 0) {
-        range.submenu(
-          {
-            text: '⬅️',
-            payload: cb.prev().toSkip(),
-          },
-          testMenuName,
-          async (ctx) => {
-            ctx.match = PageCb.fromMatch(ctx.match).toString()
-          },
-        )
-      }
-
-      if (cb.page < total) {
-        range.submenu(
-          {
-            text: '➡️',
-            payload: cb.next().toSkip(),
-          },
-          testMenuName,
-          async (ctx) => {
-            ctx.match = PageCb.fromMatch(ctx.match).toString()
-          },
-        )
-      }
-    })
-
-    bot.use(m, menu)
-
-    bot.command(['test'], m, async (ctx) => {
-      await ctx.replyFmt(fmt`Test`, {
-        reply_markup: menu,
-        reply_to_message_id: ctx.message?.message_id,
-      })
-    })
   },
 )

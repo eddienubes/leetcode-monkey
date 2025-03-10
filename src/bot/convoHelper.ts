@@ -39,9 +39,6 @@ export const createConvoHelper = async <C extends Convo>(
           )
           return
         }
-        console.log(
-          new TgCannotDeleteMessageError(`convoHelper: finally failed`, e),
-        )
       }
     }
   }
