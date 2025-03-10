@@ -27,7 +27,6 @@ export class LcPullSubmissionsCronJob {
   ) {}
 
   async run(job: Job) {
-    return
     console.log('Running job', job.id)
 
     const lcUsers = await this.lcUsersDao.getAllActiveLcUsers()
@@ -47,6 +46,8 @@ export class LcPullSubmissionsCronJob {
           unixTimestampToDate(s.timestamp) > latestSubmission.submittedAt,
       )
 
+      console.log(newSubmissions)
+
       console.log(
         `Got ${newSubmissions.length} new submissions for ${user.lcUser.slug}`,
       )
@@ -60,12 +61,12 @@ export class LcPullSubmissionsCronJob {
             lcChatSettings: userInChat.chatSettings,
             submission: s,
             tgUser: user.tgUser,
-            tgChat: user.tgChat,
+            tgChat: userInChat.tgChat,
           })),
         ),
       )
 
-      await sleepForRandomMs(500, 1500)
+      await sleepForRandomMs(400, 1300)
 
       // const newSubmissions = submissions.filter((s) => s.isCreated)
 

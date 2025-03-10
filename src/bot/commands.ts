@@ -8,11 +8,8 @@ import { LcUsersDao } from '@/lc-users/LcUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { TgUsersDao } from '@/tg/TgUsersDao'
-import { Menu } from '@grammyjs/menu'
-import { incStrInt, parseIntOrDefault } from '@/common/utils'
-import { Memo } from '@/common/Memo'
-import { PageCb } from '@/common/PageCb'
 import { createPagination } from '@/bot/pagination'
+import { diffInWeeks, getDatePlusDays } from '@/common/utils'
 
 export const connectLcCommand = createHandler(
   async (
@@ -199,9 +196,18 @@ export const leaderboardCommand = createHandler(
       fetch: async (ctx, page) => {
         const tgChat = ctx.tgChat!
         const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
+
+        const [first, latestTs] = [
+          chatSettings.leaderboardStartedAt.getTime(),
+          getDatePlusDays(-7).getTime(),
+        ].sort()
+
+        const latestDate = new Date(latestTs)
+        const now = new Date()
+
         const lb = await lcUsersDao.getLeaderboard(
           tgChat.uuid,
-          chatSettings.leaderboardStartedAt,
+          latestDate,
           page * limit,
           limit,
         )
@@ -209,15 +215,15 @@ export const leaderboardCommand = createHandler(
         return {
           total: lb.total,
           items: {
-            fromPage: page,
+            week: diffInWeeks(latestDate, now),
             hits: lb.hits,
           },
         }
       },
       render: async (ctx, fetch, page) => {
+        const now = new Date()
         return fmt`
-🔥${bold('Leaderboard')}
-
+🔥${bold(`Leaderboard - Week ${fetch.items.week + 1}`)}
 ${fetch.items.hits
   .map((item, i) => {
     const mention =
@@ -236,7 +242,7 @@ ${fetch.items.hits
 
     const order = emojimap[i] || `${i + 1}.`
 
-    return `${order} ${mentionUser(mention, parseInt(item.user.tgId, 10))} - ${item.score} points`
+    return `${order} ${mentionUser(mention, parseInt(item.user.tgId, 10))} - ${item.easy}/${item.medium}/${item.hard} (+${item.score})`
   })
   .join('\n')}
         `

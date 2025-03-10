@@ -50,6 +50,11 @@ export const diffInHours = (date1: Date, date2: Date): number => {
   return Math.floor(diff / (1000 * 60 * 60))
 }
 
+export const diffInWeeks = (date1: Date, date2: Date): number => {
+  const diff = date2.getTime() - date1.getTime()
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 7))
+}
+
 /**
  * Parses grammy menu cb data.
  * https://github.com/grammyjs/menu/blob/c276d79a93c9318aeb900fbe9c092e24a2dae642/src/menu.ts#L889
@@ -106,4 +111,3 @@ export const incStrInt = (
 export const noopCbAnswer = async (ctx: BotCtx): Promise<void> => {
   await ctx.answerCallbackQuery()
 }
-

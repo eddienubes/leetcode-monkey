@@ -2,7 +2,11 @@ import { LcUsersDao, SubmissionSelect } from '@/lc-users/LcUsersDao'
 import { LcApiClient } from '@/lc/LcApiClient'
 import { config } from '@/config'
 import { Job, Queue, Worker } from 'bullmq'
-import { fakeSerialize, sleepForRandomMs, unixTimestampToDate } from '@/common/utils'
+import {
+  fakeSerialize,
+  sleepForRandomMs,
+  unixTimestampToDate,
+} from '@/common/utils'
 import { TgSubmissionsNotifier } from '@/lc/TgSubmissionsNotifier'
 import { LcSaveSubmissionJob } from '@/lc/types/types'
 import { LcProblemsService } from '@/lc/LcProblemsService'
@@ -36,8 +40,8 @@ export class LcSaveSubmissionsWorker {
         name: `${job.lcUser.slug}-${job.submission.id}`,
         data: job,
         opts: {
-          // removeOnComplete: true,
-          // removeOnFail: true,
+          removeOnComplete: config.cron.removeOnComplete,
+          removeOnFail: config.cron.removeOnFail,
         },
       })),
     )
@@ -50,25 +54,28 @@ export class LcSaveSubmissionsWorker {
       data.submission.titleSlug,
     )
 
-    const submissions = (await this.lcUsersDao.addSubmissions([
+    const submissions = await this.lcUsersDao.addSubmissions([
       {
         lcProblemUuid: problem.uuid,
         lcUserUuid: data.lcUser.uuid,
         submittedAt: unixTimestampToDate(data.submission.timestamp),
       },
-    ]))
-
-    await this.tgSubmissionsNotifier.add([
-      {
-        submission: fakeSerialize(submissions[0]),
-        tgUser: data.tgUser,
-        tgChat: data.tgChat,
-        lcUser: data.lcUser,
-        lcUserInChat: data.lcUserInChat,
-        lcChatSettings: data.lcChatSettings,
-        lcProblem: fakeSerialize(problem),
-      },
     ])
+
+    // extra check just in case a duplicate submission is sent
+    if (submissions[0].isCreated) {
+      await this.tgSubmissionsNotifier.add([
+        {
+          submission: fakeSerialize(submissions[0]),
+          tgUser: data.tgUser,
+          tgChat: data.tgChat,
+          lcUser: data.lcUser,
+          lcUserInChat: data.lcUserInChat,
+          lcChatSettings: data.lcChatSettings,
+          lcProblem: fakeSerialize(problem),
+        },
+      ])
+    }
   }
 
   async onModuleInit(): Promise<void> {

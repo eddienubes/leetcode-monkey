@@ -13,6 +13,8 @@ export const config = {
   },
   cron: {
     lcCronJobInterval: process.env.CRON_LC_JOB_INTERVAL as string,
+    removeOnComplete: true,
+    removeOnFail: 100,
   },
   redis: {
     host: process.env.REDIS_HOST as string,

@@ -10,6 +10,7 @@ module.exports = [
       '@typescript-eslint': tseslint.plugin,
     },
     rules: {
+      '@typescript-eslint/no-non-null-asserted-optional-chain': 'off',
       '@typescript-eslint/explicit-member-accessibility': [
         'error',
         { accessibility: 'no-public' },

@@ -7,6 +7,7 @@ import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
 import { LcProblemDifficulty } from '@/pg/schema'
 import { LcProblemsService } from '@/lc/LcProblemsService'
 import { ToJsonType } from '@/common/types'
+import { LC_SCORE_COEFFICIENTS } from '@/lc/constants'
 
 export class TgSubmissionsNotifier {
   private readonly queueName = 'tg-submissions-notify'
@@ -92,7 +93,7 @@ export class TgSubmissionsNotifier {
     // ${data.lcProblem.topics.map((t) => `#${t}`.replaceAll('-', '')).join(' ')}
     //     `
     const msg = fmt`
-🔥${mentionUser(mention, parseInt(data.tgUser.tgId, 10))} has ${bold('solved')} ${diffemojimap[data.lcProblem.difficulty]} ${link(data.lcProblem.title, LcProblemsService.getLcProblemUrl(data.lcProblem.slug))}! 
+🔥${mentionUser(mention, parseInt(data.tgUser.tgId, 10))} has ${bold('solved')} ${diffemojimap[data.lcProblem.difficulty]} ${link(data.lcProblem.title, LcProblemsService.getLcProblemUrl(data.lcProblem.slug))}! (+${LC_SCORE_COEFFICIENTS[data.lcProblem.difficulty]})
 ${data.lcProblem.topics.map((t) => `#${t}`.replaceAll('-', '')).join(' ')}
     `
 

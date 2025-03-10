@@ -11,13 +11,13 @@ export class LcApiClient {
     defaultOptions: {
       watchQuery: {
         fetchPolicy: 'no-cache',
-        errorPolicy: 'all'
+        errorPolicy: 'all',
       },
       query: {
         fetchPolicy: 'no-cache',
-        errorPolicy: 'all'
-      }
-    }
+        errorPolicy: 'all',
+      },
+    },
   })
   private readonly leetcode = new LeetCode()
 

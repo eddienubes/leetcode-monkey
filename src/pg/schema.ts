@@ -156,6 +156,7 @@ export const acceptedSubmissions = pgTable('accepted_submissions', {
     .references(() => lcProblems.uuid),
   submittedAt: timestamp('submitted_at').notNull().unique(),
   ...timestamps,
+  // No composite unique constraint on purpose. A single user may have multiple submissions for the same problem
 })
 
 export type LcProblemDifficulty = 'easy' | 'medium' | 'hard'

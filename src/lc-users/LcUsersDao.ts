@@ -114,13 +114,13 @@ export class LcUsersDao extends PgDao {
           lcUser: hit.lc_users,
           lcUserInChats: [],
           tgUser: hit.tg_users,
-          tgChat: hit.tg_chats,
           latestSubmission: hit.latest_submission,
         } satisfies GetAllActiveLcChatUsersHit)
 
       lcUser.lcUserInChats.push({
         chatSettings: hit.lc_chat_settings,
         entity: hit.lc_users_to_users_in_chats!,
+        tgChat: hit.tg_chats,
       })
 
       acc.set(key, lcUser)
@@ -157,7 +157,7 @@ export class LcUsersDao extends PgDao {
 
   async addSubmissions(
     submissions: SubmissionInsert[],
-  ): Promise<SubmissionSelect[]> {
+  ): Promise<(SubmissionSelect & { isCreated: boolean })[]> {
     if (!submissions.length) {
       return []
     }
@@ -171,7 +171,13 @@ export class LcUsersDao extends PgDao {
           updatedAt: new Date(),
         },
       })
-      .returning()
+      .returning({
+        ...getTableColumns(acceptedSubmissions),
+        // a hack to figure out if the submission was created or updated
+        // https://sigpwned.com/2023/08/10/postgres-upsert-created-or-updated/
+        // https://stackoverflow.com/a/39204667
+        isCreated: sql<boolean>`xmax = 0 as isCreated`,
+      })
 
     return ss
   }
@@ -209,6 +215,10 @@ export class LcUsersDao extends PgDao {
     const distinctSubmissions = this.client
       .selectDistinctOn([acceptedSubmissions.lcProblemUuid])
       .from(acceptedSubmissions)
+      .orderBy(
+        acceptedSubmissions.lcProblemUuid,
+        desc(acceptedSubmissions.submittedAt),
+      )
       .as('submissions')
 
     const statsQuery = this.client.$with('stats').as(
@@ -247,7 +257,10 @@ export class LcUsersDao extends PgDao {
         .where(
           and(
             inArray(tgChats.role, ['member', 'administrator']),
-            gte(lcChatSettings.leaderboardStartedAt, since),
+            gte(
+              distinctSubmissions.submittedAt,
+              lcChatSettings.leaderboardStartedAt,
+            ),
             eq(tgChats.uuid, tgChatUuid),
           ),
         )
