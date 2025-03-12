@@ -1,7 +1,7 @@
 import path from 'node:path'
 
-const migrationsPath = path.resolve(process.cwd(), 'src/pg/migrations')
-const dbSchema = path.resolve(process.cwd(), 'src/pg/schema.ts')
+const migrationsPath = path.resolve(__dirname, './pg/migrations')
+const dbSchema = path.resolve(__dirname, './pg/schema.ts')
 
 export const config = {
   bot: {
