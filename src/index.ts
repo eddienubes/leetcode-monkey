@@ -7,6 +7,8 @@ import {
   connectLcCommand,
   dailyCommand,
   disconnectLcCommand,
+  feedbackCommand,
+  helpCommand,
   leaderboardCommand,
 } from '@/bot/commands'
 import { LcApiClient } from '@/lc/LcApiClient'
@@ -68,6 +70,8 @@ export const main = async (): Promise<void> => {
   await disconnectLcCommand(inject, tgUsersDao, lcUsersDao, tgChatsDao)
   await leaderboardCommand(inject, tgUsersDao, tgChatsDao, lcUsersDao)
   await dailyCommand(inject, lcApi)
+  await helpCommand(inject)
+  await feedbackCommand(inject)
   await cbQueryEvent(inject)
 
   for (const instance of instances) {

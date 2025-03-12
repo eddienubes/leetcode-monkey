@@ -5,6 +5,7 @@ import {
   bold,
   expandableBlockquote,
   fmt,
+  italic,
   link,
   mentionUser,
 } from '@grammyjs/parse-mode'
@@ -318,3 +319,46 @@ ${arrToHashTags(question.topicTags.map((t) => t.slug))}
     })
   },
 )
+
+export const helpCommand = createHandler(async (bot) => {
+  bot.command(['help', 'start'], async (ctx) => {
+    const message = fmt`
+Hey, I'm a LeetCode monkey! 👋
+I make learning algorithms and data structures more fun.
+I'm also ${link('open-source', 'https://github.com/eddienubes/leetcode-monkey')}
+
+${bold('How to use me?')}
+1. Connect your LeetCode account with /connect command.
+2. Get daily challenges with /daily.
+3. Encourage your top performers with /leaderboard command.
+4. You have suggestions? Just /feedback me!
+
+That's it! 🎉
+
+${italic('by @carny_plant for FLG')}
+    `
+
+    await ctx.replyFmt(message, {
+      link_preview_options: {
+        is_disabled: true,
+      },
+      reply_to_message_id: ctx.message?.message_id,
+    })
+  })
+})
+
+export const feedbackCommand = createHandler(async (bot) => {
+  bot.command(['feedback', 'fb'], async (ctx) => {
+    const message = fmt`
+Hi! I love feedback. ❤️
+Message me with your suggestions, bugs, or anything you want to share at @carny_plant.
+`
+
+    await ctx.replyFmt(message, {
+      reply_to_message_id: ctx.message?.message_id,
+      link_preview_options: {
+        is_disabled: true,
+      },
+    })
+  })
+})
