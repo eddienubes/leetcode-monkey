@@ -27,7 +27,8 @@
     "grammy-inline-menu": "^9.2.0",
     "graphql": "^16.10.0",
     "leetcode-query": "^1.2.3",
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.5",
+    "zx": "^8.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.13.8",
