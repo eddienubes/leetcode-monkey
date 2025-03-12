@@ -6,7 +6,7 @@ export const copy = async (): Promise<void> => {
 
   await fs.cp(
     path.join(servicePath, 'src/pg/migrations'),
-    'build/pg/migrations',
+    'build/src/pg/migrations',
     { recursive: true },
   )
 }

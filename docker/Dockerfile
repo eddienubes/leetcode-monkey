@@ -23,7 +23,7 @@ COPY --from=base --chown=node /app/package.json ./package.json
 
 USER node
 
-CMD ["node", "build/index.js"]
+CMD ["node", "build/src/index.js"]
 
 
 
