@@ -333,7 +333,7 @@ ${bold('How to use me?')}
 3. Encourage your top performers with /leaderboard command.
 4. You have suggestions? Just /feedback me!
 
-That's it! 🎉
+That's it! 🎉 !!!
 
 ${italic('by @carny_plant for FLG')}
     `
