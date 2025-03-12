@@ -1,3 +1,8 @@
+import path from 'node:path'
+
+const migrationsPath = path.resolve(process.cwd(), 'src/pg/migrations')
+const dbSchema = path.resolve(process.cwd(), 'src/pg/schema.ts')
+
 export const config = {
   bot: {
     token: process.env.TG_BOT_TOKEN as string,
@@ -7,9 +12,9 @@ export const config = {
     migrations: {
       schema: 'public',
       table: 'drizzle_migrations',
-      out: 'src/pg/migrations',
+      out: migrationsPath,
     },
-    schema: './src/pg/schema.ts',
+    schema: dbSchema,
   },
   cron: {
     lcCronJobInterval: process.env.CRON_LC_JOB_INTERVAL as string,
