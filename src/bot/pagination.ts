@@ -1,7 +1,6 @@
 import { Menu } from '@grammyjs/menu'
 import { BotCtx } from '@/bot/Bot'
 import { PageCb } from '@/common/PageCb'
-import { randomAlphaNumStr } from '@/common/utils'
 import { Memo } from '@/common/Memo'
 
 type FetchResult<T> = {
@@ -106,7 +105,7 @@ export const createPagination = <T, K>(
     const totalPages = Math.ceil(res.total / opts.limit)
     // console.log(page, totalPages, page < totalPages - 1)
 
-    // 1. skip rending next on the last page
+    // 1. skip rendering next on the last page
     // 2. totalPages counts from 1
     if (cb.page < totalPages - 1) {
       range.submenu(

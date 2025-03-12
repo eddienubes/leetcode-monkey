@@ -1,31 +1,58 @@
 import { TgUsersDao } from '@/tg/TgUsersDao'
 import { createMiddleware } from '@/bot/middleware'
-import { TgChatsDao } from '@/tg/TgChatsDao'
+import { TgChatInsert, TgChatsDao } from '@/tg/TgChatsDao'
 
 export const tgUsersMiddleware = createMiddleware(
   async (ctx, next, convoStorage, tgUsers: TgUsersDao, tgChats: TgChatsDao) => {
-    if (!ctx.from || !ctx.chatId) {
+    if (!ctx.from || !ctx.chat) {
       return next()
     }
+    const chat = ctx.chat
+    const user = ctx.from
 
-    const [user, chat] = await Promise.all([
+    const tgChatUpsert: Partial<TgChatInsert> = {
+      type: chat.type,
+      title: chat.title,
+      username: chat.username,
+      fullName: chat.first_name ? `${chat.first_name} ${chat.last_name}` : null,
+      isForum: chat.is_forum,
+    }
+
+    const [upsertedUser, upsertedChat] = await Promise.all([
       tgUsers.upsert({
-        tgId: ctx.from.id.toString(),
-        username: ctx.from.username,
-        firstName: ctx.from.first_name,
-        lastName: ctx.from.last_name,
-        isBot: ctx.from.is_bot,
-        isPremium: ctx.from.is_premium,
-        languageCode: ctx.from.language_code,
+        tgId: user.id.toString(),
+        username: user.username,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        isBot: user.is_bot,
+        isPremium: user.is_premium,
+        languageCode: user.language_code,
       }),
-      tgChats.getByTgId(ctx.chatId.toString()),
+      tgChats.upsert(
+        {
+          ...tgChatUpsert,
+          role: 'member',
+          tgId: chat.id.toString(),
+        } as TgChatInsert,
+        {
+          ...tgChatUpsert,
+          updatedAt: new Date(),
+        },
+      ),
     ])
 
-    const userToChat = await tgChats.addUserToChat(user.uuid, chat.uuid)
+    await Promise.all([
+      tgChats.addUserToChat(upsertedUser.uuid, upsertedChat.uuid),
+      tgChats.upsertSettings({
+        tgChatUuid: upsertedChat.uuid,
+        isActive: true,
+        isActiveToggledAt: new Date(),
+        leaderboardStartedAt: new Date(),
+      }),
+    ])
 
-    ctx.user = user
-    ctx.tgChat = chat
-    ctx.userToChat = userToChat
+    ctx.user = upsertedUser
+    ctx.tgChat = upsertedChat
 
     return next()
   },

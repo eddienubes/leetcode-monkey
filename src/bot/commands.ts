@@ -68,7 +68,6 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
           await ctx.react('👀')
         },
         try: async (ctx) => {
-          console.log('try is called')
           const text = ctx.message.text
 
           let userSlug: string
@@ -107,12 +106,14 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
           messagesToDelete.push(msg.message_id, ctx.message.message_id)
         },
         finally: async (ctx) => {
-          console.log('finally is called')
           await ctx.deleteMessages(messagesToDelete)
         },
       })
 
       await convo.external(async () => {
+        const tgChat = extra.tgChat!
+        const tgUser = extra.user!
+
         const lcUser = await lcUsersDao.upsert({
           slug: profile.matchedUser?.username!,
           realName: profile.matchedUser?.profile.realName,
@@ -121,7 +122,8 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
 
         await lcUsersDao.connectLcUserToUserInChat({
           lcUserUuid: lcUser.uuid,
-          userInChatUuid: extra.userToChat!.uuid,
+          tgUserUuid: tgUser.uuid,
+          tgChatUuid: tgChat.uuid,
           isActive: true,
           isActiveToggledAt: new Date(),
         })
@@ -146,7 +148,6 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
       await ctx.conversation.enter(name, {
         user: ctx.user!,
         tgChat: ctx.tgChat!,
-        userToChat: ctx.userToChat!,
       } satisfies BotCtxExtra)
     })
   },
@@ -163,9 +164,10 @@ export const disconnectLcCommand = createHandler(
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
     bot.command(['disconnect', 'signout'], m, async (ctx) => {
-      const userToChat = ctx.userToChat!
+      const tgChat = ctx.tgChat!
+      const tgUser = ctx.user!
 
-      await lcUsersDao.disconnectLcUserFromUserInChat(userToChat.uuid)
+      await lcUsersDao.disconnectLcUserFromUserInChat(tgUser.uuid, tgChat.uuid)
 
       const username = ctx.message?.from?.username || ''
       const firstName = ctx.message?.from?.first_name || ''
@@ -221,7 +223,6 @@ export const leaderboardCommand = createHandler(
         }
       },
       render: async (ctx, fetch, page) => {
-        const now = new Date()
         return fmt`
 🔥${bold(`Leaderboard - Week ${fetch.items.week + 1}`)}
 ${fetch.items.hits
@@ -256,7 +257,6 @@ ${fetch.items.hits
 
     bot.command(
       ['leaderboard', 'lederboard', 'lb', 'ld', 'scoreboard', 'rating'],
-      m,
       async (ctx) => {
         await pag.run(ctx, async (ctx, fetch, render) => {
           await ctx.replyFmt(render, {

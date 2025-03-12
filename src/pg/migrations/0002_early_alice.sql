@@ -1,1 +1,0 @@
-ALTER TABLE "lc_problems" ADD COLUMN "topics" varchar[] DEFAULT '{}' NOT NULL;

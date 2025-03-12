@@ -12,10 +12,10 @@ import { LcApiClient } from '@/lc/LcApiClient'
 import { createRamConvoStorage } from '@/bot/ramConvoStorage'
 import { TgUsersDao } from '@/tg/TgUsersDao'
 import { LcPullSubmissionsCronJob } from '@/lc/LcPullSubmissionsCronJob'
-import { TgSubmissionsNotifier } from '@/lc/TgSubmissionsNotifier'
 import { LcProblemsDao } from '@/lc/LcProblemsDao'
-import { LcSaveSubmissionsWorker } from '@/lc/LcSaveSubmissionsWorker'
 import { LcProblemsService } from '@/lc/LcProblemsService'
+import { LcTgNotificationsDao } from '@/lc/LcTgNotificationsDao'
+import { TgSubmissionsCronJob } from '@/lc/TgSubmissionsCronJob'
 
 export const main = async (): Promise<void> => {
   const convoStorage = createRamConvoStorage()
@@ -28,17 +28,16 @@ export const main = async (): Promise<void> => {
   const tgChatsDao = new TgChatsDao(pgService)
   const lcApi = new LcApiClient()
   const lcProblemsService = new LcProblemsService(lcProblemsDao, lcApi)
-  const tgSubmissionsNotifier = new TgSubmissionsNotifier(tgBot)
-  const lcSaveSubmissionsWorker = new LcSaveSubmissionsWorker(
-    lcUsersDao,
-    lcApi,
-    tgSubmissionsNotifier,
-    lcProblemsService,
-  )
   const lcCronJob = new LcPullSubmissionsCronJob(
     lcUsersDao,
     lcApi,
-    lcSaveSubmissionsWorker,
+    lcProblemsService,
+  )
+  const lcTgNotificationsDao = new LcTgNotificationsDao(pgService)
+  const tgSubmissionsCronJob = new TgSubmissionsCronJob(
+    bot.getBot(),
+    lcUsersDao,
+    lcTgNotificationsDao,
   )
 
   const instances = [
@@ -51,10 +50,10 @@ export const main = async (): Promise<void> => {
     tgChatsDao,
     tgUsersDao,
     lcCronJob,
-    tgSubmissionsNotifier,
     lcProblemsDao,
-    lcSaveSubmissionsWorker,
     lcProblemsService,
+    lcTgNotificationsDao,
+    tgSubmissionsCronJob,
   ]
 
   const inject = {

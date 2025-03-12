@@ -64,4 +64,12 @@ describe('LcUsersDao', () => {
       expect(hits.total).toBeGreaterThanOrEqual(0)
     })
   })
+
+  describe('getLcUsersInChatsToNotify', () => {
+    it('should get lc users in chats', async () => {
+      const hits = await dao.getLcUsersInChatsToNotify()
+
+      expect(hits.length).toBeGreaterThanOrEqual(0)
+    })
+  })
 })

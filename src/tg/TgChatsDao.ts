@@ -36,13 +36,14 @@ export class TgChatsDao extends PgDao {
 
   async upsert(
     chat: TgChatInsert,
+    upsert?: Partial<TgChatInsert>,
   ): Promise<TgChatSelect & { isCreated: boolean }> {
     const [upserted] = await this.client
       .insert(tgChats)
       .values(chat)
       .onConflictDoUpdate({
         target: [tgChats.tgId],
-        set: chat,
+        set: upsert || chat,
       })
       .returning({
         ...getTableColumns(tgChats),
@@ -77,13 +78,14 @@ export class TgChatsDao extends PgDao {
 
   async upsertSettings(
     insert: LcChatSettingsInsert,
+    upsert?: Partial<LcChatSettingsInsert>,
   ): Promise<LcChatSettingsSelect> {
     const [upserted] = await this.client
       .insert(lcChatSettings)
       .values(insert)
       .onConflictDoUpdate({
         target: [lcChatSettings.tgChatUuid],
-        set: insert,
+        set: upsert || insert,
       })
       .returning()
     return upserted

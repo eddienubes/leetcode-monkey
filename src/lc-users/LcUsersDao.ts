@@ -11,38 +11,30 @@ import {
   InferInsertModel,
   InferSelectModel,
   isNotNull,
+  isNull,
+  or,
   sql,
 } from 'drizzle-orm'
 import {
   acceptedSubmissions,
   lcChatSettings,
   lcProblems,
+  lcTgNotifications,
   lcUsers,
-  lcUsersToUsersInChats,
+  lcUsersInTgChats,
   tgChats,
   tgUsers,
-  tgUsersToTgChats,
 } from '@/pg/schema'
 import { PgService } from '@/pg/PgService'
-import { TgUsersToTgChatsSelect } from '@/tg/TgChatsDao'
 import { GetAllActiveLcChatUsersHit } from '@/lc-users/types'
 import { LC_SCORE_COEFFICIENTS } from '@/lc/constants'
 
 export type LcUserSelect = InferSelectModel<typeof lcUsers>
 export type LcUserInsert = InferInsertModel<typeof lcUsers>
-export type LcUserToUserInChatSelect = InferSelectModel<
-  typeof lcUsersToUsersInChats
->
-export type lcUserToUserInChatSelectWithRelations = {
-  lcUser: LcUserSelect
-  userInChat: TgUsersToTgChatsSelect
-}
+export type LcUserInTgChatSelect = InferSelectModel<typeof lcUsersInTgChats>
+export type LcUserInTgChatInsert = InferInsertModel<typeof lcUsersInTgChats>
 export type SubmissionInsert = InferInsertModel<typeof acceptedSubmissions>
 export type SubmissionSelect = InferSelectModel<typeof acceptedSubmissions>
-
-export type lcUserToUserInChatInsert = InferInsertModel<
-  typeof lcUsersToUsersInChats
->
 
 export class LcUsersDao extends PgDao {
   constructor(pgService: PgService) {
@@ -81,30 +73,27 @@ export class LcUsersDao extends PgDao {
       )
       .as('latest_submission')
 
-    const hits = await this.client
+    const query = this.client
       .select()
       .from(lcUsers)
-      .leftJoin(
-        lcUsersToUsersInChats,
-        eq(lcUsers.uuid, lcUsersToUsersInChats.lcUserUuid),
-      )
-      .innerJoin(
-        tgUsersToTgChats,
-        eq(lcUsersToUsersInChats.userInChatUuid, tgUsersToTgChats.uuid),
-      )
-      .innerJoin(tgUsers, eq(tgUsersToTgChats.tgUserUuid, tgUsers.uuid))
-      .innerJoin(tgChats, eq(tgUsersToTgChats.tgChatUuid, tgChats.uuid))
+      .leftJoin(lcUsersInTgChats, eq(lcUsers.uuid, lcUsersInTgChats.lcUserUuid))
+      .innerJoin(tgUsers, eq(lcUsersInTgChats.tgUserUuid, tgUsers.uuid))
+      .innerJoin(tgChats, eq(lcUsersInTgChats.tgChatUuid, tgChats.uuid))
       .innerJoin(lcChatSettings, eq(lcChatSettings.tgChatUuid, tgChats.uuid))
       .leftJoin(latestSubmission, eq(lcUsers.uuid, latestSubmission.lcUserUuid))
       .where(
         and(
-          isNotNull(lcUsersToUsersInChats.lcUserUuid),
-          eq(lcUsersToUsersInChats.isActive, true),
+          isNotNull(lcUsersInTgChats.lcUserUuid),
+          eq(lcUsersInTgChats.isActive, true),
           eq(lcChatSettings.isActive, true),
         ),
       )
       // prioritise active users
       .orderBy(sql`${latestSubmission.submittedAt} desc nulls last`)
+
+    // console.log(query.toSQL().sql)
+
+    const hits = await query
 
     const map = hits.reduce((acc, hit) => {
       const key = hit.lc_users.uuid
@@ -119,7 +108,7 @@ export class LcUsersDao extends PgDao {
 
       lcUser.lcUserInChats.push({
         chatSettings: hit.lc_chat_settings,
-        entity: hit.lc_users_to_users_in_chats!,
+        entity: hit.lc_users_in_tg_chats!,
         tgChat: hit.tg_chats,
       })
 
@@ -132,13 +121,13 @@ export class LcUsersDao extends PgDao {
   }
 
   async connectLcUserToUserInChat(
-    entry: lcUserToUserInChatInsert,
-  ): Promise<LcUserToUserInChatSelect> {
+    entry: LcUserInTgChatInsert,
+  ): Promise<LcUserInTgChatSelect> {
     const [hit] = await this.client
-      .insert(lcUsersToUsersInChats)
+      .insert(lcUsersInTgChats)
       .values(entry)
       .onConflictDoUpdate({
-        target: [lcUsersToUsersInChats.userInChatUuid],
+        target: [lcUsersInTgChats.tgChatUuid, lcUsersInTgChats.lcUserUuid],
         set: entry,
       })
       .returning()
@@ -146,13 +135,21 @@ export class LcUsersDao extends PgDao {
     return hit
   }
 
-  async disconnectLcUserFromUserInChat(userInChatUuid: string): Promise<void> {
+  async disconnectLcUserFromUserInChat(
+    tgUserUuid: string,
+    tgChatUuid: string,
+  ): Promise<void> {
     await this.client
-      .update(lcUsersToUsersInChats)
+      .update(lcUsersInTgChats)
       .set({
         isActive: false,
       })
-      .where(eq(lcUsersToUsersInChats.userInChatUuid, userInChatUuid))
+      .where(
+        and(
+          eq(lcUsersInTgChats.tgUserUuid, tgUserUuid),
+          eq(lcUsersInTgChats.tgChatUuid, tgChatUuid),
+        ),
+      )
   }
 
   async addSubmissions(
@@ -237,15 +234,11 @@ export class LcUsersDao extends PgDao {
             'hard',
           ),
         })
-        .from(lcUsersToUsersInChats)
-        .innerJoin(
-          tgUsersToTgChats,
-          eq(tgUsersToTgChats.uuid, lcUsersToUsersInChats.userInChatUuid),
-        )
-        .innerJoin(tgChats, eq(tgChats.uuid, tgUsersToTgChats.tgChatUuid))
+        .from(lcUsersInTgChats)
+        .innerJoin(tgChats, eq(tgChats.uuid, lcUsersInTgChats.tgChatUuid))
+        .innerJoin(tgUsers, eq(tgUsers.uuid, lcUsersInTgChats.tgUserUuid))
+        .innerJoin(lcUsers, eq(lcUsers.uuid, lcUsersInTgChats.lcUserUuid))
         .innerJoin(lcChatSettings, eq(lcChatSettings.tgChatUuid, tgChats.uuid))
-        .innerJoin(tgUsers, eq(tgUsers.uuid, tgUsersToTgChats.tgUserUuid))
-        .innerJoin(lcUsers, eq(lcUsers.uuid, lcUsersToUsersInChats.lcUserUuid))
         .leftJoin(
           distinctSubmissions,
           eq(distinctSubmissions.lcUserUuid, lcUsers.uuid),
@@ -257,10 +250,7 @@ export class LcUsersDao extends PgDao {
         .where(
           and(
             inArray(tgChats.role, ['member', 'administrator']),
-            gte(
-              distinctSubmissions.submittedAt,
-              lcChatSettings.leaderboardStartedAt,
-            ),
+            gte(distinctSubmissions.submittedAt, since),
             eq(tgChats.uuid, tgChatUuid),
           ),
         )
@@ -297,5 +287,46 @@ export class LcUsersDao extends PgDao {
       .from(statsQuery)
 
     return { hits, total: countHit[0].count }
+  }
+
+  /**
+   * Gets all leetcode users in chats to send notifications
+   * about recent submissions
+   */
+  async getLcUsersInChatsToNotify() {
+    const hits = await this.client
+      .select()
+      .from(lcUsersInTgChats)
+      .innerJoin(lcUsers, eq(lcUsers.uuid, lcUsersInTgChats.lcUserUuid))
+      .innerJoin(tgChats, eq(tgChats.uuid, lcUsersInTgChats.tgChatUuid))
+      .innerJoin(tgUsers, eq(tgUsers.uuid, lcUsersInTgChats.tgUserUuid))
+      .innerJoin(lcChatSettings, eq(lcChatSettings.tgChatUuid, tgChats.uuid))
+      .innerJoin(
+        acceptedSubmissions,
+        eq(acceptedSubmissions.lcUserUuid, lcUsers.uuid),
+      )
+      .innerJoin(
+        lcProblems,
+        eq(lcProblems.uuid, acceptedSubmissions.lcProblemUuid),
+      )
+      .leftJoin(
+        lcTgNotifications,
+        and(
+          eq(lcTgNotifications.lcUserUuid, lcUsers.uuid),
+          eq(lcTgNotifications.tgChatUuid, tgChats.uuid),
+        ),
+      )
+      .where(
+        and(
+          eq(lcUsersInTgChats.isActive, true),
+          eq(lcChatSettings.isActive, true),
+          or(
+            isNull(lcTgNotifications.lcUserUuid),
+            gt(acceptedSubmissions.submittedAt, lcTgNotifications.lastSentAt),
+          ),
+        ),
+      )
+
+    return hits
   }
 }

@@ -11,12 +11,11 @@ import { createSession, Session } from '@/bot/session'
 import { MenuFlavor } from '@grammyjs/menu'
 import { ConvoStorage } from '@/bot/ramConvoStorage'
 import { TgUserSelect } from '@/tg/TgUsersDao'
-import { TgChatSelect, TgUsersToTgChatsSelect } from '@/tg/TgChatsDao'
+import { TgChatSelect } from '@/tg/TgChatsDao'
 
 export type BotCtxExtra = {
   user?: TgUserSelect
   tgChat?: TgChatSelect
-  userToChat?: TgUsersToTgChatsSelect
 }
 
 export type BotCtx = ParseModeFlavor<

@@ -1,2 +1,0 @@
-ALTER TABLE "accepted_submissions" DROP CONSTRAINT "accepted_submissions_lc_user_uuid_lc_problem_uuid_unique";--> statement-breakpoint
-ALTER TABLE "accepted_submissions" ADD CONSTRAINT "accepted_submissions_submitted_at_unique" UNIQUE("submitted_at");

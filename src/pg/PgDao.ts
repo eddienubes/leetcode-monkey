@@ -1,7 +1,10 @@
 import { PgService, PostgresDatabase } from '@/pg/PgService'
 
 export class PgDao {
-  constructor(protected readonly pgService: PgService) {}
+  protected readonly pgService: PgService
+  constructor(pgService: PgService) {
+    this.pgService = pgService
+  }
 
   get client(): PostgresDatabase {
     const tx = this.pgService.getTransaction()

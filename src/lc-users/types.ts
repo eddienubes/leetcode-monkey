@@ -1,6 +1,6 @@
 import {
   LcUserSelect,
-  LcUserToUserInChatSelect,
+  LcUserInTgChatSelect,
   SubmissionSelect,
 } from '@/lc-users/LcUsersDao'
 import {
@@ -14,7 +14,7 @@ export interface GetAllActiveLcChatUsersHit {
   lcUser: LcUserSelect
   lcUserInChats: {
     chatSettings: LcChatSettingsSelect
-    entity: LcUserToUserInChatSelect
+    entity: LcUserInTgChatSelect
     tgChat: TgChatSelect
   }[]
   tgUser: TgUserSelect

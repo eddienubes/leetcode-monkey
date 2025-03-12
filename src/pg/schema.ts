@@ -71,19 +71,9 @@ export const tgUsers = pgTable('tg_users', {
   ...timestamps,
 })
 
-export const lcUsers = pgTable('lc_users', {
-  uuid: uuid('uuid').defaultRandom().primaryKey(),
-  slug: varchar().notNull().unique(),
-  realName: varchar(),
-  avatarUrl: varchar(),
-
-  ...timestamps,
-})
-
 export const tgUsersToTgChats = pgTable(
   'tg_users_to_tg_chats',
   {
-    uuid: uuid('uuid').primaryKey().defaultRandom(),
     tgChatUuid: uuid('tg_chat_uuid')
       .notNull()
       .references(() => tgChats.uuid),
@@ -94,6 +84,15 @@ export const tgUsersToTgChats = pgTable(
   },
   (t) => [unique().on(t.tgUserUuid, t.tgChatUuid)],
 )
+
+export const lcUsers = pgTable('lc_users', {
+  uuid: uuid('uuid').defaultRandom().primaryKey(),
+  slug: varchar().notNull().unique(),
+  realName: varchar(),
+  avatarUrl: varchar(),
+
+  ...timestamps,
+})
 
 export const tgUsersToTgChatsRelation = relations(
   tgUsersToTgChats,
@@ -109,18 +108,26 @@ export const tgUsersToTgChatsRelation = relations(
   }),
 )
 
-export const lcUsersToUsersInChats = pgTable('lc_users_to_users_in_chats', {
-  userInChatUuid: uuid('user_in_chat_uuid')
-    .notNull()
-    .references(() => tgUsersToTgChats.uuid)
-    .unique(),
-  lcUserUuid: uuid('lc_user_uuid')
-    .notNull()
-    .references(() => lcUsers.uuid),
-  isActive: boolean('is_active').notNull().default(true),
-  isActiveToggledAt: timestamp('is_active_toggled_at').notNull(),
-  ...timestamps,
-})
+export const lcUsersInTgChats = pgTable(
+  'lc_users_in_tg_chats',
+  {
+    tgUserUuid: uuid('tg_user_uuid')
+      .notNull()
+      .references(() => tgUsers.uuid),
+    tgChatUuid: uuid('tg_chat_uuid')
+      .notNull()
+      .references(() => tgChats.uuid),
+    lcUserUuid: uuid('lc_user_uuid')
+      .notNull()
+      .references(() => lcUsers.uuid),
+    // Per user per chat settings
+    isActive: boolean('is_active').notNull().default(true),
+    isActiveToggledAt: timestamp('is_active_toggled_at').notNull(),
+    ...timestamps,
+  },
+  // you cannot have the same user in the same chat connected to different lc users
+  (t) => [unique().on(t.tgChatUuid, t.lcUserUuid)],
+)
 
 export const lcChatSettings = pgTable('lc_chat_settings', {
   tgChatUuid: uuid('tg_chat_uuid')
@@ -133,21 +140,8 @@ export const lcChatSettings = pgTable('lc_chat_settings', {
   ...timestamps,
 })
 
-export const lcUsersToUsersInChatsRelation = relations(
-  lcUsersToUsersInChats,
-  ({ one }) => ({
-    lcUser: one(lcUsers, {
-      fields: [lcUsersToUsersInChats.lcUserUuid],
-      references: [lcUsers.uuid],
-    }),
-    userInChat: one(tgUsersToTgChats, {
-      fields: [lcUsersToUsersInChats.userInChatUuid],
-      references: [tgUsersToTgChats.uuid],
-    }),
-  }),
-)
-
 export const acceptedSubmissions = pgTable('accepted_submissions', {
+  uuid: uuid('uuid').primaryKey().defaultRandom(),
   lcUserUuid: uuid('lc_user_uuid')
     .notNull()
     .references(() => lcUsers.uuid),
@@ -170,3 +164,18 @@ export const lcProblems = pgTable('lc_problems', {
   topics: varchar('topics').array().notNull().default([]),
   ...timestamps,
 })
+
+export const lcTgNotifications = pgTable(
+  'lc_tg_notifications',
+  {
+    lcUserUuid: uuid('lc_user_uuid')
+      .notNull()
+      .references(() => lcUsers.uuid),
+    tgChatUuid: uuid('tg_chat_uuid')
+      .notNull()
+      .references(() => tgChats.uuid),
+    lastSentAt: timestamp('last_sent_at').notNull(),
+    ...timestamps,
+  },
+  (t) => [unique().on(t.tgChatUuid, t.lcUserUuid)],
+)

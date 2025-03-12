@@ -1,6 +1,6 @@
 import {
   LcUserSelect,
-  LcUserToUserInChatSelect,
+  LcUserInTgChatSelect,
   SubmissionSelect,
 } from '@/lc-users/LcUsersDao'
 import { TgUserSelect } from '@/tg/TgUsersDao'
@@ -17,21 +17,18 @@ export interface LcRecentAcceptedSubmissions {
   }[]
 }
 
-export type TgSubmissionNotifyJob = ToJsonType<{
+export type TgSubmissionNotifyJob = {
   submission: SubmissionSelect
   tgUser: TgUserSelect
   tgChat: TgChatSelect
   lcUser: LcUserSelect
-  lcUserInChat: LcUserToUserInChatSelect
+  lcUserInChat: LcUserInTgChatSelect
   lcChatSettings: LcChatSettingsSelect
   lcProblem: LcProblemSelect
-}>
+}
 
-export interface LcSaveSubmissionJob {
+export interface LcPullSubmissionJob {
   submission: LcRecentAcceptedSubmissions['recentAcSubmissionList'][number]
   tgUser: TgUserSelect
-  tgChat: TgChatSelect
   lcUser: LcUserSelect
-  lcUserInChat: LcUserToUserInChatSelect
-  lcChatSettings: LcChatSettingsSelect
 }
