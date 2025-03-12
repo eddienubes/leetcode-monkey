@@ -19,12 +19,21 @@ import { LcProblemsDao } from '@/lc/LcProblemsDao'
 import { LcProblemsService } from '@/lc/LcProblemsService'
 import { LcTgNotificationsDao } from '@/lc/LcTgNotificationsDao'
 import { TgSubmissionsCronJob } from '@/lc/TgSubmissionsCronJob'
+import { migrate } from 'drizzle-orm/postgres-js/migrator'
+import { config } from '@/config'
 
 export const main = async (): Promise<void> => {
   const convoStorage = createRamConvoStorage()
   const bot = new Bot(convoStorage)
   const tgBot = bot.getBot()
   const pgService = new PgService()
+
+  await migrate(pgService.getClient(), {
+    migrationsFolder: config.pg.migrations.out,
+    migrationsTable: config.pg.migrations.table,
+    migrationsSchema: config.pg.migrations.schema,
+  })
+
   const lcProblemsDao = new LcProblemsDao(pgService)
   const tgUsersDao = new TgUsersDao(pgService)
   const lcUsersDao = new LcUsersDao(pgService)
