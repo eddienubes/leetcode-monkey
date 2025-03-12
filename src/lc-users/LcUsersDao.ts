@@ -318,8 +318,14 @@ export class LcUsersDao extends PgDao {
       )
       .where(
         and(
+          // only active users
           eq(lcUsersInTgChats.isActive, true),
+          gt(acceptedSubmissions.submittedAt, lcUsersInTgChats.isActiveToggledAt),
+          // only active chats
           eq(lcChatSettings.isActive, true),
+          gt(acceptedSubmissions.submittedAt, lcChatSettings.isActiveToggledAt),
+          // notifications hasn't been sent yet
+          // or it's a new submission
           or(
             isNull(lcTgNotifications.lcUserUuid),
             gt(acceptedSubmissions.submittedAt, lcTgNotifications.lastSentAt),

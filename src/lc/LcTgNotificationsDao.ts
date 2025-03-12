@@ -31,6 +31,10 @@ export class LcTgNotificationsDao extends PgDao {
   async upsertMany(
     notifications: LcTgNotificationsInsert[],
   ): Promise<LcTgNotificationsSelect[]> {
+    if (!notifications.length) {
+      return []
+    }
+
     const hits = await this.client
       .insert(lcTgNotifications)
       .values(notifications)

@@ -10,7 +10,10 @@ import { LC_SCORE_COEFFICIENTS } from '@/lc/constants'
 import { connection, defaultJobOptions } from '@/common/bullmq'
 import { config } from '@/config'
 import { LcUsersDao } from '@/lc-users/LcUsersDao'
-import { LcTgNotificationsDao } from '@/lc/LcTgNotificationsDao'
+import {
+  LcTgNotificationsDao,
+  LcTgNotificationsSelect,
+} from '@/lc/LcTgNotificationsDao'
 
 export class TgSubmissionsCronJob {
   private readonly cronName = 'tg-submissions-notify-cron'
@@ -48,6 +51,17 @@ export class TgSubmissionsCronJob {
     const lcUsersInChatsToNotify =
       await this.lcUsersDao.getLcUsersInChatsToNotify()
 
+    if (!lcUsersInChatsToNotify.length) {
+      console.log(
+        `${TgSubmissionsCronJob.name} no users to notify, exiting`,
+      )
+      return
+    }
+
+    console.log(
+      `${TgSubmissionsCronJob.name} notifying ${lcUsersInChatsToNotify.length} users`,
+    )
+
     await this.add(
       lcUsersInChatsToNotify.map(
         (u) =>
@@ -63,12 +77,19 @@ export class TgSubmissionsCronJob {
       ),
     )
 
+    const lcTgNotifications = new Map<string, LcTgNotificationsSelect>(
+      lcUsersInChatsToNotify.map((u) => [
+        `${u.lc_users.uuid}:${u.tg_chats.uuid}`,
+        {
+          lcUserUuid: u.lc_users.uuid,
+          tgChatUuid: u.tg_chats.uuid,
+          lastSentAt: new Date(),
+        } as LcTgNotificationsSelect,
+      ]),
+    )
+
     await this.lcTgNotificationsDao.upsertMany(
-      lcUsersInChatsToNotify.map((u) => ({
-        lcUserUuid: u.lc_users.uuid,
-        tgChatUuid: u.tg_chats.uuid,
-        lastSentAt: new Date(),
-      })),
+      Array.from(lcTgNotifications.values()),
     )
   }
 
@@ -77,7 +98,7 @@ export class TgSubmissionsCronJob {
       return
     }
 
-    await this.cron.addBulk(
+    await this.queue.addBulk(
       job.map((j) => ({
         name: `${j.lcUser.slug}:${j.lcProblem.slug}`,
         data: j,
@@ -151,8 +172,8 @@ ${data.lcProblem.topics.map((t) => `#${t}`.replaceAll('-', '')).join(' ')}
   }
 
   async onModuleInit(): Promise<void> {
-    await this.cron.upsertJobScheduler(`${this.queueName}-scheduler`, {
-      pattern: config.cron.lcCronJobInterval,
+    await this.cron.upsertJobScheduler(`${this.cronName}-scheduler`, {
+      pattern: config.cron.tgSubmissionsCronJobInterval,
     })
 
     console.log(`${TgSubmissionsCronJob.name} started + queue`)

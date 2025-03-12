@@ -82,7 +82,7 @@ export class LcPullSubmissionsCronJob {
       return
     }
 
-    await this.cron.addBulk(
+    await this.queue.addBulk(
       jobs.map((job) => ({
         name: `${job.lcUser.slug}-${job.submission.id}`,
         data: job,

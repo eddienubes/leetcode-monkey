@@ -41,6 +41,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
       {
         const msg = await ctx.replyFmt(message, {
           reply_markup: menu,
+          reply_to_message_id: ctx.message?.message_id,
           link_preview_options: {
             is_disabled: true,
           },
