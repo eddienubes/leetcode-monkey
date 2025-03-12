@@ -43,12 +43,17 @@ export const tgUsersMiddleware = createMiddleware(
 
     await Promise.all([
       tgChats.addUserToChat(upsertedUser.uuid, upsertedChat.uuid),
-      tgChats.upsertSettings({
-        tgChatUuid: upsertedChat.uuid,
-        isActive: true,
-        isActiveToggledAt: new Date(),
-        leaderboardStartedAt: new Date(),
-      }),
+      tgChats.upsertSettings(
+        {
+          tgChatUuid: upsertedChat.uuid,
+          isActive: true,
+          isActiveToggledAt: new Date(),
+          leaderboardStartedAt: new Date(),
+        },
+        {
+          updatedAt: new Date(),
+        },
+      ),
     ])
 
     ctx.user = upsertedUser

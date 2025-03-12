@@ -137,6 +137,9 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
 
       await ctx.replyFmt(
         fmt`Connected! Now ${bold(profile.matchedUser?.profile.realName!)} (${mentionUser(name, ctx.message!.from.id)}) will get notifications for their LeetCode submissions. 🎉`,
+        {
+          reply_to_message_id: ctx.message?.message_id,
+        },
       )
     }
 
@@ -218,7 +221,7 @@ export const leaderboardCommand = createHandler(
         return {
           total: lb.total,
           items: {
-            week: diffInWeeks(latestDate, now),
+            week: diffInWeeks(new Date(chatSettings.leaderboardStartedAt), now),
             hits: lb.hits,
           },
         }
@@ -226,27 +229,30 @@ export const leaderboardCommand = createHandler(
       render: async (ctx, fetch, page) => {
         return fmt`
 🔥${bold(`Leaderboard - Week ${fetch.items.week + 1}`)}
-${fetch.items.hits
-  .map((item, i) => {
-    const mention =
-      item.user.firstName ||
-      item.user.username ||
-      item.lcUser.realName ||
-      item.lcUser.slug
+${
+  fetch.items.hits
+    .map((item, i) => {
+      const mention =
+        item.user.firstName ||
+        item.user.username ||
+        item.lcUser.realName ||
+        item.lcUser.slug
 
-    const emojimap: Record<number, string> = {
-      0: '🥇',
-      1: '🥈',
-      2: '🥉',
-    }
+      const emojimap: Record<number, string> = {
+        0: '🥇',
+        1: '🥈',
+        2: '🥉',
+      }
 
-    i = i + limit * page
+      i = i + limit * page
 
-    const order = emojimap[i] || `${i + 1}.`
+      const order = emojimap[i] || `${i + 1}.`
 
-    return `${order} ${mentionUser(mention, parseInt(item.user.tgId, 10))} - ${item.easy}/${item.medium}/${item.hard} (+${item.score})`
-  })
-  .join('\n')}
+      return `${order} ${mentionUser(mention, parseInt(item.user.tgId, 10))} - ${item.easy}/${item.medium}/${item.hard} (+${item.score})`
+    })
+    .join('\n')
+    .trim() || "It's so empty here. 😔"
+}
         `
       },
       update: async (ctx, fetch, page, render) => {

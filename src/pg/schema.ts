@@ -10,8 +10,10 @@ import { relations } from 'drizzle-orm'
 import { TgMemberStatus } from '@/bot/types'
 
 const timestamps = {
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at')
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
     .$onUpdate(() => new Date())
     .defaultNow(),
@@ -122,7 +124,9 @@ export const lcUsersInTgChats = pgTable(
       .references(() => lcUsers.uuid),
     // Per user per chat settings
     isActive: boolean('is_active').notNull().default(true),
-    isActiveToggledAt: timestamp('is_active_toggled_at').notNull(),
+    isActiveToggledAt: timestamp('is_active_toggled_at', {
+      withTimezone: true,
+    }).notNull(),
     ...timestamps,
   },
   // you cannot have the same user in the same chat connected to different lc users
@@ -135,8 +139,12 @@ export const lcChatSettings = pgTable('lc_chat_settings', {
     .references(() => tgChats.uuid)
     .unique(),
   isActive: boolean('is_active').notNull().default(true),
-  isActiveToggledAt: timestamp('is_active_toggled_at').notNull(),
-  leaderboardStartedAt: timestamp('leaderboard_started_at').notNull(),
+  isActiveToggledAt: timestamp('is_active_toggled_at', {
+    withTimezone: true,
+  }).notNull(),
+  leaderboardStartedAt: timestamp('leaderboard_started_at', {
+    withTimezone: true,
+  }).notNull(),
   ...timestamps,
 })
 
@@ -148,7 +156,9 @@ export const acceptedSubmissions = pgTable('accepted_submissions', {
   lcProblemUuid: uuid('lc_problem_uuid')
     .notNull()
     .references(() => lcProblems.uuid),
-  submittedAt: timestamp('submitted_at').notNull().unique(),
+  submittedAt: timestamp('submitted_at', { withTimezone: true })
+    .notNull()
+    .unique(),
   ...timestamps,
   // No composite unique constraint on purpose. A single user may have multiple submissions for the same problem
 })
@@ -174,7 +184,7 @@ export const lcTgNotifications = pgTable(
     tgChatUuid: uuid('tg_chat_uuid')
       .notNull()
       .references(() => tgChats.uuid),
-    lastSentAt: timestamp('last_sent_at').notNull(),
+    lastSentAt: timestamp('last_sent_at', { withTimezone: true }).notNull(),
     ...timestamps,
   },
   (t) => [unique().on(t.tgChatUuid, t.lcUserUuid)],

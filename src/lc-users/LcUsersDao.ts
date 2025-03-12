@@ -277,6 +277,8 @@ export class LcUsersDao extends PgDao {
       .offset(offset)
       .limit(limit)
 
+    // console.log(query.toSQL().sql)
+
     const hits = await query
 
     const countHit = await this.client

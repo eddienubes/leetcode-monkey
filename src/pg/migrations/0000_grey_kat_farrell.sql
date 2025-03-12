@@ -2,19 +2,19 @@ CREATE TABLE "accepted_submissions" (
 	"uuid" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"lc_user_uuid" uuid NOT NULL,
 	"lc_problem_uuid" uuid NOT NULL,
-	"submitted_at" timestamp NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"submitted_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "accepted_submissions_submitted_at_unique" UNIQUE("submitted_at")
 );
 --> statement-breakpoint
 CREATE TABLE "lc_chat_settings" (
 	"tg_chat_uuid" uuid NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
-	"is_active_toggled_at" timestamp NOT NULL,
-	"leaderboard_started_at" timestamp NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"is_active_toggled_at" timestamp with time zone NOT NULL,
+	"leaderboard_started_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "lc_chat_settings_tg_chat_uuid_unique" UNIQUE("tg_chat_uuid")
 );
 --> statement-breakpoint
@@ -25,17 +25,17 @@ CREATE TABLE "lc_problems" (
 	"difficulty" varchar NOT NULL,
 	"lc_id" varchar NOT NULL,
 	"topics" varchar[] DEFAULT '{}' NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "lc_problems_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
 CREATE TABLE "lc_tg_notifications" (
 	"lc_user_uuid" uuid NOT NULL,
 	"tg_chat_uuid" uuid NOT NULL,
-	"last_sent_at" timestamp NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"last_sent_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "lc_tg_notifications_tg_chat_uuid_lc_user_uuid_unique" UNIQUE("tg_chat_uuid","lc_user_uuid")
 );
 --> statement-breakpoint
@@ -44,8 +44,8 @@ CREATE TABLE "lc_users" (
 	"slug" varchar NOT NULL,
 	"realName" varchar,
 	"avatarUrl" varchar,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "lc_users_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
@@ -54,9 +54,9 @@ CREATE TABLE "lc_users_in_tg_chats" (
 	"tg_chat_uuid" uuid NOT NULL,
 	"lc_user_uuid" uuid NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
-	"is_active_toggled_at" timestamp NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"is_active_toggled_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "lc_users_in_tg_chats_tg_chat_uuid_lc_user_uuid_unique" UNIQUE("tg_chat_uuid","lc_user_uuid")
 );
 --> statement-breakpoint
@@ -73,8 +73,8 @@ CREATE TABLE "tg_chats" (
 	"bio" varchar,
 	"join_by_request" boolean DEFAULT false NOT NULL,
 	"invite_link" varchar,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "tg_chats_tg_id_unique" UNIQUE("tg_id")
 );
 --> statement-breakpoint
@@ -87,16 +87,16 @@ CREATE TABLE "tg_users" (
 	"username" varchar,
 	"language_code" varchar,
 	"is_premium" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "tg_users_tg_id_unique" UNIQUE("tg_id")
 );
 --> statement-breakpoint
 CREATE TABLE "tg_users_to_tg_chats" (
 	"tg_chat_uuid" uuid NOT NULL,
 	"tg_user_uuid" uuid NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "tg_users_to_tg_chats_tg_user_uuid_tg_chat_uuid_unique" UNIQUE("tg_user_uuid","tg_chat_uuid")
 );
 --> statement-breakpoint
