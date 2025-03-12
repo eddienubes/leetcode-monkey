@@ -22,7 +22,7 @@ export const seed = async (): Promise<void> => {
   await pgService.wrapInTx(async () => {
     await drizzleSeed(client, schema, {
       count: 10,
-      seed: randomInt(0, 99999999)
+      seed: randomInt(0, 99999999),
     })
   })
 

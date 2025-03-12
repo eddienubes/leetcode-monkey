@@ -13,7 +13,8 @@ export const config = {
   },
   cron: {
     lcCronJobInterval: process.env.CRON_LC_JOB_INTERVAL as string,
-    tgSubmissionsCronJobInterval: process.env.CRON_LC_TG_NOTIFICATION_INTERVAL as string,
+    tgSubmissionsCronJobInterval: process.env
+      .CRON_LC_TG_NOTIFICATION_INTERVAL as string,
     removeOnComplete: 100,
     removeOnFail: 100,
   },

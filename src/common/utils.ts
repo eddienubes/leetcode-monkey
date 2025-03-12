@@ -111,3 +111,12 @@ export const incStrInt = (
 export const noopCbAnswer = async (ctx: BotCtx): Promise<void> => {
   await ctx.answerCallbackQuery()
 }
+
+export const arrToHashTags = (arr: string[]): string => {
+  return arr
+    .map((item) => {
+      const hashTag = item.replaceAll('-', '')
+      return `#${hashTag}`
+    })
+    .join(' ')
+}

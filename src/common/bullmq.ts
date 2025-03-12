@@ -1,4 +1,4 @@
-import { config } from "@/config";
+import { config } from '@/config'
 
 export const connection = {
   host: config.redis.host,

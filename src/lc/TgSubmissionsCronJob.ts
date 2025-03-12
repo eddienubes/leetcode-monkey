@@ -6,7 +6,7 @@ import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
 import { LcProblemDifficulty } from '@/pg/schema'
 import { LcProblemsService } from '@/lc/LcProblemsService'
 import { ToJsonType } from '@/common/types'
-import { LC_SCORE_COEFFICIENTS } from '@/lc/constants'
+import { LC_DIFFEMOJI, LC_SCORE_COEFFICIENTS } from '@/lc/constants'
 import { connection, defaultJobOptions } from '@/common/bullmq'
 import { config } from '@/config'
 import { LcUsersDao } from '@/lc-users/LcUsersDao'
@@ -14,6 +14,7 @@ import {
   LcTgNotificationsDao,
   LcTgNotificationsSelect,
 } from '@/lc/LcTgNotificationsDao'
+import { arrToHashTags } from '@/common/utils'
 
 export class TgSubmissionsCronJob {
   private readonly cronName = 'tg-submissions-notify-cron'
@@ -52,9 +53,7 @@ export class TgSubmissionsCronJob {
       await this.lcUsersDao.getLcUsersInChatsToNotify()
 
     if (!lcUsersInChatsToNotify.length) {
-      console.log(
-        `${TgSubmissionsCronJob.name} no users to notify, exiting`,
-      )
+      console.log(`${TgSubmissionsCronJob.name} no users to notify, exiting`)
       return
     }
 
@@ -141,12 +140,6 @@ export class TgSubmissionsCronJob {
       return
     }
 
-    const diffemojimap: Record<LcProblemDifficulty, string> = {
-      easy: '🟢',
-      medium: '🟡',
-      hard: '🔴',
-    }
-
     const mention =
       data.tgUser.firstName ||
       data.tgUser.username ||
@@ -159,8 +152,8 @@ export class TgSubmissionsCronJob {
     // ${data.lcProblem.topics.map((t) => `#${t}`.replaceAll('-', '')).join(' ')}
     //     `
     const msg = fmt`
-🔥${mentionUser(mention, parseInt(data.tgUser.tgId, 10))} has ${bold('solved')} ${diffemojimap[data.lcProblem.difficulty]} ${link(data.lcProblem.title, LcProblemsService.getLcProblemUrl(data.lcProblem.slug))}! (+${LC_SCORE_COEFFICIENTS[data.lcProblem.difficulty]})
-${data.lcProblem.topics.map((t) => `#${t}`.replaceAll('-', '')).join(' ')}
+🔥${mentionUser(mention, parseInt(data.tgUser.tgId, 10))} has ${bold('solved')} ${LC_DIFFEMOJI[data.lcProblem.difficulty]} ${link(data.lcProblem.title, LcProblemsService.getLcProblemUrl(data.lcProblem.slug))}! (+${LC_SCORE_COEFFICIENTS[data.lcProblem.difficulty]})
+${arrToHashTags(data.lcProblem.topics)}
     `
 
     await this.bot.api.sendMessage(data.tgChat.tgId, msg.text, {

@@ -1,7 +1,13 @@
 import { createHandler } from '@/bot/handler'
 import { createConversation } from '@grammyjs/conversations'
 import { BotCtx, BotCtxExtra, Convo } from '@/bot/Bot'
-import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
+import {
+  bold,
+  expandableBlockquote,
+  fmt,
+  link,
+  mentionUser,
+} from '@grammyjs/parse-mode'
 import { LcApiClient } from '@/lc/LcApiClient'
 import { createConvoHelper } from '@/bot/convoHelper'
 import { LcUsersDao } from '@/lc-users/LcUsersDao'
@@ -9,7 +15,9 @@ import { TgChatsDao } from '@/tg/TgChatsDao'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { TgUsersDao } from '@/tg/TgUsersDao'
 import { createPagination } from '@/bot/pagination'
-import { diffInWeeks, getDatePlusDays } from '@/common/utils'
+import { arrToHashTags, diffInWeeks, getDatePlusDays } from '@/common/utils'
+import { LcProblemsService } from '@/lc/LcProblemsService'
+import { LC_DIFFEMOJI } from '@/lc/constants'
 
 export const connectLcCommand = createHandler(
   async (
@@ -273,5 +281,40 @@ ${
         })
       },
     )
+  },
+)
+
+export const dailyCommand = createHandler(
+  async (bot, convoStorage, lcApi: LcApiClient) => {
+    bot.command(['daily', 'dly'], async (ctx) => {
+      const daily = await lcApi.getDaily()
+      const question = daily.question
+
+      if (!daily) {
+        return ctx.replyFmt(fmt`No daily challenge found.`)
+      }
+
+      const message = fmt`
+🌼 You daily challenge!
+${LC_DIFFEMOJI[question.difficulty]} ${link(question.title, LcProblemsService.getLcProblemUrl(question.titleSlug))}
+${arrToHashTags(question.topicTags.map((t) => t.slug))}
+`
+      await ctx.replyFmt(message, {
+        reply_to_message_id: ctx.message?.message_id,
+        link_preview_options: {
+          is_disabled: true,
+        },
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: 'Get it 🚀',
+                url: LcProblemsService.getLcProblemUrl(question.titleSlug),
+              },
+            ],
+          ],
+        },
+      })
+    })
   },
 )

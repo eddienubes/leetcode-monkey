@@ -322,7 +322,10 @@ export class LcUsersDao extends PgDao {
         and(
           // only active users
           eq(lcUsersInTgChats.isActive, true),
-          gt(acceptedSubmissions.submittedAt, lcUsersInTgChats.isActiveToggledAt),
+          gt(
+            acceptedSubmissions.submittedAt,
+            lcUsersInTgChats.isActiveToggledAt,
+          ),
           // only active chats
           eq(lcChatSettings.isActive, true),
           gt(acceptedSubmissions.submittedAt, lcChatSettings.isActiveToggledAt),

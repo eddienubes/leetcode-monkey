@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core'
 import { LC_QUERIES } from './queries/lc'
 import { LcRecentAcceptedSubmissions } from '@/lc/types/types'
-import { Problem, UserProfile, LeetCode } from 'leetcode-query'
+import { Problem, UserProfile, LeetCode, DailyChallenge } from 'leetcode-query'
 
 export class LcApiClient {
   static MAX_RECENT_SUBMISSIONS = 20
@@ -46,5 +46,9 @@ export class LcApiClient {
   async getProblem(slug: string): Promise<Problem> {
     const hit = await this.leetcode.problem(slug)
     return hit
+  }
+
+  async getDaily(): Promise<DailyChallenge> {
+    return await this.leetcode.daily()
   }
 }
