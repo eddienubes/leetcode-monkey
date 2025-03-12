@@ -21,5 +21,7 @@ export const config = {
   redis: {
     host: process.env.REDIS_HOST as string,
     port: parseInt(process.env.REDIS_PORT as string, 10),
+    user: process.env.REDIS_USER as string,
+    password: process.env.REDIS_PASSWORD as string,
   },
 }
