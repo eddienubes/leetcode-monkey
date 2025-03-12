@@ -37,13 +37,13 @@ export const connectLcCommand = createHandler(
 Let's connect your ${link('LeetCode', 'https://lc.com')} account! 👋
 Please send me your ${link('username', 'https://lc.com/profile')} or profile URL.
     `
-      const messagesToDelete: number[] = await convo.external(async () => [
-        ctx.message?.message_id!,
-      ])
+      // const messagesToDelete: number[] = await convo.external(async () => [
+      //   ctx.message?.message_id!,
+      // ])
 
       const menu = convo.menu().text('Cancel', async (ctx) => {
         helper.abort()
-        await ctx.deleteMessages(messagesToDelete)
+        // await ctx.deleteMessages(messagesToDelete)
       })
 
       {
@@ -55,7 +55,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
           },
         })
 
-        messagesToDelete.push(msg.message_id)
+        // messagesToDelete.push(msg.message_id)
       }
 
       // await ctx.api.sendAnimation(
@@ -73,7 +73,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
         maxAttempts: 3,
         timeoutMs: 60 * 1000, // 1 minute
         beforeTry: async (ctx) => {
-          messagesToDelete.push(ctx.message.message_id)
+          // messagesToDelete.push(ctx.message.message_id)
           await ctx.react('👀')
         },
         try: async (ctx) => {
@@ -100,7 +100,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
             return null
           }
 
-          messagesToDelete.push(ctx.message.message_id)
+          // messagesToDelete.push(ctx.message.message_id)
 
           return profile
         },
@@ -112,10 +112,10 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
               reply_to_message_id: ctx.message.message_id,
             },
           )
-          messagesToDelete.push(msg.message_id, ctx.message.message_id)
+          // messagesToDelete.push(msg.message_id, ctx.message.message_id)
         },
         finally: async (ctx) => {
-          await ctx.deleteMessages(messagesToDelete)
+          // await ctx.deleteMessages(messagesToDelete)
         },
       })
 

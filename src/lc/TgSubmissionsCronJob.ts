@@ -3,7 +3,6 @@ import { TgSubmissionNotifyJob } from '@/lc/types/types'
 import { Bot } from 'grammy'
 import { BotCtx } from '@/bot/Bot'
 import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
-import { LcProblemDifficulty } from '@/pg/schema'
 import { LcProblemsService } from '@/lc/LcProblemsService'
 import { ToJsonType } from '@/common/types'
 import { LC_DIFFEMOJI, LC_SCORE_COEFFICIENTS } from '@/lc/constants'
@@ -14,7 +13,7 @@ import {
   LcTgNotificationsDao,
   LcTgNotificationsSelect,
 } from '@/lc/LcTgNotificationsDao'
-import { arrToHashTags } from '@/common/utils'
+import { arrToHashTags, sleepForRandomMs } from '@/common/utils'
 
 export class TgSubmissionsCronJob {
   private readonly cronName = 'tg-submissions-notify-cron'
@@ -106,6 +105,9 @@ export class TgSubmissionsCronJob {
   }
 
   async run(job: Job<ToJsonType<TgSubmissionNotifyJob>>): Promise<void> {
+    // Try to tolerate potential Telegram API rate limits
+    await sleepForRandomMs(500, 2500)
+
     const data = job.data
 
     if (!data.lcChatSettings.isActive || !data.lcUserInChat.isActive) {
