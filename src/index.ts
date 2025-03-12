@@ -21,13 +21,10 @@ import { LcTgNotificationsDao } from '@/lc/LcTgNotificationsDao'
 import { TgSubmissionsCronJob } from '@/lc/TgSubmissionsCronJob'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import { config } from '@/config'
-import * as zx from 'zx'
-import { echo } from "zx";
 
 export const main = async (): Promise<void> => {
   console.log('Starting bot...')
   console.log(`Using config: ${JSON.stringify(config, null, 2)}`)
-  echo(await zx.$`ls -la ./**/*`)
 
   const convoStorage = createRamConvoStorage()
   const bot = new Bot(convoStorage)

@@ -47,9 +47,6 @@ importers:
       postgres:
         specifier: ^3.4.5
         version: 3.4.5
-      zx:
-        specifier: ^8.4.1
-        version: 8.4.1
     devDependencies:
       '@types/node':
         specifier: ^22.13.8
@@ -1929,11 +1926,6 @@ packages:
   zen-observable@0.8.15:
     resolution: {integrity: sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==}
 
-  zx@8.4.1:
-    resolution: {integrity: sha512-1Cb+Tfwt/daKV6wckBeDbB6h3IMauqj9KWp+EcbYzi9doeJeIHCktxp/yWspXOXRdoUzBCQSKoUgm3g8r9fz5A==}
-    engines: {node: '>= 12.17.0'}
-    hasBin: true
-
 snapshots:
 
   '@apollo/client@3.13.1(graphql@16.10.0)':
@@ -3491,5 +3483,3 @@ snapshots:
       zen-observable: 0.8.15
 
   zen-observable@0.8.15: {}
-
-  zx@8.4.1: {}
