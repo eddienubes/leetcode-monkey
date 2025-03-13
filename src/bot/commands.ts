@@ -20,13 +20,14 @@ import {
   arrToHashTags,
   diffInWeeks,
   getDatePlusDays,
+  isMenuOwner,
   isTgChatAdmin,
 } from '@/common/utils'
 import { LcProblemsService } from '@/lc/LcProblemsService'
 import { LC_DIFFEMOJI } from '@/lc/constants'
 import { Menu } from '@grammyjs/menu'
 import { Memo } from '@/common/Memo'
-import { lcChatSettings } from '@/pg/schema'
+import { Context } from 'grammy'
 
 export const connectLcCommand = createHandler(
   async (
@@ -145,8 +146,10 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
           lcUserUuid: lcUser.uuid,
           tgUserUuid: tgUser.uuid,
           tgChatUuid: tgChat.uuid,
-          isActive: true,
-          isActiveToggledAt: new Date(),
+          isNotificationsEnabled: true,
+          isNotificationsEnabledToggledAt: new Date(),
+          isConnected: true,
+          isConnectedToggledAt: new Date(),
         })
       })
 
@@ -165,7 +168,10 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
 
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
-    bot.use(createConversation(convoImpl, name))
+    bot.filter(
+      Context.has.chatType(['private', 'group', 'supergroup']),
+      createConversation(convoImpl, name),
+    )
 
     bot.command(['sign', 'sing', 'connect'], m, async (ctx) => {
       await ctx.conversation.exitAll()
@@ -173,34 +179,6 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
         user: ctx.user!,
         tgChat: ctx.tgChat!,
       } satisfies BotCtxExtra)
-    })
-  },
-)
-
-export const disconnectLcCommand = createHandler(
-  async (
-    bot,
-    convoStorage,
-    tgUsersDao: TgUsersDao,
-    lcUsersDao: LcUsersDao,
-    tgChatsDao: TgChatsDao,
-  ) => {
-    const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
-
-    bot.command(['disconnect', 'signout'], m, async (ctx) => {
-      const tgChat = ctx.tgChat!
-      const tgUser = ctx.user!
-
-      await lcUsersDao.disconnectLcUserFromUserInChat(tgUser.uuid, tgChat.uuid)
-
-      const username = ctx.message?.from?.username || ''
-      const firstName = ctx.message?.from?.first_name || ''
-      const lastName = ctx.message?.from?.last_name || ''
-      const name = username || `${firstName} ${lastName}`.trim()
-
-      await ctx.replyFmt(
-        fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your lc submissions anymore. 😔`,
-      )
     })
   },
 )
@@ -280,7 +258,11 @@ ${
       },
     })
 
-    bot.use(m, pag.menu)
+    bot.filter(
+      Context.has.chatType(['private', 'group', 'supergroup']),
+      m,
+      pag.menu,
+    )
 
     bot.command(
       ['leaderboard', 'lederboard', 'lb', 'ld', 'scoreboard', 'rating'],
@@ -385,7 +367,33 @@ export const settingsCommand = createHandler(
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
     const memo = new Memo()
 
-    const menu = new Menu<BotCtx>('settings').dynamic(async (ctx, range) => {
+    const disconnectMenuConfirmationName = 'lc-dis-c'
+    const mainMenuName = 'settings'
+    const disconnectMenuConfirmation = new Menu<BotCtx>(
+      disconnectMenuConfirmationName,
+    )
+      .text(`Yes`, async (ctx) => {
+        const tgChat = ctx.tgChat!
+        const tgUser = ctx.user!
+
+        await lcUsersDao.disconnectLcUserFromUserInChat(
+          tgUser.uuid,
+          tgChat.uuid,
+        )
+
+        await ctx.editFmtMessageText(
+          fmt`Disconnected! You won't get notifications for your ${bold('LeetCode')} submissions anymore and your progress won't be tracked.
+Sorry to see you go! 😔
+Remember, you can always re-/connect!
+`,
+        )
+        ctx.menu.close()
+      })
+      .text(`No`, async (ctx) => {
+        ctx.menu.back()
+      })
+
+    const menu = new Menu<BotCtx>(mainMenuName).dynamic(async (ctx, range) => {
       const tgChat = ctx.tgChat!
       const tgUser = ctx.user!
 
@@ -408,7 +416,7 @@ export const settingsCommand = createHandler(
         ctx.match || '',
       )
 
-      if (payload.lcUser.lcUserInChat.isActive) {
+      if (payload.lcUser.lcUserInChat.isNotificationsEnabled) {
         range.text(
           {
             text: `🔔 Submission notifications`,
@@ -419,8 +427,8 @@ export const settingsCommand = createHandler(
               lcUserUuid: payload.lcUser.lcUser.uuid,
               tgUserUuid: tgUser.uuid,
               tgChatUuid: tgChat.uuid,
-              isActive: false,
-              isActiveToggledAt: new Date(),
+              isNotificationsEnabled: false,
+              isNotificationsEnabledToggledAt: new Date(),
             })
             ctx.match = 'enabled'
             await ctx.menu.update()
@@ -428,7 +436,7 @@ export const settingsCommand = createHandler(
         )
       }
 
-      if (!payload.lcUser.lcUserInChat.isActive) {
+      if (!payload.lcUser.lcUserInChat.isNotificationsEnabled) {
         range.text(
           {
             text: `🔕 Submission notifications`,
@@ -439,8 +447,8 @@ export const settingsCommand = createHandler(
               lcUserUuid: payload.lcUser.lcUser.uuid,
               tgUserUuid: tgUser.uuid,
               tgChatUuid: tgChat.uuid,
-              isActive: true,
-              isActiveToggledAt: new Date(),
+              isNotificationsEnabled: true,
+              isNotificationsEnabledToggledAt: new Date(),
             })
             ctx.match = 'disabled'
             await ctx.menu.update()
@@ -452,7 +460,7 @@ export const settingsCommand = createHandler(
 
       if (
         isTgChatAdmin(payload.member.status) &&
-        payload.chatSettings.isActive
+        payload.chatSettings.isNotificationsEnabled
       ) {
         range.text(
           {
@@ -463,11 +471,14 @@ export const settingsCommand = createHandler(
             await tgChatsDao.upsertSettings(
               {
                 tgChatUuid: tgChat.uuid,
-                isActive: false,
-                isActiveToggledAt: new Date(),
+                isNotificationsEnabled: false,
+                isNotificationsEnabledToggledAt: new Date(),
                 leaderboardStartedAt: new Date(),
               },
-              { isActive: false, isActiveToggledAt: new Date() },
+              {
+                isNotificationsEnabled: false,
+                isNotificationsEnabledToggledAt: new Date(),
+              },
             )
 
             ctx.match = 'disabled-chat-wide'
@@ -478,7 +489,7 @@ export const settingsCommand = createHandler(
 
       if (
         isTgChatAdmin(payload.member.status) &&
-        !payload.chatSettings.isActive
+        !payload.chatSettings.isNotificationsEnabled
       ) {
         range.text(
           {
@@ -489,11 +500,14 @@ export const settingsCommand = createHandler(
             await tgChatsDao.upsertSettings(
               {
                 tgChatUuid: tgChat.uuid,
-                isActive: true,
-                isActiveToggledAt: new Date(),
+                isNotificationsEnabled: true,
+                isNotificationsEnabledToggledAt: new Date(),
                 leaderboardStartedAt: new Date(),
               },
-              { isActive: true, isActiveToggledAt: new Date() },
+              {
+                isNotificationsEnabled: true,
+                isNotificationsEnabledToggledAt: new Date(),
+              },
             )
 
             ctx.match = 'enabled-chat-wide'
@@ -501,9 +515,27 @@ export const settingsCommand = createHandler(
           },
         )
       }
+
+      range.row()
+
+      range.submenu(
+        '🚶Disconnect',
+        disconnectMenuConfirmationName,
+        async (ctx) => {
+          await ctx.editFmtMessageText(
+            `Are you sure you want to disconnect your ${bold('LeetCode')} account?`,
+          )
+        },
+      )
     })
 
-    bot.use(m, menu)
+    menu.register(disconnectMenuConfirmation)
+    bot.filter(
+      Context.has.chatType(['private', 'group', 'supergroup']),
+      m,
+      isMenuOwner,
+      menu,
+    )
 
     bot.command(['settings'], async (ctx) => {
       const tgChat = ctx.tgChat!
@@ -511,7 +543,7 @@ export const settingsCommand = createHandler(
       const member = await ctx.getChatMember(ctx.from!.id)
       const lcUser = await lcUsersDao.getLcUserInChat(tgUser.uuid, tgChat.uuid)
 
-      if (!lcUser) {
+      if (!lcUser || !lcUser.lcUserInChat.isConnected) {
         return ctx.replyFmt(
           fmt`You haven't connected your account yet. Use /connect command or /help for more info.`,
         )
@@ -525,6 +557,39 @@ ${bold('Your settings')} - ${isTgChatAdmin(member.status) ? italic('Admin access
         {
           reply_to_message_id: ctx.message?.message_id,
           reply_markup: menu,
+        },
+      )
+    })
+  },
+)
+
+export const disconnectLcCommand = createHandler(
+  async (
+    bot,
+    convoStorage,
+    lcUsersDao: LcUsersDao,
+    tgUsersDao: TgUsersDao,
+    tgChatsDao: TgChatsDao,
+  ) => {
+    const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
+
+    bot.command(['disconnect', 'signout'], m, async (ctx, next) => {
+      const tgChat = ctx.tgChat!
+      const tgUser = ctx.user!
+
+      await lcUsersDao.disconnectLcUserFromUserInChat(tgUser.uuid, tgChat.uuid)
+
+      const username = ctx.message?.from?.username || ''
+      const firstName = ctx.message?.from?.first_name || ''
+      const lastName = ctx.message?.from?.last_name || ''
+      const name = username || `${firstName} ${lastName}`.trim()
+
+      await ctx.replyFmt(
+        fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your lc submissions anymore and your progress won't be tracked.
+Sorry to see you go! 😔
+`,
+        {
+          reply_to_message_id: ctx.message?.message_id,
         },
       )
     })

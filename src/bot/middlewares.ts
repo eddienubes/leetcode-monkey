@@ -46,8 +46,8 @@ export const tgUsersMiddleware = createMiddleware(
       tgChats.upsertSettings(
         {
           tgChatUuid: upsertedChat.uuid,
-          isActive: true,
-          isActiveToggledAt: new Date(),
+          isNotificationsEnabled: true,
+          isNotificationsEnabledToggledAt: new Date(),
           leaderboardStartedAt: new Date(),
         },
         {

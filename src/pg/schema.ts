@@ -123,10 +123,19 @@ export const lcUsersInTgChats = pgTable(
       .notNull()
       .references(() => lcUsers.uuid),
     // Per user per chat settings
-    isActive: boolean('is_active').notNull().default(true),
-    isActiveToggledAt: timestamp('is_active_toggled_at', {
+    isConnected: boolean('is_connected').notNull().default(false),
+    isConnectedToggledAt: timestamp('is_connected_toggled_at', {
       withTimezone: true,
-    }).notNull(),
+    }),
+    isNotificationsEnabled: boolean('is_notifications_enabled')
+      .notNull()
+      .default(true),
+    isNotificationsEnabledToggledAt: timestamp(
+      'is_notifications_enabled_toggled_at',
+      {
+        withTimezone: true,
+      },
+    ).notNull(),
     ...timestamps,
   },
   // you cannot have the same user in the same chat connected to different lc users
@@ -138,10 +147,13 @@ export const lcChatSettings = pgTable('lc_chat_settings', {
     .notNull()
     .references(() => tgChats.uuid)
     .unique(),
-  isActive: boolean('is_active').notNull().default(true),
-  isActiveToggledAt: timestamp('is_active_toggled_at', {
-    withTimezone: true,
-  }).notNull(),
+  isNotificationsEnabled: boolean('is_notifications_enabled')
+    .notNull()
+    .default(true),
+  isNotificationsEnabledToggledAt: timestamp(
+    'is_notifications_enabled_toggled_at',
+    { withTimezone: true },
+  ).notNull(),
   leaderboardStartedAt: timestamp('leaderboard_started_at', {
     withTimezone: true,
   }).notNull(),

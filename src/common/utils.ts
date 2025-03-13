@@ -2,6 +2,7 @@ import { ToJsonType } from '@/common/types'
 import { BotCtx } from '@/bot/Bot'
 import crypto from 'node:crypto'
 import { TgMemberStatus } from '@/bot/types'
+import { NextFunction } from 'grammy'
 
 export const sleepForRandomMs = (min: number, max: number): Promise<void> => {
   const randomMs = Math.floor(Math.random() * (max - min + 1)) + min
@@ -124,4 +125,19 @@ export const arrToHashTags = (arr: string[]): string => {
 
 export const isTgChatAdmin = (status: TgMemberStatus): boolean => {
   return status === 'administrator' || status === 'creator'
+}
+
+export const isMenuOwner = async (ctx: BotCtx, next: NextFunction) => {
+  const menuMsg = ctx.callbackQuery?.message
+  const originalMsg = menuMsg?.reply_to_message
+
+  if (!originalMsg || !ctx.callbackQuery) {
+    return next() // Allow - no menu
+  }
+
+  if (originalMsg?.from?.id === ctx.from?.id) {
+    return next() // Allow - same user
+  } else {
+    return ctx.answerCallbackQuery("This menu isn't for you, sorry")
+  }
 }

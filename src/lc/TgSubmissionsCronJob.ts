@@ -110,7 +110,7 @@ export class TgSubmissionsCronJob {
 
     const data = job.data
 
-    if (!data.lcChatSettings.isActive || !data.lcUserInChat.isActive) {
+    if (!data.lcChatSettings.isNotificationsEnabled || !data.lcUserInChat.isNotificationsEnabled) {
       console.log(
         `${TgSubmissionsCronJob.name} notifications disabled for user ${data.lcUser.slug} in chat ${data.tgChat.title}`,
       )
@@ -124,8 +124,8 @@ export class TgSubmissionsCronJob {
 
     const latestNotificationCutoffDate = new Date(
       [
-        new Date(data.lcChatSettings.isActiveToggledAt).getTime(),
-        new Date(data.lcUserInChat.isActiveToggledAt).getTime(),
+        new Date(data.lcChatSettings.isNotificationsEnabledToggledAt).getTime(),
+        new Date(data.lcUserInChat.isNotificationsEnabledToggledAt).getTime(),
       ].sort()[1],
     )
 

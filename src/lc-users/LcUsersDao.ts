@@ -84,8 +84,7 @@ export class LcUsersDao extends PgDao {
       .where(
         and(
           isNotNull(lcUsersInTgChats.lcUserUuid),
-          eq(lcUsersInTgChats.isActive, true),
-          eq(lcChatSettings.isActive, true),
+          eq(lcUsersInTgChats.isConnected, true),
         ),
       )
       // prioritise active users
@@ -142,7 +141,8 @@ export class LcUsersDao extends PgDao {
     await this.client
       .update(lcUsersInTgChats)
       .set({
-        isActive: false,
+        isConnected: false,
+        isConnectedToggledAt: new Date(),
       })
       .where(
         and(
@@ -321,14 +321,14 @@ export class LcUsersDao extends PgDao {
       .where(
         and(
           // only active users
-          eq(lcUsersInTgChats.isActive, true),
+          eq(lcUsersInTgChats.isNotificationsEnabled, true),
           gt(
             acceptedSubmissions.submittedAt,
-            lcUsersInTgChats.isActiveToggledAt,
+            lcUsersInTgChats.isNotificationsEnabledToggledAt,
           ),
           // only active chats
-          eq(lcChatSettings.isActive, true),
-          gt(acceptedSubmissions.submittedAt, lcChatSettings.isActiveToggledAt),
+          eq(lcChatSettings.isNotificationsEnabled, true),
+          gt(acceptedSubmissions.submittedAt, lcChatSettings.isNotificationsEnabledToggledAt),
           // notifications hasn't been sent yet
           // or it's a new submission
           or(
@@ -341,10 +341,7 @@ export class LcUsersDao extends PgDao {
     return hits
   }
 
-  async getLcUserInChat(
-    tgUserUuid: string,
-    tgChatUuid: string,
-  ) {
+  async getLcUserInChat(tgUserUuid: string, tgChatUuid: string) {
     const [hit] = await this.client
       .select({
         lcUserInChat: lcUsersInTgChats,
