@@ -23,9 +23,6 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import { config } from '@/config'
 
 export const main = async (): Promise<void> => {
-  console.log('Starting bot...')
-  console.log(`Using config: ${JSON.stringify(config, null, 2)}`)
-
   const convoStorage = createRamConvoStorage()
   const bot = new Bot(convoStorage)
   const tgBot = bot.getBot()
