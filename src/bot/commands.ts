@@ -325,7 +325,7 @@ ${bold('How to use me?')}
 2. Encourage your top performers with /leaderboard.
 3. Get /daily challenges.
 4. Manage your notification /settings and more.
-4. You have suggestions? Just /feedback me!
+5. You have suggestions? Just /feedback me!
 
 That's it! 🎉
 
