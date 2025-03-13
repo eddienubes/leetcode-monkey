@@ -316,7 +316,7 @@ ${arrToHashTags(question.topicTags.map((t) => t.slug))}
 export const helpCommand = createHandler(async (bot) => {
   bot.command(['help', 'start'], async (ctx) => {
     const message = fmt`
-Hey, I'm a LeetCode monkey! 👋
+Hey, I'm a ${bold('LeetCode Monkey')}! 👋
 I make learning algorithms and data structures more fun.
 I'm also ${link('open-source', 'https://github.com/eddienubes/leetcode-monkey')}
 
