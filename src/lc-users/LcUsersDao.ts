@@ -328,7 +328,10 @@ export class LcUsersDao extends PgDao {
           ),
           // only active chats
           eq(lcChatSettings.isNotificationsEnabled, true),
-          gt(acceptedSubmissions.submittedAt, lcChatSettings.isNotificationsEnabledToggledAt),
+          gt(
+            acceptedSubmissions.submittedAt,
+            lcChatSettings.isNotificationsEnabledToggledAt,
+          ),
           // notifications hasn't been sent yet
           // or it's a new submission
           or(

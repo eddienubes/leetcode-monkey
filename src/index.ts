@@ -9,7 +9,8 @@ import {
   disconnectLcCommand,
   feedbackCommand,
   helpCommand,
-  leaderboardCommand, settingsCommand,
+  leaderboardCommand,
+  settingsCommand,
 } from '@/bot/commands'
 import { LcApiClient } from '@/lc/LcApiClient'
 import { createRamConvoStorage } from '@/bot/ramConvoStorage'
@@ -76,7 +77,7 @@ export const main = async (): Promise<void> => {
 
   await myChatMemberEvent(inject, tgChatsDao)
   await connectLcCommand(inject, lcApi, lcUsersDao, tgUsersDao, tgChatsDao)
-  await disconnectLcCommand(inject, tgUsersDao, lcUsersDao, tgChatsDao)
+  await disconnectLcCommand(inject, lcUsersDao, tgUsersDao, tgChatsDao)
   await leaderboardCommand(inject, tgUsersDao, tgChatsDao, lcUsersDao)
   await settingsCommand(inject, lcUsersDao, tgUsersDao, tgChatsDao)
   await dailyCommand(inject, lcApi)

@@ -551,7 +551,7 @@ Remember, you can always re-/connect!
 
       await ctx.replyFmt(
         fmt`
-${bold('Your settings')} - ${isTgChatAdmin(member.status) ? italic('Admin access granted') : ''}
+${bold('Your settings')} ${isTgChatAdmin(member.status) ? italic('- Admin access granted') : ''}
 
       `,
         {

@@ -56,12 +56,50 @@ export class TgSubmissionsCronJob {
       return
     }
 
+    const notifications = lcUsersInChatsToNotify.filter((l) => {
+      if (
+        !l.lc_chat_settings.isNotificationsEnabled ||
+        !l.lc_users_in_tg_chats.isNotificationsEnabled
+      ) {
+        console.log(
+          `${TgSubmissionsCronJob.name} notifications disabled for user ${l.lc_users.slug} in chat ${l.tg_chats.title}`,
+        )
+        return false
+      }
+
+      // send notifications only after user or admin toggled isActive
+      // whenever bot or user joins the chat, we consider it as a toggle for the first time
+      // 1. Bot joins -> chat settings created with isActive = true
+      // 2. User joins -> connects leetcode account -> per user settings created with isActive = true
+      const latestNotificationCutoffDate = new Date(
+        [
+          new Date(
+            l.lc_chat_settings.isNotificationsEnabledToggledAt,
+          ).getTime(),
+          new Date(
+            l.lc_users_in_tg_chats.isNotificationsEnabledToggledAt,
+          ).getTime(),
+        ].sort()[1],
+      )
+
+      const submittedAt = new Date(l.accepted_submissions.submittedAt)
+
+      if (submittedAt < latestNotificationCutoffDate) {
+        console.log(
+          `${TgSubmissionsCronJob.name} skipping notification for ${l.lc_users.slug} in chat ${l.tg_chats.title}`,
+        )
+        return false
+      }
+
+      return true
+    })
+
     console.log(
-      `${TgSubmissionsCronJob.name} notifying ${lcUsersInChatsToNotify.length} users`,
+      `${TgSubmissionsCronJob.name} notifying ${notifications.length} lc users`,
     )
 
     await this.add(
-      lcUsersInChatsToNotify.map(
+      notifications.map(
         (u) =>
           ({
             lcUser: u.lc_users,
@@ -110,37 +148,9 @@ export class TgSubmissionsCronJob {
 
     const data = job.data
 
-    if (!data.lcChatSettings.isNotificationsEnabled || !data.lcUserInChat.isNotificationsEnabled) {
-      console.log(
-        `${TgSubmissionsCronJob.name} notifications disabled for user ${data.lcUser.slug} in chat ${data.tgChat.title}`,
-      )
-      return
-    }
-
-    // send notifications only after user or admin toggled isActive
-    // whenever bot or user joins the chat, we consider it as a toggle for the first time
-    // 1. Bot joins -> chat settings created with isActive = true
-    // 2. User joins -> connects leetcode account -> per user settings created with isActive = true
-
-    const latestNotificationCutoffDate = new Date(
-      [
-        new Date(data.lcChatSettings.isNotificationsEnabledToggledAt).getTime(),
-        new Date(data.lcUserInChat.isNotificationsEnabledToggledAt).getTime(),
-      ].sort()[1],
-    )
-
     console.log(
       `${TgSubmissionsCronJob.name} notifying ${data.lcUser.slug} in chat ${data.tgChat.title}`,
     )
-
-    const submittedAt = new Date(data.submission.submittedAt)
-
-    if (submittedAt < latestNotificationCutoffDate) {
-      console.log(
-        `${TgSubmissionsCronJob.name} skipping notification for ${data.lcUser.slug} in chat ${data.tgChat.title}`,
-      )
-      return
-    }
 
     const mention =
       data.tgUser.firstName ||

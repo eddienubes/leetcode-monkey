@@ -26,8 +26,8 @@ export const myChatMemberEvent = createHandler(
       if (tgChat.isCreated) {
         await tgChatDao.upsertSettings({
           tgChatUuid: tgChat.uuid,
-          isActive: true,
-          isActiveToggledAt: new Date(),
+          isNotificationsEnabled: true,
+          isNotificationsEnabledToggledAt: new Date(),
           leaderboardStartedAt: new Date(),
         })
       }

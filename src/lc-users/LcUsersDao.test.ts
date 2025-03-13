@@ -82,8 +82,6 @@ describe('LcUsersDao', () => {
       console.log(lcUser)
 
       expect(lcUser).toBeDefined()
-
-    });
-
-  });
+    })
+  })
 })
