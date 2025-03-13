@@ -328,9 +328,9 @@ I make learning algorithms and data structures more fun.
 I'm also ${link('open-source', 'https://github.com/eddienubes/leetcode-monkey')}
 
 ${bold('How to use me?')}
-1. Connect your LeetCode account with /connect command.
-2. Get daily challenges with /daily.
-3. Encourage your top performers with /leaderboard command.
+1. Connect your LeetCode account with /connect command to receive notifications.
+2. Encourage your top performers with /leaderboard.
+3. Get daily challenges with /daily.
 4. You have suggestions? Just /feedback me!
 
 That's it! 🎉
