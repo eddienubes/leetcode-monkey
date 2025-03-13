@@ -320,6 +320,8 @@ export class LcUsersDao extends PgDao {
       )
       .where(
         and(
+          // only chats where bot is present
+          inArray(tgChats.role, ['member', 'administrator']),
           // only active users
           eq(lcUsersInTgChats.isNotificationsEnabled, true),
           gt(
