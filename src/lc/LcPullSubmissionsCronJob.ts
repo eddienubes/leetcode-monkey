@@ -60,17 +60,19 @@ export class LcPullSubmissionsCronJob {
           unixTimestampToDate(s.timestamp) > latestSubmission.submittedAt,
       )
 
-      console.log(
-        `Got ${newSubmissions.length} new submissions for ${user.lcUser.slug}`,
-      )
+      if (newSubmissions.length) {
+        console.log(
+          `Got ${newSubmissions.length} new submissions for ${user.lcUser.slug}`,
+        )
 
-      const submissionsToSave = newSubmissions.map((s) => ({
-        lcUser: user.lcUser,
-        submission: s,
-        tgUser: user.tgUser,
-      }))
+        const submissionsToSave = newSubmissions.map((s) => ({
+          lcUser: user.lcUser,
+          submission: s,
+          tgUser: user.tgUser,
+        }))
 
-      void this.add(submissionsToSave)
+        void this.add(submissionsToSave)
+      }
 
       // Random jitter to mitigate accidental rate limits, if any?
       await sleepForRandomMs(400, 1300)

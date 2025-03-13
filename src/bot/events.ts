@@ -1,5 +1,6 @@
 import { createHandler } from '@/bot/handler'
-import { TgChatsDao } from '@/tg/TgChatsDao'
+import { TgChatInsert, TgChatsDao } from '@/tg/TgChatsDao'
+import * as util from 'node:util'
 
 export const myChatMemberEvent = createHandler(
   async (bot, convoStorage, tgChatDao: TgChatsDao) => {
@@ -7,11 +8,15 @@ export const myChatMemberEvent = createHandler(
       const update = ctx.myChatMember
       const chat = update.chat
 
+      // console.log(`my_chat_member`, ctx)
+
       console.log(
         `my_chat_member: ${chat.id}, status change from ${update.old_chat_member.status} to ${update.new_chat_member.status}`,
       )
 
-      const tgChat = await tgChatDao.upsert({
+      const tgChat = await tgChatDao.getByTgId(chat.id.toString())
+
+      const tgChatProps = {
         role: update.new_chat_member.status,
         tgId: chat.id.toString(),
         type: chat.type,
@@ -21,6 +26,14 @@ export const myChatMemberEvent = createHandler(
           ? `${chat.first_name} ${chat.last_name}`
           : null,
         isForum: chat.is_forum,
+      } satisfies TgChatInsert
+
+      if (tgChat) {
+        await tgChatDao.updateByUuid(tgChat.uuid, tgChatProps)
+      }
+
+      const tgChat = await tgChatDao.upsert(tgChatProps, {
+        ...tgChatProps,
       })
 
       if (tgChat.isCreated) {
@@ -32,9 +45,11 @@ export const myChatMemberEvent = createHandler(
         })
       }
 
-      ctx.tgChat = tgChat
-
       return await next()
+    })
+
+    bot.on('message:migrate_to_chat_id', async (ctx) => {
+      console.log(util.inspect(ctx, { depth: null }))
     })
   },
 )

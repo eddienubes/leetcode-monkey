@@ -22,6 +22,18 @@ export class TgChatsDao extends PgDao {
     super(pgService)
   }
 
+  async getByTgIdIfAny(tgId: string): Promise<TgChatSelect | null> {
+    const hit = await this.client.query.tgChats.findFirst({
+      where: eq(tgChats.tgId, tgId),
+    })
+
+    if (!hit) {
+      return null
+    }
+
+    return hit
+  }
+
   async getByTgId(tgId: string): Promise<TgChatSelect> {
     const hit = await this.client.query.tgChats.findFirst({
       where: eq(tgChats.tgId, tgId),
@@ -53,6 +65,13 @@ export class TgChatsDao extends PgDao {
         isCreated: sql<boolean>`xmax = 0 as isCreated`,
       })
     return upserted
+  }
+
+  async updateByUuid(
+    uuid: string,
+    update: Partial<TgChatInsert>,
+  ): Promise<void> {
+    await this.client.update(tgChats).set(update).where(eq(tgChats.uuid, uuid))
   }
 
   async addUserToChat(
