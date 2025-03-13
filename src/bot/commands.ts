@@ -323,7 +323,8 @@ I'm also ${link('open-source', 'https://github.com/eddienubes/leetcode-monkey')}
 ${bold('How to use me?')}
 1. Connect your LeetCode account with /connect command to receive notifications.
 2. Encourage your top performers with /leaderboard.
-3. Get daily challenges with /daily.
+3. Get /daily challenges.
+4. Manage your notification /settings and more.
 4. You have suggestions? Just /feedback me!
 
 That's it! 🎉
