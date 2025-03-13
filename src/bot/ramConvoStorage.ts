@@ -3,6 +3,7 @@ import { BotCtx } from '@/bot/Bot'
 import { ConversationStorage } from '@grammyjs/conversations'
 
 export type ConvoStorage<S = any> = ConversationStorage<BotCtx, S> & {
+  getAll: () => unknown[]
   has: (ctx: BotCtx) => boolean
   delete: (ctx: BotCtx) => void
   add: (ctx: BotCtx) => void
@@ -22,23 +23,19 @@ export const createRamConvoStorage = <S>(): ConvoStorage<S> => {
     version: undefined,
     type: 'key',
     getStorageKey,
+    getAll: () => Array.from(registry.values()),
     add: (ctx) => registry.add(getStorageKey(ctx)),
     has: (ctx) => registry.has(getStorageKey(ctx)),
     delete: (ctx) => registry.delete(getStorageKey(ctx)),
     adapter: {
       read: (key) => {
-        // console.log('Read from ram convo storage', key)
         return stateStore.get(key)
       },
       write: (key, state) => {
-        // console.log('Write to ram convo storage', key)
         stateStore.set(key, state)
-        registry.add(key)
       },
       delete: (key) => {
-        // console.log('Delete from ram convo storage', key)
         stateStore.delete(key)
-        registry.delete(key)
       },
     },
   }

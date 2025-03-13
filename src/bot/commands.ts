@@ -18,10 +18,13 @@ import { TgUsersDao } from '@/tg/TgUsersDao'
 import { createPagination, getPerMessageNamespace } from '@/bot/pagination'
 import {
   arrToHashTags,
+  buildMentionNameFromCtx,
   diffInWeeks,
   getDatePlusDays,
   isMenuOwner,
   isTgChatAdmin,
+  noop,
+  noopCbAnswer,
 } from '@/common/utils'
 import { LcProblemsService } from '@/lc/LcProblemsService'
 import { LC_DIFFEMOJI } from '@/lc/constants'
@@ -47,14 +50,13 @@ export const connectLcCommand = createHandler(
 Let's connect your ${link('LeetCode', 'https://leetcode.com')} account! 👋
 Please send me your ${link('username', 'https://leetcode.com/profile')} or profile URL.
     `
-      // const messagesToDelete: number[] = await convo.external(async () => [
-      //   ctx.message?.message_id!,
-      // ])
+      const messagesToDelete: number[] = await convo.external(async () => [
+        ctx.message?.message_id!,
+      ])
 
       const menu = convo.menu().text('Cancel', async (ctx) => {
-        console.log('halted the convo')
         helper.abort()
-        // await ctx.deleteMessages(messagesToDelete)
+        await ctx.deleteMessages(messagesToDelete).catch(noop)
       })
 
       {
@@ -66,7 +68,7 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
           },
         })
 
-        // messagesToDelete.push(msg.message_id)
+        messagesToDelete.push(msg.message_id)
       }
 
       // await ctx.api.sendAnimation(
@@ -84,13 +86,12 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
         maxAttempts: 3,
         timeoutMs: 60 * 1000, // 1 minute
         beforeTry: async (ctx) => {
-          // messagesToDelete.push(ctx.message.message_id)
+          messagesToDelete.push(ctx.message.message_id)
           await ctx.react('👀')
         },
         try: async (ctx) => {
           const text = ctx.message.text
 
-          console.log(text, 'trying')
           let userSlug: string
 
           try {
@@ -112,22 +113,22 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
             return null
           }
 
-          // messagesToDelete.push(ctx.message.message_id)
+          messagesToDelete.push(ctx.message.message_id)
 
           return profile
         },
         catch: async (ctx) => {
           await ctx.react('👎')
-          const msg = await ctx.replyFmt(
-            fmt`I couldn't find your profile. Please try again.`,
-            {
-              reply_to_message_id: ctx.message.message_id,
-            },
-          )
+          // const msg = await ctx.replyFmt(
+          //   fmt`I couldn't find your profile. Please try again.`,
+          //   {
+          //     reply_to_message_id: ctx.message.message_id,
+          //   },
+          // )
           // messagesToDelete.push(msg.message_id, ctx.message.message_id)
         },
         finally: async (ctx) => {
-          // await ctx.deleteMessages(messagesToDelete)
+          await ctx.deleteMessages(messagesToDelete).catch(noop)
         },
       })
 
@@ -153,16 +154,8 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
         })
       })
 
-      const username = ctx.message?.from?.username || ''
-      const firstName = ctx.message?.from?.first_name || ''
-      const lastName = ctx.message?.from?.last_name || ''
-      const name = username || `${firstName} ${lastName}`.trim()
-
       await ctx.replyFmt(
-        fmt`Connected! Now ${bold(profile.matchedUser?.profile.realName!)} (${mentionUser(name, ctx.message!.from.id)}) will get notifications for their LeetCode submissions. 🎉`,
-        {
-          reply_to_message_id: ctx.message?.message_id,
-        },
+        fmt`Connected! ${mentionUser(buildMentionNameFromCtx(ctx), ctx.message!.from.id)} added their LeetCode account 🎉`,
       )
     }
 
@@ -327,6 +320,8 @@ ${bold('How to use me?')}
 4. Manage your notification /settings and more.
 5. You have suggestions? Just /feedback me!
 
+Additionally, you can promote me to an admin to keep your chat nice and clean.
+
 That's it! 🎉
 
 ${italic('by @carny_plant for FLG')}
@@ -382,12 +377,15 @@ export const settingsCommand = createHandler(
           tgChat.uuid,
         )
 
-        await ctx.editFmtMessageText(
-          fmt`Disconnected! You won't get notifications for your ${bold('LeetCode')} submissions anymore and your progress won't be tracked.
-Sorry to see you go! 😔
-Remember, you can always re-/connect!
+        await ctx.replyFmt(
+          fmt`Disconnected! ${mentionUser(buildMentionNameFromCtx(ctx), ctx.from.id)} removed their LeetCode account. 😔
 `,
         )
+        const messageId =
+          ctx.callbackQuery.message?.reply_to_message?.message_id
+        if (messageId) {
+          await ctx.deleteMessages([messageId]).catch(noop)
+        }
         ctx.menu.close()
       })
       .text(`No`, async (ctx) => {
@@ -452,7 +450,7 @@ Remember, you can always re-/connect!
               isNotificationsEnabledToggledAt: new Date(),
             })
             ctx.match = 'disabled'
-            await ctx.menu.update()
+            ctx.menu.update()
           },
         )
       }
@@ -483,7 +481,7 @@ Remember, you can always re-/connect!
             )
 
             ctx.match = 'disabled-chat-wide'
-            await ctx.menu.update()
+            ctx.menu.update()
           },
         )
       }
@@ -522,8 +520,8 @@ Remember, you can always re-/connect!
       range.submenu(
         '🚶Disconnect',
         disconnectMenuConfirmationName,
-        async (ctx) => {
-          await ctx.editFmtMessageText(
+        async (innerCtx) => {
+          await innerCtx.editFmtMessageText(
             `Are you sure you want to disconnect your ${bold('LeetCode')} account?`,
           )
         },
@@ -547,6 +545,12 @@ Remember, you can always re-/connect!
       if (!lcUser || !lcUser.lcUserInChat.isConnected) {
         return ctx.replyFmt(
           fmt`You haven't connected your account yet. Use /connect command or /help for more info.`,
+          {
+            reply_to_message_id: ctx.message?.message_id,
+            link_preview_options: {
+              is_disabled: true,
+            },
+          },
         )
       }
 

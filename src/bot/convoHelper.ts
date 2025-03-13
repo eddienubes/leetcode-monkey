@@ -58,9 +58,7 @@ export const createConvoHelper = async <C extends Convo>(
           }, opts.timeoutMs)
         })
       }
-
       if (!convoStorage.has(ctx)) {
-        // console.log('registry does not have ctx')
         await convo.halt({ next: true })
       }
 

@@ -110,6 +110,10 @@ export const incStrInt = (
   return isNaN(parsed) ? inc.toString() : (parsed + inc).toString()
 }
 
+export const noop = (): void => {
+  // noop
+}
+
 export const noopCbAnswer = async (ctx: BotCtx): Promise<void> => {
   await ctx.answerCallbackQuery()
 }
@@ -140,4 +144,16 @@ export const isMenuOwner = async (ctx: BotCtx, next: NextFunction) => {
   } else {
     return ctx.answerCallbackQuery("This menu isn't for you, sorry")
   }
+}
+
+export const buildMentionNameFromCtx = (ctx: BotCtx): string => {
+  const messageFrom = ctx.message?.from || ctx.callbackQuery?.from
+
+  const username = messageFrom?.username || ''
+  const firstName = messageFrom?.first_name || ''
+  const lastName = messageFrom?.last_name || ''
+
+  const name = username || `${firstName} ${lastName}`.trim()
+
+  return name
 }
