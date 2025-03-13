@@ -15,10 +15,18 @@ import { LcUsersDao } from '@/lc-users/LcUsersDao'
 import { TgChatsDao } from '@/tg/TgChatsDao'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { TgUsersDao } from '@/tg/TgUsersDao'
-import { createPagination } from '@/bot/pagination'
-import { arrToHashTags, diffInWeeks, getDatePlusDays } from '@/common/utils'
+import { createPagination, getPerMessageNamespace } from '@/bot/pagination'
+import {
+  arrToHashTags,
+  diffInWeeks,
+  getDatePlusDays,
+  isTgChatAdmin,
+} from '@/common/utils'
 import { LcProblemsService } from '@/lc/LcProblemsService'
 import { LC_DIFFEMOJI } from '@/lc/constants'
+import { Menu } from '@grammyjs/menu'
+import { Memo } from '@/common/Memo'
+import { lcChatSettings } from '@/pg/schema'
 
 export const connectLcCommand = createHandler(
   async (
@@ -35,14 +43,15 @@ export const connectLcCommand = createHandler(
       const helper = await createConvoHelper(convo, convoStorage, ctx)
 
       const message = fmt`
-Let's connect your ${link('LeetCode', 'https://lc.com')} account! 👋
-Please send me your ${link('username', 'https://lc.com/profile')} or profile URL.
+Let's connect your ${link('LeetCode', 'https://leetcode.com')} account! 👋
+Please send me your ${link('username', 'https://leetcode.com/profile')} or profile URL.
     `
       // const messagesToDelete: number[] = await convo.external(async () => [
       //   ctx.message?.message_id!,
       // ])
 
       const menu = convo.menu().text('Cancel', async (ctx) => {
+        console.log('halted the convo')
         helper.abort()
         // await ctx.deleteMessages(messagesToDelete)
       })
@@ -80,6 +89,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
         try: async (ctx) => {
           const text = ctx.message.text
 
+          console.log(text, 'trying')
           let userSlug: string
 
           try {
@@ -121,6 +131,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
       })
 
       await convo.external(async () => {
+        console.log('Connect leetcode account')
         const tgChat = extra.tgChat!
         const tgUser = extra.user!
 
@@ -130,7 +141,7 @@ Please send me your ${link('username', 'https://lc.com/profile')} or profile URL
           avatarUrl: profile.matchedUser?.profile.userAvatar,
         })
 
-        await lcUsersDao.connectLcUserToUserInChat({
+        await lcUsersDao.upsertLcUserInChat({
           lcUserUuid: lcUser.uuid,
           tgUserUuid: tgUser.uuid,
           tgChatUuid: tgChat.uuid,
@@ -362,3 +373,160 @@ Message me with your suggestions, bugs, or anything you want to share at @carny_
     })
   })
 })
+
+export const settingsCommand = createHandler(
+  async (
+    bot,
+    convoStorage,
+    lcUsersDao: LcUsersDao,
+    tgUsersDao: TgUsersDao,
+    tgChatsDao: TgChatsDao,
+  ) => {
+    const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
+    const memo = new Memo()
+
+    const menu = new Menu<BotCtx>('settings').dynamic(async (ctx, range) => {
+      const tgChat = ctx.tgChat!
+      const tgUser = ctx.user!
+
+      const namespace = getPerMessageNamespace(ctx)
+      const payload = await memo.run(
+        namespace,
+        async (cacheKey) => {
+          const lcUser = await lcUsersDao.getLcUserInChat(
+            ctx.user!.uuid,
+            ctx.tgChat!.uuid,
+          )
+          const chatSettings = await tgChatsDao.getSettings(tgChat.uuid)
+          const member = await ctx.getChatMember(ctx.from!.id)
+          return {
+            lcUser,
+            member,
+            chatSettings,
+          }
+        },
+        ctx.match || '',
+      )
+
+      if (payload.lcUser.lcUserInChat.isActive) {
+        range.text(
+          {
+            text: `🔔 Submission notifications`,
+            payload: 'disable',
+          },
+          async (ctx) => {
+            await lcUsersDao.upsertLcUserInChat({
+              lcUserUuid: payload.lcUser.lcUser.uuid,
+              tgUserUuid: tgUser.uuid,
+              tgChatUuid: tgChat.uuid,
+              isActive: false,
+              isActiveToggledAt: new Date(),
+            })
+            ctx.match = 'enabled'
+            await ctx.menu.update()
+          },
+        )
+      }
+
+      if (!payload.lcUser.lcUserInChat.isActive) {
+        range.text(
+          {
+            text: `🔕 Submission notifications`,
+            payload: 'enable',
+          },
+          async (ctx) => {
+            await lcUsersDao.upsertLcUserInChat({
+              lcUserUuid: payload.lcUser.lcUser.uuid,
+              tgUserUuid: tgUser.uuid,
+              tgChatUuid: tgChat.uuid,
+              isActive: true,
+              isActiveToggledAt: new Date(),
+            })
+            ctx.match = 'disabled'
+            await ctx.menu.update()
+          },
+        )
+      }
+
+      range.row()
+
+      if (
+        isTgChatAdmin(payload.member.status) &&
+        payload.chatSettings.isActive
+      ) {
+        range.text(
+          {
+            text: `🔔 Chat-wide submission notifications`,
+            payload: 'disable-chat-wide',
+          },
+          async (ctx) => {
+            await tgChatsDao.upsertSettings(
+              {
+                tgChatUuid: tgChat.uuid,
+                isActive: false,
+                isActiveToggledAt: new Date(),
+                leaderboardStartedAt: new Date(),
+              },
+              { isActive: false, isActiveToggledAt: new Date() },
+            )
+
+            ctx.match = 'disabled-chat-wide'
+            await ctx.menu.update()
+          },
+        )
+      }
+
+      if (
+        isTgChatAdmin(payload.member.status) &&
+        !payload.chatSettings.isActive
+      ) {
+        range.text(
+          {
+            text: `🔕 Chat-wide submission notifications`,
+            payload: 'enable-chat-wide',
+          },
+          async (ctx) => {
+            await tgChatsDao.upsertSettings(
+              {
+                tgChatUuid: tgChat.uuid,
+                isActive: true,
+                isActiveToggledAt: new Date(),
+                leaderboardStartedAt: new Date(),
+              },
+              { isActive: true, isActiveToggledAt: new Date() },
+            )
+
+            ctx.match = 'enabled-chat-wide'
+            await ctx.menu.update()
+          },
+        )
+      }
+    })
+
+    bot.use(m, menu)
+
+    bot.command(['settings'], async (ctx) => {
+      const tgChat = ctx.tgChat!
+      const tgUser = ctx.user!
+      const member = await ctx.getChatMember(ctx.from!.id)
+      const lcUser = await lcUsersDao.getLcUserInChat(tgUser.uuid, tgChat.uuid)
+
+      if (!lcUser) {
+        return ctx.replyFmt(
+          fmt`You haven't connected your account yet. Use /connect command or /help for more info.`,
+        )
+      }
+
+      await ctx.replyFmt(
+        fmt`
+${bold('Your settings')} - ${isTgChatAdmin(member.status) ? italic('Admin access granted') : ''}
+
+      `,
+        {
+          reply_to_message_id: ctx.message?.message_id,
+          reply_markup: menu,
+        },
+      )
+    })
+  },
+)

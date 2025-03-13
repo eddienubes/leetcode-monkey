@@ -130,7 +130,7 @@ export const lcUsersInTgChats = pgTable(
     ...timestamps,
   },
   // you cannot have the same user in the same chat connected to different lc users
-  (t) => [unique().on(t.tgChatUuid, t.lcUserUuid)],
+  (t) => [unique().on(t.tgChatUuid, t.tgUserUuid)],
 )
 
 export const lcChatSettings = pgTable('lc_chat_settings', {

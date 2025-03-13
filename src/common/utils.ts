@@ -1,6 +1,7 @@
 import { ToJsonType } from '@/common/types'
 import { BotCtx } from '@/bot/Bot'
 import crypto from 'node:crypto'
+import { TgMemberStatus } from '@/bot/types'
 
 export const sleepForRandomMs = (min: number, max: number): Promise<void> => {
   const randomMs = Math.floor(Math.random() * (max - min + 1)) + min
@@ -119,4 +120,8 @@ export const arrToHashTags = (arr: string[]): string => {
       return `#${hashTag}`
     })
     .join(' ')
+}
+
+export const isTgChatAdmin = (status: TgMemberStatus): boolean => {
+  return status === 'administrator' || status === 'creator'
 }

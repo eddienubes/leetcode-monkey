@@ -120,14 +120,14 @@ export class LcUsersDao extends PgDao {
     return Array.from(map.values())
   }
 
-  async connectLcUserToUserInChat(
+  async upsertLcUserInChat(
     entry: LcUserInTgChatInsert,
   ): Promise<LcUserInTgChatSelect> {
     const [hit] = await this.client
       .insert(lcUsersInTgChats)
       .values(entry)
       .onConflictDoUpdate({
-        target: [lcUsersInTgChats.tgChatUuid, lcUsersInTgChats.lcUserUuid],
+        target: [lcUsersInTgChats.tgChatUuid, lcUsersInTgChats.tgUserUuid],
         set: entry,
       })
       .returning()
@@ -339,5 +339,26 @@ export class LcUsersDao extends PgDao {
       )
 
     return hits
+  }
+
+  async getLcUserInChat(
+    tgUserUuid: string,
+    tgChatUuid: string,
+  ) {
+    const [hit] = await this.client
+      .select({
+        lcUserInChat: lcUsersInTgChats,
+        lcUser: lcUsers,
+      })
+      .from(lcUsersInTgChats)
+      .innerJoin(lcUsers, eq(lcUsers.uuid, lcUsersInTgChats.lcUserUuid))
+      .where(
+        and(
+          eq(lcUsersInTgChats.tgUserUuid, tgUserUuid),
+          eq(lcUsersInTgChats.tgChatUuid, tgChatUuid),
+        ),
+      )
+
+    return hit || null
   }
 }

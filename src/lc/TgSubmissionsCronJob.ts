@@ -52,7 +52,7 @@ export class TgSubmissionsCronJob {
       await this.lcUsersDao.getLcUsersInChatsToNotify()
 
     if (!lcUsersInChatsToNotify.length) {
-      console.log(`${TgSubmissionsCronJob.name} no users to notify, exiting`)
+      // console.log(`${TgSubmissionsCronJob.name} no users to notify, exiting`)
       return
     }
 

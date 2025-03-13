@@ -72,4 +72,18 @@ describe('LcUsersDao', () => {
       expect(hits.length).toBeGreaterThanOrEqual(0)
     })
   })
+
+  describe('getLcUserInChat', () => {
+    it('should get lc user in chat', async () => {
+      const tgChat = 'e2984dfe-7c4c-4368-85f1-cbb57ae0df90'
+      const tgUser = '0f1dfabd-d31f-4375-af82-59308634cf9a'
+      const lcUser = await dao.getLcUserInChat(tgUser, tgChat)
+
+      console.log(lcUser)
+
+      expect(lcUser).toBeDefined()
+
+    });
+
+  });
 })

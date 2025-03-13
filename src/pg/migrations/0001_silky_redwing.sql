@@ -1,0 +1,2 @@
+ALTER TABLE "lc_users_in_tg_chats" DROP CONSTRAINT "lc_users_in_tg_chats_tg_chat_uuid_lc_user_uuid_unique";--> statement-breakpoint
+ALTER TABLE "lc_users_in_tg_chats" ADD CONSTRAINT "lc_users_in_tg_chats_tg_chat_uuid_tg_user_uuid_unique" UNIQUE("tg_chat_uuid","tg_user_uuid");

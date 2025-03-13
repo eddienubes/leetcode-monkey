@@ -28,7 +28,7 @@ type PaginationOptions<T, K> = {
   limit: number
 }
 
-const getNamespace = (ctx: BotCtx): string => {
+export const getPerMessageNamespace = (ctx: BotCtx): string => {
   const message = ctx.message || ctx.callbackQuery?.message
   const chat = ctx.chat
 
@@ -54,7 +54,7 @@ export const createPagination = <T, K>(
   const memo = new Memo()
 
   const fetch = async (ctx: BotCtx, page: number) => {
-    const namespace = getNamespace(ctx)
+    const namespace = getPerMessageNamespace(ctx)
     const res = await memo.run<FetchResult<T>, unknown[]>(
       namespace,
       async () => {
@@ -130,7 +130,7 @@ export const createPagination = <T, K>(
   return {
     menu,
     run: async (ctx, cb) => {
-      const namespace = getNamespace(ctx)
+      const namespace = getPerMessageNamespace(ctx)
 
       const fetch = await memo.run<FetchResult<T>, unknown[]>(
         namespace,
