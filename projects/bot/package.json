@@ -4,6 +4,9 @@
   "description": "",
   "private": true,
   "main": "index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "start": "node build/index.js",
     "dev": "tsx watch --env-file=.env --include .src/**/* src/index.ts",

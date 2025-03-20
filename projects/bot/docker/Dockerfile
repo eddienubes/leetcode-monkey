@@ -9,6 +9,7 @@ COPY . ./
 RUN npm install -g corepack@latest && corepack enable
 RUN pnpm install
 RUN pnpm run build
+RUN pnpm --filter=@repo/bot --prod deploy deploy
 
 FROM node:22.13.1-alpine
 
@@ -17,13 +18,11 @@ RUN apk update && apk --no-cache add sudo jq git curl
 
 WORKDIR /app
 
-COPY --from=base --chown=node /app/node_modules ./node_modules
-COPY --from=base --chown=node /app/build ./build
-COPY --from=base --chown=node /app/package.json ./package.json
+COPY --from=base --chown=node /app/deploy .
 
 USER node
 
-CMD ["node", "build/src/index.js"]
+CMD ["node", "dist/index.js"]
 
 
 

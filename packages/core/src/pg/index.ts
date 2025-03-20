@@ -1,5 +1,4 @@
 export * from './PgDao'
 export * from './PgService'
-export * from './drizzleConfig'
 export * as schema from './schema'
 export * from './schema'

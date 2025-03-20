@@ -5,7 +5,8 @@
   "scripts": {
     "watch:core": "nx watch --p @repo/core -- nx run @repo/core:build",
     "watch:bot": "pnpm run watch:core & nx run @repo/bot:dev",
-    "watch:ui": "pnpm run watch:core & nx run @repo/ui:dev"
+    "watch:ui": "pnpm run watch:core & nx run @repo/ui:dev",
+    "build": "nx run-many -t build --all --parallel"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
