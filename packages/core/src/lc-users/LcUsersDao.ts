@@ -210,10 +210,14 @@ export class LcUsersDao extends PgDao {
     limit = 10,
   ) {
     const distinctSubmissions = this.client
-      .selectDistinctOn([acceptedSubmissions.lcProblemUuid])
+      .selectDistinctOn([
+        acceptedSubmissions.lcProblemUuid,
+        acceptedSubmissions.lcUserUuid,
+      ])
       .from(acceptedSubmissions)
       .orderBy(
         acceptedSubmissions.lcProblemUuid,
+        acceptedSubmissions.lcUserUuid,
         desc(acceptedSubmissions.submittedAt),
       )
       .as('submissions')
@@ -277,7 +281,7 @@ export class LcUsersDao extends PgDao {
       .offset(offset)
       .limit(limit)
 
-    // console.log(query.toSQL().sql)
+    console.log(query.toSQL().sql)
 
     const hits = await query
 

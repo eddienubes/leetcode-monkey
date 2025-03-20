@@ -1,6 +1,6 @@
 import { Middleware } from 'grammy'
-import { BotCtx } from "@/bot/Bot";
-import { ConvoStorage } from "@/bot/ramConvoStorage";
+import { BotCtx } from '@/bot/Bot'
+import { ConvoStorage } from '@/bot/ramConvoStorage'
 
 export const createMiddleware = <T extends any[]>(
   cb: (
