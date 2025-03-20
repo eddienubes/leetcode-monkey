@@ -9,6 +9,7 @@ COPY . ./
 RUN npm install -g corepack@latest && corepack enable
 RUN pnpm install
 RUN pnpm run build
+RUN pnpm config set --location project inject-workspace-packages true
 RUN pnpm --filter=@repo/bot --prod deploy deploy
 
 FROM node:22.13.1-alpine

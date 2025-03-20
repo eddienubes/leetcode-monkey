@@ -9,9 +9,11 @@ import {
   helpCommand,
   leaderboardCommand,
   settingsCommand,
+  spreadsheetCommand,
 } from '@/bot/commands'
 import { TgSubmissionsCronJob } from '@/bot/TgSubmissionsCronJob'
 import {
+  GoogleAuthService,
   LcApiClient,
   LcProblemsDao,
   LcProblemsService,
@@ -48,6 +50,7 @@ export const main = async (): Promise<void> => {
     lcUsersDao,
     lcTgNotificationsDao,
   )
+  const googleAuth = new GoogleAuthService()
 
   const instances = [
     bot,
@@ -63,6 +66,7 @@ export const main = async (): Promise<void> => {
     lcProblemsService,
     lcTgNotificationsDao,
     tgSubmissionsCronJob,
+    googleAuth,
   ]
 
   const inject = {
@@ -76,6 +80,7 @@ export const main = async (): Promise<void> => {
   await disconnectLcCommand(inject, lcUsersDao, tgUsersDao, tgChatsDao)
   await leaderboardCommand(inject, tgUsersDao, tgChatsDao, lcUsersDao)
   await settingsCommand(inject, lcUsersDao, tgUsersDao, tgChatsDao)
+  await spreadsheetCommand(inject, tgUsersDao, tgChatsDao, googleAuth)
   await dailyCommand(inject, lcApi)
   await helpCommand(inject)
   await feedbackCommand(inject)

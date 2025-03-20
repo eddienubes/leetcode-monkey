@@ -13,11 +13,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "leetcode-query": "^1.2.3",
-    "graphql": "^16.10.0",
-    "bullmq": "^5.41.8",
     "@apollo/client": "^3.13.1",
+    "@googleapis/sheets": "^9.5.0",
+    "bullmq": "^5.41.8",
     "drizzle-orm": "^0.40.0",
+    "google-auth-library": "^9.15.1",
+    "graphql": "^16.10.0",
+    "leetcode-query": "^1.2.3",
     "postgres": "^3.4.5"
   },
   "keywords": [],

@@ -29,4 +29,14 @@ export const config = {
     user: process.env.REDIS_USER as string,
     password: process.env.REDIS_PASSWORD as string,
   },
+  google: {
+    clientCredentials: JSON.parse(process.env.GOOGLE_CLIENT_JSON as string) as {
+      web: {
+        client_id: string
+        client_secret: string
+        redirect_uris: string[]
+      }
+    },
+    projectId: process.env.GOOGLE_PROJECT_ID as string,
+  },
 }

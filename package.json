@@ -6,6 +6,7 @@
     "watch:core": "nx watch --p @repo/core -- nx run @repo/core:build",
     "watch:bot": "pnpm run watch:core & nx run @repo/bot:dev",
     "watch:ui": "pnpm run watch:core & nx run @repo/ui:dev",
+    "watch": "pnpm run watch:core & nx run @repo/bot:dev & nx run @repo/ui:dev",
     "build": "nx run-many -t build --all --parallel",
     "lint:fix": "nx run-many -t lint:fix --all --parallel",
     "lint": "nx run-many -t lint --all --parallel",

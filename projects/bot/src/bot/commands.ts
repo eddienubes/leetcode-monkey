@@ -13,7 +13,7 @@ import { createConvoHelper } from '@/bot/convoHelper'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { createPagination, getPerMessageNamespace } from '@/bot/pagination'
 import { Menu } from '@grammyjs/menu'
-import { Context } from 'grammy'
+import { Context, InlineKeyboard } from 'grammy'
 import {
   buildMentionNameFromCtx,
   isMenuOwner,
@@ -32,6 +32,7 @@ import {
   TgChatsDao,
   TgUsersDao,
 } from '@repo/core'
+import { GoogleAuthService } from '@repo/core'
 
 export const connectLcCommand = createHandler(
   async (
@@ -596,6 +597,43 @@ Sorry to see you go! 😔
 `,
         {
           reply_to_message_id: ctx.message?.message_id,
+        },
+      )
+    })
+  },
+)
+
+export const spreadsheetCommand = createHandler(
+  async (
+    bot,
+    convoStorage,
+    tgUsers: TgUsersDao,
+    tgChatsDao: TgChatsDao,
+    googleAuth: GoogleAuthService,
+  ) => {
+    const m = await tgUsersMiddleware(convoStorage, tgUsers, tgChatsDao)
+
+    bot.command(['spreadsheet', 'ss'], m, async (ctx) => {
+      const tgChat = ctx.tgChat!
+      const tgUser = ctx.user!
+
+      const url = googleAuth.getAuthUrl([
+        'https://www.googleapis.com/auth/drive.file',
+      ])
+
+      await ctx.replyFmt(
+        fmt`
+      Let's connect your spreadsheet!
+      `,
+        {
+          reply_markup: new InlineKeyboard([
+            [
+              {
+                text: 'Connect',
+                url,
+              },
+            ],
+          ]),
         },
       )
     })
