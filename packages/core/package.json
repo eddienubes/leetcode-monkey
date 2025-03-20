@@ -2,6 +2,7 @@
   "name": "@repo/core",
   "version": "1.0.0",
   "description": "",
+  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.js",
   "scripts": {

@@ -1,6 +1,16 @@
-const tseslint = require('typescript-eslint')
+import tseslint from 'typescript-eslint'
+import { FlatCompat } from '@eslint/eslintrc'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 
-module.exports = [
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
+
+const compat = new FlatCompat({
+  baseDirectory: dirname,
+})
+
+export default tseslint.config([
   ...tseslint.configs.recommended,
   {
     languageOptions: {
@@ -34,9 +44,16 @@ module.exports = [
       '@typescript-eslint/no-require-imports': 'warn',
     },
   },
+  ...compat.extends('next/core-web-vitals', 'next/typescript').map((c) => ({
+    ...c,
+    files: ['projects/ui/**/*.{ts,tsx,js,jsx,html}'],
+  })),
   {
     // https://eslint.org/docs/latest/use/configure/ignore#ignoring-files
     ignores: [
+      '**/dist',
+      '.nx',
+      '**/.next',
       '**/node_modules',
       '**/build',
       '.yarn',
@@ -44,4 +61,4 @@ module.exports = [
       '!**/sdk/types/*',
     ],
   },
-]
+])
