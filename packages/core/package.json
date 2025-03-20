@@ -1,0 +1,27 @@
+{
+  "name": "@repo/core",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && pnpm tsx scripts/copy.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "leetcode-query": "^1.2.3",
+    "graphql": "^16.10.0",
+    "bullmq": "^5.41.8",
+    "@apollo/client": "^3.13.1",
+    "drizzle-orm": "^0.40.0",
+    "postgres": "^3.4.5"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.1"
+}
