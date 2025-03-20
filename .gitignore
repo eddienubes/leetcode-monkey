@@ -4,10 +4,14 @@ npm-debug.log
 yarn-error.log
 .env
 .DS_Store
-dist/
+dist
 coverage/
 .idea/
 .vscode/
 *.log
 *.tsbuildinfo
-build/
+build
+
+
+.nx/cache
+.nx/workspace-data
