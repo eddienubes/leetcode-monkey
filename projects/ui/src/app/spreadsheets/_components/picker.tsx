@@ -9,7 +9,8 @@ import {
   DrivePickerDocsViewAttributes,
   PickedEvent,
 } from '@/types'
-import { useGoogleAuth } from '@/app/_components/google-auth-guard'
+import { useGoogleAuth } from '@/app/_lib/google-auth-guard'
+import './style.scss'
 
 declare module 'react' {
   namespace JSX {
@@ -20,7 +21,13 @@ declare module 'react' {
   }
 }
 
-export const Picker = () => {
+interface Props {
+  onPick?: (e: PickedEvent) => void
+  onError?: (e: ErrorEvent) => void
+  onCancel?: (e: CancelledEvent) => void
+}
+
+export const Picker = (props: Props) => {
   const params = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -28,33 +35,34 @@ export const Picker = () => {
 
   const ref = useRef<HTMLElement>(null)
 
-  const onPick = (e: PickedEvent) => {
-    console.log(e)
-  }
-
-  const onError = (e: ErrorEvent) => {
-    console.error(e)
-  }
-
-  const onCancel = (e: CancelledEvent) => {
-    console.log(e)
-  }
+  useEffect(() => {
+    void import('@googleworkspace/drive-picker-element')
+  }, [])
 
   useEffect(() => {
     if (!ref.current) {
       return
     }
 
-    ref.current.addEventListener('picker:picked', onPick as EventListener)
-    ref.current.addEventListener('picker:error', onError as EventListener)
-    ref.current.addEventListener('picker:canceled', onCancel as EventListener)
+    ref.current.addEventListener('picker:picked', props.onPick as EventListener)
+    ref.current.addEventListener('picker:error', props.onError as EventListener)
+    ref.current.addEventListener(
+      'picker:canceled',
+      props.onCancel as EventListener,
+    )
 
     return () => {
-      ref.current?.removeEventListener('picker:picked', onPick as EventListener)
-      ref.current?.removeEventListener('picker:error', onError as EventListener)
+      ref.current?.removeEventListener(
+        'picker:picked',
+        props.onPick as EventListener,
+      )
+      ref.current?.removeEventListener(
+        'picker:error',
+        props.onError as EventListener,
+      )
       ref.current?.removeEventListener(
         'picker:canceled',
-        onCancel as EventListener,
+        props.onCancel as EventListener,
       )
     }
   }, [ref.current])
@@ -62,6 +70,7 @@ export const Picker = () => {
   return (
     <drive-picker
       ref={ref}
+      nav-hidden={true}
       origin={window.location.protocol + '//' + window.location.host}
       app-id={clientConfig.google.projectId}
       oauth-token={session.data.accessToken}

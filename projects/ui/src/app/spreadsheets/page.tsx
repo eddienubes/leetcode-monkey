@@ -1,24 +1,28 @@
 'use client'
 
-// import { Picker } from '@/app/spreadsheets/_components/picker'
-import { GoogleAuthGuard } from '@/app/_components/google-auth-guard'
-import { withoutSsr } from '@/app/_components/without-ssr'
-import dynamic from 'next/dynamic'
-import { Picker } from "@/app/spreadsheets/_components/picker";
-// import { PickerComponent } from "@/app/spreadsheets/_components/picker";
-
-// const Picker = dynamic(
-//   () =>
-//     import('@/app/spreadsheets/_components/picker').then(
-//       (m) => m.PickerComponent,
-//     ),
-//   { ssr: false },
-// )
+import { GoogleAuthGuard } from '@/app/_lib/google-auth-guard'
+import { Picker } from '@/app/spreadsheets/_components/picker'
+import { signOut, useSession } from 'next-auth/react'
+import { Button } from '@/app/_lib/ui/button'
+import { useRouter } from 'next/navigation'
 
 export default () => {
+  const session = useSession()
+  const router = useRouter()
+
   return (
-    <GoogleAuthGuard>
-      <Picker />
-    </GoogleAuthGuard>
+    <div>
+      {session.status === 'authenticated' && (
+        <Button onClick={() => void signOut()}>Sign Out</Button>
+      )}
+      <GoogleAuthGuard>
+        <Picker
+          onPick={(e) => {
+            console.log(e.detail.docs)
+            router.replace('https://t.me/leetcode_monkey_bot?help=task_name')
+          }}
+        />
+      </GoogleAuthGuard>
+    </div>
   )
 }
