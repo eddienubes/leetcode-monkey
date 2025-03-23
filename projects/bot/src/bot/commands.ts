@@ -24,9 +24,16 @@ import {
   noop,
   TgChatsDao,
   TgUsersDao,
-  SpreadsheetsConnetor,
+  SpreadsheetsConnector,
 } from '@repo/core'
 import { config } from '@/config'
+import { Chat } from 'grammy/types'
+
+const commandsScope = [
+  'private',
+  'group',
+  'supergroup',
+] as const satisfies Chat['type'][]
 
 export const connectLcCommand = createHandler(
   async (
@@ -158,17 +165,19 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
     bot.filter(
-      Context.has.chatType(['private', 'group', 'supergroup']),
+      Context.has.chatType(commandsScope),
       createConversation(convoImpl, name),
     )
 
-    bot.command(['sign', 'sing', 'connect'], m, async (ctx) => {
-      await ctx.conversation.exitAll()
-      await ctx.conversation.enter(name, {
-        user: ctx.user!,
-        tgChat: ctx.tgChat!,
-      } satisfies BotCtxExtra)
-    })
+    bot
+      .chatType(commandsScope)
+      .command(['sign', 'sing', 'connect'], m, async (ctx) => {
+        await ctx.conversation.exitAll()
+        await ctx.conversation.enter(name, {
+          user: ctx.user!,
+          tgChat: ctx.tgChat!,
+        } satisfies BotCtxExtra)
+      })
   },
 )
 
@@ -247,11 +256,7 @@ ${
       },
     })
 
-    bot.filter(
-      Context.has.chatType(['private', 'group', 'supergroup']),
-      m,
-      pag.menu,
-    )
+    bot.filter(Context.has.chatType(commandsScope), m, pag.menu)
 
     bot.command(
       ['leaderboard', 'lederboard', 'lb', 'ld', 'scoreboard', 'rating'],
@@ -303,7 +308,7 @@ ${arrToHashTags(question.topicTags.map((t) => t.slug))}
 )
 
 export const helpCommand = createHandler(async (bot) => {
-  bot.command(['help', 'start'], async (ctx) => {
+  bot.chatType(commandsScope).command(['help', 'start'], async (ctx) => {
     const message = fmt`
 Hey, I'm a ${bold('LeetCode Monkey')}! 👋
 I make learning algorithms and data structures more fun.
@@ -333,7 +338,7 @@ ${italic('by @carny_plant for FLG')}
 })
 
 export const feedbackCommand = createHandler(async (bot) => {
-  bot.command(['feedback', 'fb'], async (ctx) => {
+  bot.chatType(commandsScope).command(['feedback', 'fb'], async (ctx) => {
     const message = fmt`
 Hi! I love feedback. ❤️
 Message me with your suggestions, bugs, or anything you want to share at @carny_plant.
@@ -525,14 +530,9 @@ export const settingsCommand = createHandler(
     })
 
     menu.register(disconnectMenuConfirmation)
-    bot.filter(
-      Context.has.chatType(['private', 'group', 'supergroup']),
-      m,
-      isMenuOwner,
-      menu,
-    )
+    bot.filter(Context.has.chatType(commandsScope), m, isMenuOwner, menu)
 
-    bot.command(['settings'], async (ctx) => {
+    bot.chatType(commandsScope).command(['settings'], async (ctx) => {
       const tgChat = ctx.tgChat!
       const tgUser = ctx.user!
       const member = await ctx.getChatMember(ctx.from!.id)
@@ -574,26 +574,31 @@ export const disconnectLcCommand = createHandler(
   ) => {
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
-    bot.command(['disconnect', 'signout'], m, async (ctx, next) => {
-      const tgChat = ctx.tgChat!
-      const tgUser = ctx.user!
+    bot
+      .chatType(commandsScope)
+      .command(['disconnect', 'signout'], m, async (ctx, next) => {
+        const tgChat = ctx.tgChat!
+        const tgUser = ctx.user!
 
-      await lcUsersDao.disconnectLcUserFromUserInChat(tgUser.uuid, tgChat.uuid)
+        await lcUsersDao.disconnectLcUserFromUserInChat(
+          tgUser.uuid,
+          tgChat.uuid,
+        )
 
-      const username = ctx.message?.from?.username || ''
-      const firstName = ctx.message?.from?.first_name || ''
-      const lastName = ctx.message?.from?.last_name || ''
-      const name = username || `${firstName} ${lastName}`.trim()
+        const username = ctx.message?.from?.username || ''
+        const firstName = ctx.message?.from?.first_name || ''
+        const lastName = ctx.message?.from?.last_name || ''
+        const name = username || `${firstName} ${lastName}`.trim()
 
-      await ctx.replyFmt(
-        fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your lc submissions anymore and your progress won't be tracked.
+        await ctx.replyFmt(
+          fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your lc submissions anymore and your progress won't be tracked.
 Sorry to see you go! 😔
 `,
-        {
-          reply_to_message_id: ctx.message?.message_id,
-        },
-      )
-    })
+          {
+            reply_to_message_id: ctx.message?.message_id,
+          },
+        )
+      })
   },
 )
 
@@ -607,30 +612,37 @@ export const spreadsheetCommand = createHandler(
   ) => {
     const m = await tgUsersMiddleware(convoStorage, tgUsers, tgChatsDao)
 
-    bot.command(['spreadsheet', 'ss'], m, async (ctx) => {
-      const tgChat = ctx.tgChat!
-      const tgUser = ctx.user!
+    bot
+      .chatType(commandsScope)
+      .command(['spreadsheet', 'ss'], m, async (ctx) => {
+        const tgChat = ctx.tgChat!
+        const tgUser = ctx.user!
 
-      const sessionId =
-        await spreadsheetsConnector.createSpreadsheetConnectionSession()
-      const url = new URL(`${config.ui.url}/spreadsheets`)
-      url.searchParams.set('id', sessionId)
+        const sessionId =
+          await spreadsheetsConnector.createSpreadsheetConnectionSession({
+            tgUserUuid: tgUser.uuid,
+            tgChatUuid: tgChat.uuid,
+            tgMessageId: ctx.message.message_id.toString(),
+          })
 
-      await ctx.replyFmt(
-        fmt`
+        const url = new URL(`${config.ui.url}/spreadsheets`)
+        url.searchParams.set('id', sessionId)
+
+        await ctx.replyFmt(
+          fmt`
       Let's connect your spreadsheet!
       `,
-        {
-          reply_markup: new InlineKeyboard([
-            [
-              {
-                text: 'Connect',
-                url: url.toString(),
-              },
-            ],
-          ]),
-        },
-      )
-    })
+          {
+            reply_markup: new InlineKeyboard([
+              [
+                {
+                  text: 'Connect',
+                  url: url.toString(),
+                },
+              ],
+            ]),
+          },
+        )
+      })
   },
 )

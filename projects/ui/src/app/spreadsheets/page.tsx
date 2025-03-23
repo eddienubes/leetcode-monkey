@@ -12,6 +12,8 @@ import {
 } from 'next/navigation'
 import { PickedEvent } from '@/app/spreadsheets/_components/types'
 import { useState } from 'react'
+import Image from 'next/image'
+import './style.scss'
 
 export default () => {
   const session = useSession()
@@ -26,31 +28,57 @@ export default () => {
     notFound()
   }
 
+  const gotoBot = (payload = '') => {
+    router.replace(`https://t.me/leetcode_monkey_bot?start=${payload}`)
+  }
+
   const onPick = async (e: PickedEvent) => {
     if (e.detail.docs[0].driveSuccess) {
       const fileId = e.detail.docs[0].id
       router.replace(`/spreadsheets/${fileId}`)
     }
-    router.replace('https://t.me/leetcode_monkey_bot?help=task_name')
+    gotoBot()
   }
 
   return (
-    <div>
-      {session.status === 'authenticated' && (
-        <>
-          <Button onClick={() => void signOut()}>Sign Out</Button>
-          <Button onClick={() => setShowPicker((prev) => !prev)}>
-            Open Picker
-          </Button>
-        </>
-      )}
-      <GoogleAuthGuard>
+    <GoogleAuthGuard>
+      <div className="spreadsheets">
+        <button
+          className="spreadsheets__image-container"
+          onClick={() => gotoBot()}
+        >
+          <Image
+            className="spreadsheets__image"
+            src="/leetcode-monkey.webp"
+            priority
+            fill
+            alt={'LeetCode monkey looking at the screen with a question'}
+          ></Image>
+        </button>
+        {session.status === 'authenticated' && (
+          <div className="spreadsheets-controls">
+            <Button
+              type="button"
+              className="spreadsheets-controls__button"
+              onClick={() => setShowPicker((prev) => !prev)}
+            >
+              Open Picker
+            </Button>
+            <Button
+              type="button"
+              className="spreadsheets-controls__button"
+              onClick={() => void signOut()}
+            >
+              Sign Out
+            </Button>
+          </div>
+        )}
         <Picker
           onPick={onPick}
           show={showPicker}
           onCancel={() => setShowPicker(false)}
         />
-      </GoogleAuthGuard>
-    </div>
+      </div>
+    </GoogleAuthGuard>
   )
 }

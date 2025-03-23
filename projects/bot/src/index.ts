@@ -23,6 +23,7 @@ import {
   PgService,
   TgChatsDao,
   TgUsersDao,
+  SpreadsheetsConnector
 } from '@repo/core'
 
 export const main = async (): Promise<void> => {
@@ -51,6 +52,7 @@ export const main = async (): Promise<void> => {
     lcTgNotificationsDao,
   )
   const googleAuth = new GoogleAuthService()
+  const spreadsheetsConnector = new SpreadsheetsConnector()
 
   const instances = [
     bot,
@@ -80,7 +82,7 @@ export const main = async (): Promise<void> => {
   await disconnectLcCommand(inject, lcUsersDao, tgUsersDao, tgChatsDao)
   await leaderboardCommand(inject, tgUsersDao, tgChatsDao, lcUsersDao)
   await settingsCommand(inject, lcUsersDao, tgUsersDao, tgChatsDao)
-  await spreadsheetCommand(inject, tgUsersDao, tgChatsDao, googleAuth)
+  await spreadsheetCommand(inject, tgUsersDao, tgChatsDao, spreadsheetsConnector)
   await dailyCommand(inject, lcApi)
   await helpCommand(inject)
   await feedbackCommand(inject)

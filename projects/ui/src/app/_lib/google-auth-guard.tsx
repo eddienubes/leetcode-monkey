@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactElement, useEffect } from 'react'
-import { SessionContextValue, signIn, useSession } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 
 export const useGoogleAuth = () => {
   const session = useSession()
@@ -22,17 +22,43 @@ export const useGoogleAuth = () => {
   return session
 }
 
-export const GoogleAuthGuard = (props: { children: ReactElement }) => {
+interface Props {
+  children: ReactElement
+}
+
+/**
+ * BEWARE: Throws the user back to the sign-in page if the access token has expired
+ * @param props
+ * @constructor
+ */
+export const GoogleAuthGuard = (props: Props) => {
   const session = useSession()
+
+  console.log(session)
 
   useEffect(() => {
     if (session.status === 'unauthenticated') {
       void signIn('google')
     }
+
+    if (session.status === 'authenticated') {
+      if (!session.data.accessTokenExpiresAt) {
+        void signIn('google')
+        return
+      }
+
+      const hasAccessTokenExpired =
+        session.data.accessTokenExpiresAt * 1000 < Date.now()
+
+      if (hasAccessTokenExpired) {
+        void signIn('google')
+        return
+      }
+    }
   }, [session.status])
 
   if (session.status === 'loading') {
-    return <div>Loading...</div>
+    return <p>Loading...</p>
   }
 
   if (session.status === 'authenticated') {
