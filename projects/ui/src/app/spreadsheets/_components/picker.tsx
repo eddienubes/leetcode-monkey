@@ -1,6 +1,5 @@
 'use client'
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { clientConfig } from '@/app/config'
 import {
@@ -8,7 +7,7 @@ import {
   DrivePickerAttributes,
   DrivePickerDocsViewAttributes,
   PickedEvent,
-} from '@/types'
+} from './types'
 import { useGoogleAuth } from '@/app/_lib/google-auth-guard'
 import './style.scss'
 
@@ -25,12 +24,10 @@ interface Props {
   onPick?: (e: PickedEvent) => void
   onError?: (e: ErrorEvent) => void
   onCancel?: (e: CancelledEvent) => void
+  show?: boolean
 }
 
 export const Picker = (props: Props) => {
-  const params = useSearchParams()
-  const router = useRouter()
-  const pathname = usePathname()
   const session = useGoogleAuth()
 
   const ref = useRef<HTMLElement>(null)
@@ -75,6 +72,7 @@ export const Picker = (props: Props) => {
       app-id={clientConfig.google.projectId}
       oauth-token={session.data.accessToken}
       multiselect={false}
+      visible={!!props.show}
     >
       <drive-picker-docs-view view-id="SPREADSHEETS"></drive-picker-docs-view>
     </drive-picker>

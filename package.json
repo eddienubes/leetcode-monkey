@@ -16,6 +16,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
     "@types/node": "^22.13.8",
+    "concurrently": "^9.1.2",
     "drizzle-kit": "^0.30.5",
     "drizzle-seed": "^0.3.1",
     "eslint": "^9.21.0",
@@ -33,6 +34,7 @@
   "packageManager": "pnpm@10.6.1+sha512.40ee09af407fa9fbb5fbfb8e1cb40fbb74c0af0c3e10e9224d7b53c7658528615b2c92450e74cfad91e3a2dcafe3ce4050d80bda71d757756d2ce2b66213e9a3",
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@parcel/watcher",
       "esbuild",
       "msgpackr-extract",
       "nx",

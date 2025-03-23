@@ -1,14 +1,7 @@
 import { createHandler } from '@/bot/handler'
 import { createConversation } from '@grammyjs/conversations'
 import { BotCtx, BotCtxExtra, Convo } from '@/bot/Bot'
-import {
-  bold,
-  expandableBlockquote,
-  fmt,
-  italic,
-  link,
-  mentionUser,
-} from '@grammyjs/parse-mode'
+import { bold, fmt, italic, link, mentionUser } from '@grammyjs/parse-mode'
 import { createConvoHelper } from '@/bot/convoHelper'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { createPagination, getPerMessageNamespace } from '@/bot/pagination'
@@ -31,8 +24,9 @@ import {
   noop,
   TgChatsDao,
   TgUsersDao,
+  SpreadsheetsConnetor,
 } from '@repo/core'
-import { GoogleAuthService } from '@repo/core'
+import { config } from '@/config'
 
 export const connectLcCommand = createHandler(
   async (
@@ -609,7 +603,7 @@ export const spreadsheetCommand = createHandler(
     convoStorage,
     tgUsers: TgUsersDao,
     tgChatsDao: TgChatsDao,
-    googleAuth: GoogleAuthService,
+    spreadsheetsConnector: SpreadsheetsConnector,
   ) => {
     const m = await tgUsersMiddleware(convoStorage, tgUsers, tgChatsDao)
 
@@ -617,9 +611,10 @@ export const spreadsheetCommand = createHandler(
       const tgChat = ctx.tgChat!
       const tgUser = ctx.user!
 
-      const url = googleAuth.getAuthUrl([
-        'https://www.googleapis.com/auth/drive.file',
-      ])
+      const sessionId =
+        await spreadsheetsConnector.createSpreadsheetConnectionSession()
+      const url = new URL(`${config.ui.url}/spreadsheets`)
+      url.searchParams.set('id', sessionId)
 
       await ctx.replyFmt(
         fmt`
@@ -630,7 +625,7 @@ export const spreadsheetCommand = createHandler(
             [
               {
                 text: 'Connect',
-                url,
+                url: url.toString(),
               },
             ],
           ]),
