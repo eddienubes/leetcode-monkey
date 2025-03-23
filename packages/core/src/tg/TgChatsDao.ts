@@ -7,7 +7,7 @@ import {
 } from 'drizzle-orm'
 import { lcChatSettings, tgChats, tgUsersToTgChats } from '../pg'
 import { PgDao, PgService } from '../pg'
-import { NotFoundError } from '../common'
+import { Injectable, NotFoundError } from '../common'
 
 export type TgChatSelect = InferSelectModel<typeof tgChats>
 export type TgChatInsert = InferInsertModel<typeof tgChats>
@@ -16,6 +16,7 @@ export type TgUsersToTgChatsInsert = InferInsertModel<typeof tgUsersToTgChats>
 export type LcChatSettingsInsert = InferInsertModel<typeof lcChatSettings>
 export type LcChatSettingsSelect = InferSelectModel<typeof lcChatSettings>
 
+@Injectable(PgService)
 export class TgChatsDao extends PgDao {
   constructor(pgService: PgService) {
     super(pgService)

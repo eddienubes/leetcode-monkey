@@ -33,11 +33,12 @@ export default () => {
   }
 
   const onPick = async (e: PickedEvent) => {
+    console.log(e.detail)
     if (e.detail.docs[0].driveSuccess) {
       const fileId = e.detail.docs[0].id
-      router.replace(`/spreadsheets/${fileId}`)
+      // router.replace(`/spreadsheets/${fileId}`)
     }
-    gotoBot()
+    // gotoBot()
   }
 
   return (

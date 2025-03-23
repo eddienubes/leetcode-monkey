@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { ToJsonType } from "./types";
+import type { ToJsonType } from './types'
 
 export const sleepForRandomMs = (min: number, max: number): Promise<void> => {
   const randomMs = Math.floor(Math.random() * (max - min + 1)) + min
@@ -120,3 +120,12 @@ export const arrToHashTags = (arr: string[]): string => {
     .join(' ')
 }
 
+export const isConstructorFunction = (
+  value: unknown,
+): value is new (...args: any[]) => any => {
+  const isFunction = typeof value === 'function'
+  // @ts-ignore ts doesn't know about the prototype property, since it's unknown
+  const isClass = value?.prototype && value?.prototype?.constructor === value
+
+  return isFunction && isClass
+}

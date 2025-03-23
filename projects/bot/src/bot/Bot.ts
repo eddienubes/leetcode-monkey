@@ -8,9 +8,9 @@ import { hydrateReply, ParseModeFlavor } from '@grammyjs/parse-mode'
 import { hydrate, HydrateFlavor } from '@grammyjs/hydrate'
 import { MenuFlavor } from '@grammyjs/menu'
 import { createSession, Session } from '@/bot/session'
-import { ConvoStorage } from '@/bot/ramConvoStorage'
+import { CONVO_STORAGE_ID, ConvoStorage } from '@/bot/ramConvoStorage'
 import { config } from '@/config'
-import { TgChatSelect, TgUserSelect } from '@repo/core'
+import { Injectable, TgChatSelect, TgUserSelect } from '@repo/core'
 
 export type BotCtxExtra = {
   user?: TgUserSelect
@@ -26,6 +26,7 @@ export type BotCtx = ParseModeFlavor<
 
 export type Convo = Conversation<BotCtx, BotCtx>
 
+@Injectable(CONVO_STORAGE_ID)
 export class Bot {
   private readonly bot = new TgBot<BotCtx>(config.bot.token)
 

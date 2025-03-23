@@ -28,6 +28,7 @@ import {
 } from '../pg'
 import { GetAllActiveLcChatUsersHit } from './types'
 import { LC_SCORE_COEFFICIENTS } from '../lc'
+import { Injectable } from "@/common";
 
 export type LcUserSelect = InferSelectModel<typeof lcUsers>
 export type LcUserInsert = InferInsertModel<typeof lcUsers>
@@ -36,6 +37,7 @@ export type LcUserInTgChatInsert = InferInsertModel<typeof lcUsersInTgChats>
 export type SubmissionInsert = InferInsertModel<typeof acceptedSubmissions>
 export type SubmissionSelect = InferSelectModel<typeof acceptedSubmissions>
 
+@Injectable(PgService)
 export class LcUsersDao extends PgDao {
   constructor(pgService: PgService) {
     super(pgService)

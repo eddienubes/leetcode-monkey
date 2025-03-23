@@ -1,6 +1,8 @@
 import { config } from '@/config'
 import { Credentials, OAuth2Client } from 'google-auth-library'
+import { Injectable } from "@/common";
 
+@Injectable()
 export class GoogleAuthService {
   private readonly client = new OAuth2Client({
     clientId: config.google.clientCredentials.web.client_id,

@@ -208,3 +208,27 @@ export const lcTgNotifications = pgTable(
   },
   (t) => [unique().on(t.tgChatUuid, t.lcUserUuid)],
 )
+
+export const googleSpreadsheets = pgTable('google_spreadsheets', {
+  uuid: uuid('uuid').primaryKey().defaultRandom(),
+  // only 1 spreadsheet per chat
+  tgChatUuid: uuid('tg_chat_uuid')
+    .notNull()
+    .unique()
+    .references(() => tgChats.uuid),
+  // spreadsheetId is the id of the spreadsheet in google drive
+  spreadsheetId: varchar('spreadsheet_id').notNull().unique(),
+  spreadsheetName: varchar('spreadsheet_name').notNull(),
+  /**
+   * Google oauth refresh token.
+   * It's permanent in google oauth implementation
+   * This is a terrible practice to store refresh token in the sheets entity.
+   * But this is what we do for now to mitigate complexities.
+   * Consider rather storing it in the dedicated oauth connection table.
+   * Otherwise, it leads to a plethora of other bad practices like putting refresh token inside
+   * encrypted cookie (see auth.ts in the UI project)
+   */
+  refreshToken: varchar('refresh_token').notNull(),
+
+  ...timestamps,
+})

@@ -1,6 +1,4 @@
-import { Bot } from 'grammy'
 import { Job, Queue, Worker } from 'bullmq'
-import { BotCtx } from '@/bot/Bot'
 import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
 import {
   arrToHashTags,
@@ -17,7 +15,14 @@ import {
   ToJsonType,
 } from '@repo/core'
 import { TgSubmissionNotifyJob } from '@/bot/types'
+import { Bot } from '@/bot/Bot'
+import { Injectable } from "@repo/core";
 
+@Injectable(
+  Bot,
+  LcUsersDao,
+  LcTgNotificationsDao
+)
 export class TgSubmissionsCronJob {
   private readonly cronName = 'tg-submissions-notify-cron'
   private readonly cron = new Queue(this.cronName, {
@@ -43,12 +48,15 @@ export class TgSubmissionsCronJob {
       connection,
     },
   )
+  private readonly tgBot
 
   constructor(
-    private readonly bot: Bot<BotCtx>,
+    private readonly bot: Bot,
     private readonly lcUsersDao: LcUsersDao,
     private readonly lcTgNotificationsDao: LcTgNotificationsDao,
-  ) {}
+  ) {
+    this.tgBot = bot.getBot()
+  }
 
   async tick(): Promise<void> {
     const lcUsersInChatsToNotify =
@@ -171,7 +179,7 @@ export class TgSubmissionsCronJob {
 ${arrToHashTags(data.lcProblem.topics)}
     `
 
-    await this.bot.api.sendMessage(data.tgChat.tgId, msg.text, {
+    await this.tgBot.api.sendMessage(data.tgChat.tgId, msg.text, {
       entities: msg.entities,
       link_preview_options: {
         is_disabled: true,

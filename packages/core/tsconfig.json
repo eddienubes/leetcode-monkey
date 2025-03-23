@@ -5,6 +5,7 @@
     "module": "commonjs",
     "incremental": true,
     "lib": [
+      "esnext.decorators",
       "es2022"
     ],
     "strict": true,

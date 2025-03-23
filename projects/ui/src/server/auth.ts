@@ -7,6 +7,7 @@ declare module 'next-auth' {
   interface Session {
     accessToken: string
     accessTokenExpiresAt: number
+    refreshToken: string
   }
 }
 
@@ -14,6 +15,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     accessToken: string
     accessTokenExpiresAt: number
+    refreshToken: string
   }
 }
 
@@ -38,6 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (props.account) {
         props.token.accessTokenExpiresAt = props.account.expires_at!
         props.token.accessToken = props.account.access_token!
+        props.token.refreshToken = props.account.refresh_token!
       }
       // we're sure that the token is not null here
       // we request the access token from the account
@@ -46,6 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session: async (props) => {
       props.session.accessToken = props.token.accessToken
       props.session.accessTokenExpiresAt = props.token.accessTokenExpiresAt
+      props.session.refreshToken = props.token.refreshToken
       return props.session
     },
   },

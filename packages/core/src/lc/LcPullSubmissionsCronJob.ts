@@ -1,11 +1,23 @@
 import { Job, Queue, Worker } from "bullmq";
-import { connection, defaultJobOptions, sleepForRandomMs, ToJsonType, unixTimestampToDate } from "../common";
-import { LcUsersDao } from "../lc-users";
+import {
+  connection,
+  defaultJobOptions,
+  Injectable,
+  sleepForRandomMs,
+  ToJsonType,
+  unixTimestampToDate
+} from "@/common";
+import { LcUsersDao } from "@/lc-users";
 import { LcApiClient } from "./LcApiClient";
 import { LcProblemsService } from "./LcProblemsService";
 import { LcPullSubmissionJob } from "./types/types";
-import { config } from "../config";
+import { config } from "@/config";
 
+@Injectable(
+  LcUsersDao,
+  LcApiClient,
+  LcProblemsService
+)
 export class LcPullSubmissionsCronJob {
   private readonly cronName = 'lc-pull-submissions-cron'
   private readonly cron = new Queue(this.cronName, {
