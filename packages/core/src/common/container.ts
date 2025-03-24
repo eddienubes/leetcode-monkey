@@ -156,7 +156,7 @@ export const createProvidersContainer = (providers: Provider[]) => {
     const args = []
 
     for (const dep of dependsOn) {
-      const value = buildDependency(dep, graph, globalDepsMap)
+      const value = buildDependency(dep, new Map(graph), globalDepsMap)
 
       args.push(value)
     }
