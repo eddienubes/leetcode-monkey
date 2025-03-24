@@ -25,6 +25,9 @@ export class PgService implements Lifecycle {
     })
   }
 
+  /**
+   * TODO: Implement locking
+   */
   async migrate(): Promise<void> {
     await migrate(this.client, {
       migrationsFolder: config.pg.migrations.out,

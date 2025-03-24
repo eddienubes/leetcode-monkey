@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
   },
   "dependencies": {
     "@googleworkspace/drive-picker-element": "^0.4.1",
@@ -20,15 +23,15 @@
     "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sass": "^1.86.0",
     "tailwind-merge": "^3.0.2",
     "tw-animate-css": "^1.2.4",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "tailwindcss": "^4"
+    "@tailwindcss/postcss": "^4.0.15",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "sass": "^1.86.0",
+    "tailwindcss": "^4.0.15"
   }
 }

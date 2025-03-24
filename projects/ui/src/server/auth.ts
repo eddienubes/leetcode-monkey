@@ -1,3 +1,4 @@
+import 'server-only'
 import 'next-auth/jwt'
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
@@ -24,6 +25,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: serverConfig.google.clientId,
       clientSecret: serverConfig.google.clientSecret,
+      // https://authjs.dev/getting-started/deployment#securing-a-preview-deployment
+      // We don't use proxies, but it's a nice way to use custom config for redirect URI
       authorization: {
         params: {
           scope:
@@ -34,6 +37,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  trustHost: true,
   secret: serverConfig.auth.secret,
   callbacks: {
     jwt: async (props) => {

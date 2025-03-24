@@ -11,6 +11,7 @@ import { createSession, Session } from '@/bot/session'
 import { CONVO_STORAGE_ID, ConvoStorage } from '@/bot/ramConvoStorage'
 import { config } from '@/config'
 import { Injectable, TgChatSelect, TgUserSelect } from '@repo/core'
+import { Lifecycle } from '@repo/core'
 
 export type BotCtxExtra = {
   user?: TgUserSelect
@@ -27,7 +28,7 @@ export type BotCtx = ParseModeFlavor<
 export type Convo = Conversation<BotCtx, BotCtx>
 
 @Injectable(CONVO_STORAGE_ID)
-export class Bot {
+export class Bot implements Lifecycle {
   private readonly bot = new TgBot<BotCtx>(config.bot.token)
 
   constructor(convoStorage: ConvoStorage) {

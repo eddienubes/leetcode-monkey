@@ -1,4 +1,4 @@
-import { HTMLAttributes, RefObject } from "react";
+import { HTMLAttributes, RefObject } from 'react'
 
 export type PickerEvent = PickedEvent | ErrorEvent | CancelledEvent
 

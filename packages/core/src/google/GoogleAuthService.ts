@@ -5,11 +5,11 @@ import { Injectable } from "@/common";
 @Injectable()
 export class GoogleAuthService {
   private readonly client = new OAuth2Client({
-    clientId: config.google.clientCredentials.web.client_id,
-    clientSecret: config.google.clientCredentials.web.client_secret,
+    clientId: config.google.clientId,
+    clientSecret: config.google.clientSecret,
     projectId: config.google.projectId,
 
-    redirectUri: 'http://localhost:3001',
+    redirectUri: config.ui.baseUrl,
   })
 
   getAuthUrl(scopes: string[]): string {
@@ -28,8 +28,8 @@ export class GoogleAuthService {
 
   getClient(accessToken: string): OAuth2Client {
     const client = new OAuth2Client({
-      clientId: config.google.clientCredentials.web.client_id,
-      clientSecret: config.google.clientCredentials.web.client_secret,
+      clientId: config.google.clientId,
+      clientSecret: config.google.clientSecret,
       projectId: config.google.projectId,
     })
     client.setCredentials({

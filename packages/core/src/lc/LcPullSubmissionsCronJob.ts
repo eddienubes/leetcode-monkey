@@ -28,6 +28,7 @@ export class LcPullSubmissionsCronJob {
     this.cronName,
     this.tick.bind(this),
     {
+      autorun: false,
       connection,
     },
   )
@@ -40,6 +41,7 @@ export class LcPullSubmissionsCronJob {
     this.queueName,
     this.run.bind(this),
     {
+      autorun: false,
       connection,
     },
   )
@@ -124,6 +126,8 @@ export class LcPullSubmissionsCronJob {
     await this.cron.upsertJobScheduler(`${this.queueName}-scheduler`, {
       pattern: config.cron.lcCronJobInterval,
     })
+    await this.cronWorker.run()
+    await this.queueWorker.run()
 
     console.log(`${LcPullSubmissionsCronJob.name} started + queue`)
   }

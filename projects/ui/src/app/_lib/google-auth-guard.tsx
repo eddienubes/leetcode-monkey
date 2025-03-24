@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactElement, useEffect } from 'react'
+import { ReactElement, useEffect, useState } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 
 export const useGoogleAuth = () => {
@@ -33,8 +33,7 @@ interface Props {
  */
 export const GoogleAuthGuard = (props: Props) => {
   const session = useSession()
-
-  console.log(session)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (session.status === 'unauthenticated') {
@@ -55,9 +54,13 @@ export const GoogleAuthGuard = (props: Props) => {
         return
       }
     }
+
+    if (session.status === 'authenticated') {
+      setLoading(false)
+    }
   }, [session.status])
 
-  if (session.status === 'loading') {
+  if (loading) {
     return <p>Loading...</p>
   }
 

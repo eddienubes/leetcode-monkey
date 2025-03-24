@@ -1,10 +1,10 @@
 import IoRedis from 'ioredis'
 import { config } from '@/config'
-import { SpreadsheetConnectionSession } from '@/spreadsheets/types'
 import {
-  GoogleSpreadsheetInsert,
-  GoogleSpreadsheetsDao,
-} from '@/spreadsheets/GoogleSpreadsheetsDao'
+  ConnectSpreadsheetParams,
+  SpreadsheetConnectionSession,
+} from '@/spreadsheets/types'
+import { GoogleSpreadsheetsDao } from '@/spreadsheets/GoogleSpreadsheetsDao'
 import { Injectable, NotFoundError } from '@/common'
 
 @Injectable(GoogleSpreadsheetsDao)
@@ -54,10 +54,7 @@ export class SpreadsheetsConnector {
 
   async connectSpreadsheet(
     sessionId: string,
-    params: Pick<
-      GoogleSpreadsheetInsert,
-      'spreadsheetName' | 'spreadsheetId' | 'refreshToken'
-    >,
+    params: ConnectSpreadsheetParams,
   ): Promise<void> {
     const session = await this.getSpreadsheetConnectionSession(sessionId)
 
@@ -75,6 +72,21 @@ export class SpreadsheetsConnector {
     })
 
     await this.expireSpreadsheetConnectionSession(sessionId)
+  }
+
+  async getSpreadsheetConnectUrl(sessionId: string): Promise<string> {
+    const session = await this.getSpreadsheetConnectionSession(sessionId)
+
+    if (!session) {
+      throw new NotFoundError(
+        `Spreadsheet connection session with id ${sessionId} was not found`,
+      )
+    }
+
+    const url = new URL('/spreadsheets', config.ui.baseUrl)
+    url.searchParams.set(`id`, sessionId)
+
+    return url.toString()
   }
 
   async onModuleDestroy() {

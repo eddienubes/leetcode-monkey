@@ -625,8 +625,8 @@ export const spreadsheetCommand = createHandler(
             tgMessageId: ctx.message.message_id.toString(),
           })
 
-        const url = new URL(`${config.ui.url}/spreadsheets`)
-        url.searchParams.set('id', sessionId)
+        const url =
+          await spreadsheetsConnector.getSpreadsheetConnectUrl(sessionId)
 
         await ctx.replyFmt(
           fmt`

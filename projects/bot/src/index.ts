@@ -82,6 +82,8 @@ export const main = async (): Promise<void> => {
   await helpCommand(inject)
   await feedbackCommand(inject)
   await cbQueryEvent(inject)
+
+  await container.start()
 }
 
 void main()

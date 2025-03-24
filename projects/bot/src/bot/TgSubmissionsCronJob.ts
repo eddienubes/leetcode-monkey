@@ -16,13 +16,9 @@ import {
 } from '@repo/core'
 import { TgSubmissionNotifyJob } from '@/bot/types'
 import { Bot } from '@/bot/Bot'
-import { Injectable } from "@repo/core";
+import { Injectable } from '@repo/core'
 
-@Injectable(
-  Bot,
-  LcUsersDao,
-  LcTgNotificationsDao
-)
+@Injectable(Bot, LcUsersDao, LcTgNotificationsDao)
 export class TgSubmissionsCronJob {
   private readonly cronName = 'tg-submissions-notify-cron'
   private readonly cron = new Queue(this.cronName, {
@@ -33,6 +29,7 @@ export class TgSubmissionsCronJob {
     this.cronName,
     this.tick.bind(this),
     {
+      autorun: false,
       connection,
     },
   )
@@ -45,6 +42,7 @@ export class TgSubmissionsCronJob {
     this.queueName,
     this.run.bind(this),
     {
+      autorun: false,
       connection,
     },
   )
@@ -191,6 +189,8 @@ ${arrToHashTags(data.lcProblem.topics)}
     await this.cron.upsertJobScheduler(`${this.cronName}-scheduler`, {
       pattern: config.cron.tgSubmissionsCronJobInterval,
     })
+    await this.cronWorker.run()
+    await this.queueWorker.run()
 
     console.log(`${TgSubmissionsCronJob.name} started + queue`)
   }
