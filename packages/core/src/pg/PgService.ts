@@ -6,7 +6,7 @@ import { getTableColumns, SQL, sql } from 'drizzle-orm'
 import { PgTable } from 'drizzle-orm/pg-core'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import { config } from '@/config'
-import { Injectable, Lifecycle } from "@/common";
+import { Injectable, Lifecycle } from '@/common'
 
 export type PostgresDatabase = PostgresJsDatabase<typeof schema>
 
@@ -129,5 +129,4 @@ export class PgService implements Lifecycle {
 
     return res
   }
-
 }

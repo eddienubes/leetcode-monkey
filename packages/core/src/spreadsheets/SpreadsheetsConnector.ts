@@ -7,7 +7,7 @@ import {
 import { GoogleSpreadsheetsDao } from '@/spreadsheets/GoogleSpreadsheetsDao'
 import { Injectable, Lifecycle, NotFoundError } from '@/common'
 import { EditMessageQueue } from '@/tg'
-import { getGrammy, GrammyDynamicApi } from '@/tg/grammy'
+import { bold, fmt } from '@grammyjs/parse-mode'
 
 @Injectable(GoogleSpreadsheetsDao)
 export class SpreadsheetsConnector implements Lifecycle {
@@ -21,7 +21,6 @@ export class SpreadsheetsConnector implements Lifecycle {
     showFriendlyErrorStack: true,
   })
   private readonly editMessageQueue = EditMessageQueue.connect()
-  private grammy: GrammyDynamicApi
 
   constructor(private readonly googleSpreadsheetsDao: GoogleSpreadsheetsDao) {}
 
@@ -75,9 +74,7 @@ export class SpreadsheetsConnector implements Lifecycle {
       refreshToken: params.refreshToken,
     })
 
-    const msg = this.grammy.parseMode.fmt`
-      Connected ${params.spreadsheetName} successfully!
-    `
+    const msg = fmt`🚀 Spreadsheet ${bold(params.spreadsheetName)} connected!`
 
     await this.editMessageQueue.add(
       `${session.tgChatUuid}-${session.tgUserUuid}-${session.tgMessageId}`,
@@ -108,10 +105,6 @@ export class SpreadsheetsConnector implements Lifecycle {
     url.searchParams.set(`id`, sessionId)
 
     return url.toString()
-  }
-
-  async onModuleInit() {
-    this.grammy = await getGrammy()
   }
 
   async onModuleDestroy() {

@@ -65,6 +65,9 @@ importers:
       '@googleapis/sheets':
         specifier: ^9.5.0
         version: 9.5.0
+      '@grammyjs/parse-mode':
+        specifier: ^1.11.1
+        version: 1.11.1(grammy@1.35.1)
       bullmq:
         specifier: ^5.41.8
         version: 5.44.0
@@ -87,21 +90,8 @@ importers:
         specifier: ^3.4.5
         version: 3.4.5
     devDependencies:
-      '@grammyjs/parse-mode':
-        specifier: ^1.11.1
-        version: 1.11.1(grammy@1.35.1)
       grammy:
         specifier: ^1.35.0
-        version: 1.35.1
-
-  packages/telegram:
-    dependencies:
-      '@grammyjs/parse-mode':
-        specifier: ^1.11.1
-        version: 1.11.1(grammy@1.35.1)
-    devDependencies:
-      grammy:
-        specifier: ^1.35.1
         version: 1.35.1
 
   projects/bot:

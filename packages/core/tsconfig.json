@@ -4,27 +4,16 @@
     "target": "ES2020",
     "module": "commonjs",
     "incremental": true,
-    "lib": [
-      "esnext.decorators",
-      "es2022"
-    ],
+    "lib": ["esnext.decorators", "es2022"],
     "strictPropertyInitialization": false,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
-    "types": [
-      "vitest/globals"
-    ]
+    "types": ["vitest/globals"]
   },
-  "include": [
-    "src/**/*",
-    "test/**/*",
-    "scripts/**/*"
-  ]
+  "include": ["src/**/*", "test/**/*", "scripts/**/*"]
 }

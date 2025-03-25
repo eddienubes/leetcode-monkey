@@ -28,7 +28,7 @@ import {
 } from '../pg'
 import { GetAllActiveLcChatUsersHit } from './types'
 import { LC_SCORE_COEFFICIENTS } from '../lc'
-import { Injectable } from "@/common";
+import { Injectable } from '@/common'
 
 export type LcUserSelect = InferSelectModel<typeof lcUsers>
 export type LcUserInsert = InferInsertModel<typeof lcUsers>

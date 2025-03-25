@@ -39,5 +39,5 @@ export const config = {
   },
   ui: {
     baseUrl: process.env.UI_BASE_URL as string,
-  }
+  },
 }

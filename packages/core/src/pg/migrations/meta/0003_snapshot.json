@@ -54,12 +54,8 @@
           "name": "accepted_submissions_lc_user_uuid_lc_users_uuid_fk",
           "tableFrom": "accepted_submissions",
           "tableTo": "lc_users",
-          "columnsFrom": [
-            "lc_user_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["lc_user_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -67,12 +63,8 @@
           "name": "accepted_submissions_lc_problem_uuid_lc_problems_uuid_fk",
           "tableFrom": "accepted_submissions",
           "tableTo": "lc_problems",
-          "columnsFrom": [
-            "lc_problem_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["lc_problem_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -82,9 +74,7 @@
         "accepted_submissions_submitted_at_unique": {
           "name": "accepted_submissions_submitted_at_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "submitted_at"
-          ]
+          "columns": ["submitted_at"]
         }
       },
       "policies": {},
@@ -147,12 +137,8 @@
           "name": "google_spreadsheets_tg_chat_uuid_tg_chats_uuid_fk",
           "tableFrom": "google_spreadsheets",
           "tableTo": "tg_chats",
-          "columnsFrom": [
-            "tg_chat_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["tg_chat_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -162,16 +148,12 @@
         "google_spreadsheets_tg_chat_uuid_unique": {
           "name": "google_spreadsheets_tg_chat_uuid_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "tg_chat_uuid"
-          ]
+          "columns": ["tg_chat_uuid"]
         },
         "google_spreadsheets_spreadsheet_id_unique": {
           "name": "google_spreadsheets_spreadsheet_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "spreadsheet_id"
-          ]
+          "columns": ["spreadsheet_id"]
         }
       },
       "policies": {},
@@ -228,12 +210,8 @@
           "name": "lc_chat_settings_tg_chat_uuid_tg_chats_uuid_fk",
           "tableFrom": "lc_chat_settings",
           "tableTo": "tg_chats",
-          "columnsFrom": [
-            "tg_chat_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["tg_chat_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -243,9 +221,7 @@
         "lc_chat_settings_tg_chat_uuid_unique": {
           "name": "lc_chat_settings_tg_chat_uuid_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "tg_chat_uuid"
-          ]
+          "columns": ["tg_chat_uuid"]
         }
       },
       "policies": {},
@@ -316,9 +292,7 @@
         "lc_problems_slug_unique": {
           "name": "lc_problems_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -368,12 +342,8 @@
           "name": "lc_tg_notifications_lc_user_uuid_lc_users_uuid_fk",
           "tableFrom": "lc_tg_notifications",
           "tableTo": "lc_users",
-          "columnsFrom": [
-            "lc_user_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["lc_user_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -381,12 +351,8 @@
           "name": "lc_tg_notifications_tg_chat_uuid_tg_chats_uuid_fk",
           "tableFrom": "lc_tg_notifications",
           "tableTo": "tg_chats",
-          "columnsFrom": [
-            "tg_chat_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["tg_chat_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -396,10 +362,7 @@
         "lc_tg_notifications_tg_chat_uuid_lc_user_uuid_unique": {
           "name": "lc_tg_notifications_tg_chat_uuid_lc_user_uuid_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "tg_chat_uuid",
-            "lc_user_uuid"
-          ]
+          "columns": ["tg_chat_uuid", "lc_user_uuid"]
         }
       },
       "policies": {},
@@ -457,9 +420,7 @@
         "lc_users_slug_unique": {
           "name": "lc_users_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -535,12 +496,8 @@
           "name": "lc_users_in_tg_chats_tg_user_uuid_tg_users_uuid_fk",
           "tableFrom": "lc_users_in_tg_chats",
           "tableTo": "tg_users",
-          "columnsFrom": [
-            "tg_user_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["tg_user_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -548,12 +505,8 @@
           "name": "lc_users_in_tg_chats_tg_chat_uuid_tg_chats_uuid_fk",
           "tableFrom": "lc_users_in_tg_chats",
           "tableTo": "tg_chats",
-          "columnsFrom": [
-            "tg_chat_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["tg_chat_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -561,12 +514,8 @@
           "name": "lc_users_in_tg_chats_lc_user_uuid_lc_users_uuid_fk",
           "tableFrom": "lc_users_in_tg_chats",
           "tableTo": "lc_users",
-          "columnsFrom": [
-            "lc_user_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["lc_user_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -576,10 +525,7 @@
         "lc_users_in_tg_chats_tg_chat_uuid_tg_user_uuid_unique": {
           "name": "lc_users_in_tg_chats_tg_chat_uuid_tg_user_uuid_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "tg_chat_uuid",
-            "tg_user_uuid"
-          ]
+          "columns": ["tg_chat_uuid", "tg_user_uuid"]
         }
       },
       "policies": {},
@@ -687,9 +633,7 @@
         "tg_chats_tg_id_unique": {
           "name": "tg_chats_tg_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "tg_id"
-          ]
+          "columns": ["tg_id"]
         }
       },
       "policies": {},
@@ -773,9 +717,7 @@
         "tg_users_tg_id_unique": {
           "name": "tg_users_tg_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "tg_id"
-          ]
+          "columns": ["tg_id"]
         }
       },
       "policies": {},
@@ -819,12 +761,8 @@
           "name": "tg_users_to_tg_chats_tg_chat_uuid_tg_chats_uuid_fk",
           "tableFrom": "tg_users_to_tg_chats",
           "tableTo": "tg_chats",
-          "columnsFrom": [
-            "tg_chat_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["tg_chat_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -832,12 +770,8 @@
           "name": "tg_users_to_tg_chats_tg_user_uuid_tg_users_uuid_fk",
           "tableFrom": "tg_users_to_tg_chats",
           "tableTo": "tg_users",
-          "columnsFrom": [
-            "tg_user_uuid"
-          ],
-          "columnsTo": [
-            "uuid"
-          ],
+          "columnsFrom": ["tg_user_uuid"],
+          "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -847,10 +781,7 @@
         "tg_users_to_tg_chats_tg_user_uuid_tg_chat_uuid_unique": {
           "name": "tg_users_to_tg_chats_tg_user_uuid_tg_chat_uuid_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "tg_user_uuid",
-            "tg_chat_uuid"
-          ]
+          "columns": ["tg_user_uuid", "tg_chat_uuid"]
         }
       },
       "policies": {},

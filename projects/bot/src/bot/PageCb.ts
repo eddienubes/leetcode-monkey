@@ -1,4 +1,4 @@
-import { parseIntOrDefault } from "./utils";
+import { parseIntOrDefault } from './utils'
 
 /**
  * Pagination utility class for handling page numbers in a format suitable for

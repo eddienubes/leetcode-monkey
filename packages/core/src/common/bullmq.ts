@@ -102,7 +102,7 @@ export abstract class BullQueue {
  */
 export const createCronQueue = (
   name: string,
-  workerOrTicker: WorkerOrTicker<unknown>,
+  workerOrTicker: WorkerOrTicker<any>,
 ) => {
   return class extends BullQueue {
     static queueName = name

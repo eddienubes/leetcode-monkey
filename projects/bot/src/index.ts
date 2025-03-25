@@ -31,6 +31,7 @@ import {
   createProvidersContainer,
   GoogleSpreadsheetsDao,
 } from '@repo/core'
+import { TgMessagesWorker } from '@/bot/TgMessagesWorker'
 
 export const main = async (): Promise<void> => {
   const container = createProvidersContainer([
@@ -52,6 +53,7 @@ export const main = async (): Promise<void> => {
     GoogleAuthService,
     SpreadsheetsConnector,
     GoogleSpreadsheetsDao,
+    TgMessagesWorker,
   ]).build()
 
   const inject = {

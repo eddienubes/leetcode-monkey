@@ -1,4 +1,4 @@
-import { PgService, PostgresDatabase } from "./PgService";
+import { PgService, PostgresDatabase } from './PgService'
 
 export class PgDao {
   protected readonly pgService: PgService

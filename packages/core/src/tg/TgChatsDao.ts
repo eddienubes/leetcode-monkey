@@ -22,6 +22,18 @@ export class TgChatsDao extends PgDao {
     super(pgService)
   }
 
+  async getByUuid(tgChatUuid: string): Promise<TgChatSelect> {
+    const hit = await this.client.query.tgChats.findFirst({
+      where: eq(tgChats.uuid, tgChatUuid),
+    })
+
+    if (!hit) {
+      throw new NotFoundError(`TgChat with uuid ${tgChatUuid} not found`)
+    }
+
+    return hit
+  }
+
   async getByTgId(tgId: string): Promise<TgChatSelect> {
     const hit = await this.client.query.tgChats.findFirst({
       where: eq(tgChats.tgId, tgId),

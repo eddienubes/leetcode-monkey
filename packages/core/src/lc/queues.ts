@@ -1,8 +1,12 @@
 import { BullQueue } from '@/common'
-import { LcChatSettingsSelect, TgChatSelect, TgUserSelect } from "@/tg";
-import { LcUserInTgChatSelect, LcUserSelect, SubmissionSelect } from "@/lc-users";
-import { LcRecentAcceptedSubmissions } from "@/lc/types/types";
-import { LcProblemSelect } from "@/lc/LcProblemsDao";
+import { LcChatSettingsSelect, TgChatSelect, TgUserSelect } from '@/tg'
+import {
+  LcUserInTgChatSelect,
+  LcUserSelect,
+  SubmissionSelect,
+} from '@/lc-users'
+import { LcRecentAcceptedSubmissions } from '@/lc/types/types'
+import { LcProblemSelect } from '@/lc/LcProblemsDao'
 
 export class LcPullSubmissionsQueue extends BullQueue {
   static queueName = 'lc-pull-submissions'

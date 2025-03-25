@@ -1,6 +1,6 @@
 import type { MessageEntity } from '@grammyjs/parse-mode/dist/deps.node'
 import { BullQueue } from '@/common'
-import { ReplyMarkup } from '@/tg/types'
+import { InlineKeyboardButton } from 'grammy/types'
 
 export class EditMessageQueue extends BullQueue {
   static queueName = 'edit-message-queue'
@@ -10,7 +10,7 @@ export class EditMessageQueue extends BullQueue {
   contents: {
     message: string
     entities?: MessageEntity[]
-    replyMarkup?: ReplyMarkup
+    replyMarkup?: InlineKeyboardButton[][]
   }
 }
 
@@ -18,5 +18,5 @@ export class DeleteMessageQueue extends BullQueue {
   static queueName = 'delete-message-queue'
 
   tgChatUuid: string
-  tgMessageId: number
+  tgMessageId: string
 }

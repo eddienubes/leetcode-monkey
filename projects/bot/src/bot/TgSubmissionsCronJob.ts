@@ -13,7 +13,7 @@ import {
   Injectable,
   TgSubmissionsNotifyQueue,
   Lifecycle,
-  JobOfQueue
+  JobOfQueue,
 } from '@repo/core'
 import { Bot } from '@/bot/Bot'
 

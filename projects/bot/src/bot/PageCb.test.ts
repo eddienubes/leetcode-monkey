@@ -1,4 +1,4 @@
-import { PageCb } from "./PageCb";
+import { PageCb } from './PageCb'
 
 describe('PageCb', () => {
   it('should do page things', async () => {

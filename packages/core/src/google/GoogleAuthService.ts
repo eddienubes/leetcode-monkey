@@ -1,6 +1,6 @@
 import { config } from '@/config'
 import { Credentials, OAuth2Client } from 'google-auth-library'
-import { Injectable } from "@/common";
+import { Injectable } from '@/common'
 
 @Injectable()
 export class GoogleAuthService {

@@ -47,10 +47,12 @@ export const Spreadsheets = (props: Props) => {
   }
 
   if (error) {
-    return <div>
-      Most likely you spreadsheet connection session has expired.
-      Please request a new URL from the bot and try again.
-    </div>
+    return (
+      <div>
+        Most likely you spreadsheet connection session has expired. Please
+        request a new URL from the bot and try again.
+      </div>
+    )
   }
 
   if (loading) {

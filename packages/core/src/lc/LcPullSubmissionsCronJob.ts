@@ -45,9 +45,9 @@ export class LcPullSubmissionsCronJob implements Lifecycle {
           unixTimestampToDate(s.timestamp) > latestSubmission.submittedAt,
       )
 
-      console.log(
-        `Got ${newSubmissions.length} new submissions for ${user.lcUser.slug}`,
-      )
+      // console.log(
+      //   `Got ${newSubmissions.length} new submissions for ${user.lcUser.slug}`,
+      // )
 
       const submissionsToSave = newSubmissions.map((s) => ({
         lcUser: user.lcUser,

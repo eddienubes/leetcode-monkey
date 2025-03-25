@@ -1,7 +1,7 @@
 import { eq, InferInsertModel, InferSelectModel } from 'drizzle-orm'
 import { PgDao, PgService } from '../pg'
 import { lcProblems } from '../pg/schema'
-import { Injectable } from "@/common";
+import { Injectable } from '@/common'
 
 export type LcProblemSelect = InferSelectModel<typeof lcProblems>
 export type LcProblemInsert = InferInsertModel<typeof lcProblems>

@@ -1,4 +1,4 @@
-import { createProvidersContainer, Injectable } from "@/common/container";
+import { createProvidersContainer, Injectable } from '@/common/container'
 
 @Injectable()
 class DepC {

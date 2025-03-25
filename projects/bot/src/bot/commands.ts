@@ -26,7 +26,6 @@ import {
   TgUsersDao,
   SpreadsheetsConnector,
 } from '@repo/core'
-import { config } from '@/config'
 import { Chat } from 'grammy/types'
 
 const commandsScope = [
@@ -430,7 +429,7 @@ export const settingsCommand = createHandler(
               isNotificationsEnabledToggledAt: new Date(),
             })
             ctx.match = 'enabled'
-            await ctx.menu.update()
+            ctx.menu.update()
           },
         )
       }
@@ -510,7 +509,7 @@ export const settingsCommand = createHandler(
             )
 
             ctx.match = 'enabled-chat-wide'
-            await ctx.menu.update()
+            ctx.menu.update()
           },
         )
       }
@@ -617,31 +616,32 @@ export const spreadsheetCommand = createHandler(
         const tgChat = ctx.tgChat!
         const tgUser = ctx.user!
 
+        const fmtmsg = fmt`
+      Let's connect your spreadsheet!
+      `
+        const msg = await ctx.replyFmt(fmtmsg)
+
         const sessionId =
           await spreadsheetsConnector.createSpreadsheetConnectionSession({
             tgUserUuid: tgUser.uuid,
             tgChatUuid: tgChat.uuid,
-            tgMessageId: ctx.message.message_id.toString(),
+            tgMessageId: msg.message_id.toString(),
           })
 
         const url =
           await spreadsheetsConnector.getSpreadsheetConnectUrl(sessionId)
 
-        await ctx.replyFmt(
-          fmt`
-      Let's connect your spreadsheet!
-      `,
-          {
-            reply_markup: new InlineKeyboard([
-              [
-                {
-                  text: 'Connect',
-                  url: url.toString(),
-                },
-              ],
-            ]),
-          },
-        )
+        await msg.editText(fmtmsg.text, {
+          entities: fmtmsg.entities,
+          reply_markup: new InlineKeyboard([
+            [
+              {
+                text: 'Connect',
+                url: url.toString(),
+              },
+            ],
+          ]),
+        })
       })
   },
 )

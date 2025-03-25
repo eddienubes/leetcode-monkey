@@ -12,6 +12,8 @@
     "dev": "pnpm run build && (concurrently \"tsc -w -p tsconfig.build.json\" \"tsc-alias -w -p tsconfig.build.json\" \"pnpm tsx scripts/copy.ts\")",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && pnpm tsx scripts/copy.ts",
     "test": "vitest run",
+    "format:fix": "prettier --write .",
+    "lint:fix": "eslint . --fix",
     "migrate": "pnpm drizzle-kit migrate --config src/pg/drizzleConfig.ts",
     "migrate:drop": "pnpm drizzle-kit drop --config src/pg/drizzleConfig.ts",
     "migrate:create": "pnpm drizzle-kit generate --config src/pg/drizzleConfig.ts",
@@ -24,22 +26,18 @@
     "drizzle-orm": "^0.40.0",
     "google-auth-library": "^9.15.1",
     "graphql": "^16.10.0",
+    "@grammyjs/parse-mode": "^1.11.1",
     "ioredis": "^5.6.0",
     "leetcode-query": "^1.2.3",
     "postgres": "^3.4.5"
   },
   "devDependencies": {
-    "@grammyjs/parse-mode": "^1.11.1",
     "grammy": "^1.35.0"
   },
   "peerDependencies": {
-    "@grammyjs/parse-mode": "^1.11.1",
     "grammy": "^1.35.0"
   },
   "peerDependenciesMeta": {
-    "@grammyjs/parse-mode": {
-      "optional": true
-    },
     "grammy": {
       "optional": true
     }

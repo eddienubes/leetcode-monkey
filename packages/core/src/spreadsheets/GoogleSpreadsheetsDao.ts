@@ -1,6 +1,6 @@
 import { googleSpreadsheets, PgDao, PgService } from '@/pg'
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm'
-import { Injectable } from "@/common";
+import { Injectable } from '@/common'
 
 export type GoogleSpreadsheetSelect = InferSelectModel<
   typeof googleSpreadsheets
