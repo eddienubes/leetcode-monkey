@@ -28,8 +28,23 @@
     "leetcode-query": "^1.2.3",
     "postgres": "^3.4.5"
   },
+  "devDependencies": {
+    "@grammyjs/parse-mode": "^1.11.1",
+    "grammy": "^1.35.0"
+  },
+  "peerDependencies": {
+    "@grammyjs/parse-mode": "^1.11.1",
+    "grammy": "^1.35.0"
+  },
+  "peerDependenciesMeta": {
+    "@grammyjs/parse-mode": {
+      "optional": true
+    },
+    "grammy": {
+      "optional": true
+    }
+  },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.6.1"
+  "license": "ISC"
 }

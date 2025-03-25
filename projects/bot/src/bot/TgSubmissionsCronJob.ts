@@ -1,10 +1,8 @@
-import { Job, Queue, Worker } from 'bullmq'
 import { bold, fmt, link, mentionUser } from '@grammyjs/parse-mode'
 import {
   arrToHashTags,
   config,
-  connection,
-  defaultJobOptions,
+  createCronQueue,
   LC_DIFFEMOJI,
   LC_SCORE_COEFFICIENTS,
   LcProblemsService,
@@ -12,40 +10,21 @@ import {
   LcTgNotificationsSelect,
   LcUsersDao,
   sleepForRandomMs,
-  ToJsonType,
+  Injectable,
+  TgSubmissionsNotifyQueue,
+  Lifecycle,
+  JobOfQueue
 } from '@repo/core'
-import { TgSubmissionNotifyJob } from '@/bot/types'
 import { Bot } from '@/bot/Bot'
-import { Injectable } from '@repo/core'
 
 @Injectable(Bot, LcUsersDao, LcTgNotificationsDao)
-export class TgSubmissionsCronJob {
-  private readonly cronName = 'tg-submissions-notify-cron'
-  private readonly cron = new Queue(this.cronName, {
-    connection,
-    defaultJobOptions,
-  })
-  private readonly cronWorker = new Worker(
-    this.cronName,
+export class TgSubmissionsCronJob implements Lifecycle {
+  private readonly cron = createCronQueue(
+    'tg-submissions-notify-cron',
     this.tick.bind(this),
-    {
-      autorun: false,
-      connection,
-    },
   )
-  private readonly queueName = 'tg-submissions-notify'
-  private readonly queue = new Queue(this.queueName, {
-    connection,
-    defaultJobOptions,
-  })
-  private readonly queueWorker = new Worker(
-    this.queueName,
-    this.run.bind(this),
-    {
-      autorun: false,
-      connection,
-    },
-  )
+  private readonly queue = TgSubmissionsNotifyQueue.connect(this.run.bind(this))
+
   private readonly tgBot
 
   constructor(
@@ -107,19 +86,19 @@ export class TgSubmissionsCronJob {
       `${TgSubmissionsCronJob.name} notifying ${notifications.length} lc users`,
     )
 
-    await this.add(
-      notifications.map(
-        (u) =>
-          ({
-            lcUser: u.lc_users,
-            lcProblem: u.lc_problems,
-            lcChatSettings: u.lc_chat_settings,
-            lcUserInChat: u.lc_users_in_tg_chats,
-            tgChat: u.tg_chats,
-            tgUser: u.tg_users,
-            submission: u.accepted_submissions,
-          }) satisfies TgSubmissionNotifyJob,
-      ),
+    await this.queue.addBulk(
+      notifications.map((u) => ({
+        name: `${u.lc_users.slug}:${u.lc_problems.slug}`,
+        data: {
+          lcUser: u.lc_users,
+          lcProblem: u.lc_problems,
+          lcChatSettings: u.lc_chat_settings,
+          lcUserInChat: u.lc_users_in_tg_chats,
+          tgChat: u.tg_chats,
+          tgUser: u.tg_users,
+          submission: u.accepted_submissions,
+        } satisfies TgSubmissionsNotifyQueue,
+      })),
     )
 
     const lcTgNotifications = new Map<string, LcTgNotificationsSelect>(
@@ -138,20 +117,7 @@ export class TgSubmissionsCronJob {
     )
   }
 
-  async add(job: TgSubmissionNotifyJob[]): Promise<void> {
-    if (!job.length) {
-      return
-    }
-
-    await this.queue.addBulk(
-      job.map((j) => ({
-        name: `${j.lcUser.slug}:${j.lcProblem.slug}`,
-        data: j,
-      })),
-    )
-  }
-
-  async run(job: Job<ToJsonType<TgSubmissionNotifyJob>>): Promise<void> {
+  async run(job: JobOfQueue<TgSubmissionsNotifyQueue>): Promise<void> {
     // Try to tolerate potential Telegram API rate limits
     await sleepForRandomMs(500, 2500)
 
@@ -186,12 +152,12 @@ ${arrToHashTags(data.lcProblem.topics)}
   }
 
   async onModuleInit(): Promise<void> {
-    await this.cron.upsertJobScheduler(`${this.cronName}-scheduler`, {
-      pattern: config.cron.tgSubmissionsCronJobInterval,
-    })
-    await this.cronWorker.run()
-    await this.queueWorker.run()
+    await this.cron.schedule(config.cron.tgSubmissionsCronJobInterval)
+    await this.queue.start()
+  }
 
-    console.log(`${TgSubmissionsCronJob.name} started + queue`)
+  async onModuleDestroy(): Promise<void> {
+    await this.cron.stop()
+    await this.queue.stop()
   }
 }

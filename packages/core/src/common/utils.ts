@@ -54,30 +54,6 @@ export const diffInWeeks = (date1: Date, date2: Date): number => {
   return Math.floor(diff / (1000 * 60 * 60 * 24 * 7))
 }
 
-/**
- * Parses grammy menu cb data.
- * https://github.com/grammyjs/menu/blob/c276d79a93c9318aeb900fbe9c092e24a2dae642/src/menu.ts#L889
- * @param cbData
- */
-export const extractMenuDataFromCb = (
-  cbData: string,
-): {
-  id: string
-  rowStr: string
-  colStr: string
-  payload: string
-  rest: string[]
-} => {
-  const [id, rowStr, colStr, payload, ...rest] = cbData.split(':')
-  return {
-    id,
-    rowStr,
-    colStr,
-    payload,
-    rest,
-  }
-}
-
 export const parseIntOrDefault = (
   str: string | undefined | null,
   defaultValue: number,

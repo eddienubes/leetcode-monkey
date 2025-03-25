@@ -36,3 +36,27 @@ export const buildMentionNameFromCtx = (ctx: BotCtx): string => {
 export const noopCbAnswer = async (ctx: BotCtx): Promise<void> => {
   await ctx.answerCallbackQuery()
 }
+
+/**
+ * Parses grammy menu cb data.
+ * https://github.com/grammyjs/menu/blob/c276d79a93c9318aeb900fbe9c092e24a2dae642/src/menu.ts#L889
+ * @param cbData
+ */
+export const extractMenuDataFromCb = (
+  cbData: string,
+): {
+  id: string
+  rowStr: string
+  colStr: string
+  payload: string
+  rest: string[]
+} => {
+  const [id, rowStr, colStr, payload, ...rest] = cbData.split(':')
+  return {
+    id,
+    rowStr,
+    colStr,
+    payload,
+    rest,
+  }
+}

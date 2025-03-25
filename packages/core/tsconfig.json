@@ -8,6 +8,7 @@
       "esnext.decorators",
       "es2022"
     ],
+    "strictPropertyInitialization": false,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

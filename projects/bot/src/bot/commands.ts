@@ -136,7 +136,6 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
       })
 
       await convo.external(async () => {
-        console.log('Connect leetcode account')
         const tgChat = extra.tgChat!
         const tgUser = extra.user!
 

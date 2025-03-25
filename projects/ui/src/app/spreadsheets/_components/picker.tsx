@@ -41,26 +41,26 @@ export const Picker = (props: Props) => {
       return
     }
 
-    ref.current.addEventListener('picker:picked', props.onPick as EventListener)
-    ref.current.addEventListener('picker:error', props.onError as EventListener)
+    const ac = new AbortController()
+
+    ref.current.addEventListener(
+      'picker:picked',
+      props.onPick as EventListener,
+      { signal: ac.signal },
+    )
+    ref.current.addEventListener(
+      'picker:error',
+      props.onError as EventListener,
+      { signal: ac.signal },
+    )
     ref.current.addEventListener(
       'picker:canceled',
       props.onCancel as EventListener,
+      { signal: ac.signal },
     )
 
     return () => {
-      ref.current?.removeEventListener(
-        'picker:picked',
-        props.onPick as EventListener,
-      )
-      ref.current?.removeEventListener(
-        'picker:error',
-        props.onError as EventListener,
-      )
-      ref.current?.removeEventListener(
-        'picker:canceled',
-        props.onCancel as EventListener,
-      )
+      ac.abort()
     }
   }, [ref.current])
 

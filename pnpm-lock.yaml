@@ -27,8 +27,8 @@ importers:
         specifier: ^9.21.0
         version: 9.22.0(jiti@2.4.2)
       eslint-config-next:
-        specifier: ^15.2.3
-        version: 15.2.3(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2)
+        specifier: ^15.2.4
+        version: 15.2.4(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2)
       nx:
         specifier: 20.6.2
         version: 20.6.2
@@ -86,6 +86,23 @@ importers:
       postgres:
         specifier: ^3.4.5
         version: 3.4.5
+    devDependencies:
+      '@grammyjs/parse-mode':
+        specifier: ^1.11.1
+        version: 1.11.1(grammy@1.35.1)
+      grammy:
+        specifier: ^1.35.0
+        version: 1.35.1
+
+  packages/telegram:
+    dependencies:
+      '@grammyjs/parse-mode':
+        specifier: ^1.11.1
+        version: 1.11.1(grammy@1.35.1)
+    devDependencies:
+      grammy:
+        specifier: ^1.35.1
+        version: 1.35.1
 
   projects/bot:
     dependencies:
@@ -913,8 +930,8 @@ packages:
   '@next/env@15.2.3':
     resolution: {integrity: sha512-a26KnbW9DFEUsSxAxKBORR/uD9THoYoKbkpFywMN/AFvboTt94b8+g/07T8J6ACsdLag8/PDU60ov4rPxRAixw==}
 
-  '@next/eslint-plugin-next@15.2.3':
-    resolution: {integrity: sha512-eNSOIMJtjs+dp4Ms1tB1PPPJUQHP3uZK+OQ7iFY9qXpGO6ojT6imCL+KcUOqE/GXGidWbBZJzYdgAdPHqeCEPA==}
+  '@next/eslint-plugin-next@15.2.4':
+    resolution: {integrity: sha512-O8ScvKtnxkp8kL9TpJTTKnMqlkZnS+QxwoQnJwPGBxjBbzd6OVVPEJ5/pMNrktSyXQD/chEfzfFzYLM6JANOOQ==}
 
   '@next/swc-darwin-arm64@15.2.3':
     resolution: {integrity: sha512-uaBhA8aLbXLqwjnsHSkxs353WrRgQgiFjduDpc7YXEU0B54IKx3vU+cxQlYwPCyC8uYEEX7THhtQQsfHnvv8dw==}
@@ -2082,8 +2099,8 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
-  eslint-config-next@15.2.3:
-    resolution: {integrity: sha512-VDQwbajhNMFmrhLWVyUXCqsGPN+zz5G8Ys/QwFubfsxTIrkqdx3N3x3QPW+pERz8bzGPP0IgEm8cNbZcd8PFRQ==}
+  eslint-config-next@15.2.4:
+    resolution: {integrity: sha512-v4gYjd4eYIme8qzaJItpR5MMBXJ0/YV07u7eb50kEnlEmX7yhOjdUdzz70v4fiINYRjLf8X8TbogF0k7wlz6sA==}
     peerDependencies:
       eslint: ^7.23.0 || ^8.0.0 || ^9.0.0
       typescript: '>=3.3.1'
@@ -2395,6 +2412,10 @@ packages:
 
   grammy@1.35.0:
     resolution: {integrity: sha512-Qlu5kVaekL4w5clWSpQcRxwJJoEeU13g8DTALuNbZsDAJuFJNXBuI8EqR6U1m1of7j9NEMQz59sXu+0/KsKjyg==}
+    engines: {node: ^12.20.0 || >=14.13.1}
+
+  grammy@1.35.1:
+    resolution: {integrity: sha512-6kNMODaXVj0R+dqYcHqMyjOURsCUFGvVkd7z/dDO1H1cqrGW/kyAFc4oETUKkcyUN/X80N0DchNVuc2JmTPxPQ==}
     engines: {node: ^12.20.0 || >=14.13.1}
 
   graphemer@1.4.0:
@@ -4089,6 +4110,10 @@ snapshots:
     dependencies:
       grammy: 1.35.0
 
+  '@grammyjs/parse-mode@1.11.1(grammy@1.35.1)':
+    dependencies:
+      grammy: 1.35.1
+
   '@grammyjs/types@3.19.0': {}
 
   '@graphql-typed-document-node/core@3.2.0(graphql@16.10.0)':
@@ -4224,7 +4249,7 @@ snapshots:
 
   '@next/env@15.2.3': {}
 
-  '@next/eslint-plugin-next@15.2.3':
+  '@next/eslint-plugin-next@15.2.4':
     dependencies:
       fast-glob: 3.3.1
 
@@ -5344,9 +5369,9 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-config-next@15.2.3(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2):
+  eslint-config-next@15.2.4(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2):
     dependencies:
-      '@next/eslint-plugin-next': 15.2.3
+      '@next/eslint-plugin-next': 15.2.4
       '@rushstack/eslint-patch': 1.11.0
       '@typescript-eslint/eslint-plugin': 8.27.0(@typescript-eslint/parser@8.27.0(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2))(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2)
       '@typescript-eslint/parser': 8.27.0(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2)
@@ -5769,6 +5794,16 @@ snapshots:
       type-fest: 4.37.0
 
   grammy@1.35.0:
+    dependencies:
+      '@grammyjs/types': 3.19.0
+      abort-controller: 3.0.0
+      debug: 4.4.0
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+
+  grammy@1.35.1:
     dependencies:
       '@grammyjs/types': 3.19.0
       abort-controller: 3.0.0

@@ -5,10 +5,12 @@ import {
   SpreadsheetConnectionSession,
 } from '@/spreadsheets/types'
 import { GoogleSpreadsheetsDao } from '@/spreadsheets/GoogleSpreadsheetsDao'
-import { Injectable, NotFoundError } from '@/common'
+import { Injectable, Lifecycle, NotFoundError } from '@/common'
+import { EditMessageQueue } from '@/tg'
+import { getGrammy, GrammyDynamicApi } from '@/tg/grammy'
 
 @Injectable(GoogleSpreadsheetsDao)
-export class SpreadsheetsConnector {
+export class SpreadsheetsConnector implements Lifecycle {
   private readonly spreadsheetConnectionSessionExpireTimeSec = 3600 // 1 hour
   private readonly redis = new IoRedis({
     host: config.redis.host,
@@ -18,6 +20,8 @@ export class SpreadsheetsConnector {
     keyPrefix: 'spreadsheets:',
     showFriendlyErrorStack: true,
   })
+  private readonly editMessageQueue = EditMessageQueue.connect()
+  private grammy: GrammyDynamicApi
 
   constructor(private readonly googleSpreadsheetsDao: GoogleSpreadsheetsDao) {}
 
@@ -71,6 +75,23 @@ export class SpreadsheetsConnector {
       refreshToken: params.refreshToken,
     })
 
+    const msg = this.grammy.parseMode.fmt`
+      Connected ${params.spreadsheetName} successfully!
+    `
+
+    await this.editMessageQueue.add(
+      `${session.tgChatUuid}-${session.tgUserUuid}-${session.tgMessageId}`,
+      {
+        tgChatUuid: session.tgChatUuid,
+        tgMessageId: session.tgMessageId.toString(),
+        contents: {
+          message: msg.text,
+          entities: msg.entities,
+          replyMarkup: [],
+        },
+      },
+    )
+
     await this.expireSpreadsheetConnectionSession(sessionId)
   }
 
@@ -87,6 +108,10 @@ export class SpreadsheetsConnector {
     url.searchParams.set(`id`, sessionId)
 
     return url.toString()
+  }
+
+  async onModuleInit() {
+    this.grammy = await getGrammy()
   }
 
   async onModuleDestroy() {
