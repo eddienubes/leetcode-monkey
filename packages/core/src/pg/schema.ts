@@ -219,6 +219,10 @@ export const googleSpreadsheets = pgTable('google_spreadsheets', {
   // spreadsheetId is the id of the spreadsheet in google drive
   spreadsheetId: varchar('spreadsheet_id').notNull().unique(),
   spreadsheetName: varchar('spreadsheet_name').notNull(),
+  isConnected: boolean('is_connected').notNull().default(false),
+  isConnectedToggledAt: timestamp('is_connected_toggled_at', {
+    withTimezone: true,
+  }).notNull(),
   /**
    * Google oauth refresh token.
    * It's permanent in google oauth implementation

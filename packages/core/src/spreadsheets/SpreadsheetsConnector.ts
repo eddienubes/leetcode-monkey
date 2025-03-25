@@ -72,6 +72,8 @@ export class SpreadsheetsConnector implements Lifecycle {
       spreadsheetId: params.spreadsheetId,
       spreadsheetName: params.spreadsheetName,
       refreshToken: params.refreshToken,
+      isConnected: true,
+      isConnectedToggledAt: new Date(),
     })
 
     const msg = fmt`🚀 Spreadsheet ${bold(params.spreadsheetName)} connected!`
@@ -105,6 +107,13 @@ export class SpreadsheetsConnector implements Lifecycle {
     url.searchParams.set(`id`, sessionId)
 
     return url.toString()
+  }
+
+  async disconnectSpreadsheet(sheetUuid: string): Promise<void> {
+    await this.googleSpreadsheetsDao.updateByUuid(sheetUuid, {
+      isConnected: false,
+      isConnectedToggledAt: new Date(),
+    })
   }
 
   async onModuleDestroy() {

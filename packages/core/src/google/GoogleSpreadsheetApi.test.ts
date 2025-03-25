@@ -5,7 +5,7 @@ describe('GoogleSpreadsheetApi', () => {
   const token = ''
 
   const auth = new GoogleAuthService()
-  const sheets = new GoogleSpreadsheetApi(auth.getClient(token))
+  const sheets = new GoogleSpreadsheetApi(auth.getAuthClient(token))
 
   it('should get', async () => {
     const s1 = '17jd50B6wSf9oLBhI1JtLLTupjvcTSeyST5iOqNjyzAU'

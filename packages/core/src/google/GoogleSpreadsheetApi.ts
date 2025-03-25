@@ -1,20 +1,23 @@
 import { sheets } from '@googleapis/sheets'
-import { OAuth2Client } from 'google-auth-library'
+import { GoogleAuthService } from '@/google/GoogleAuthService'
+import { sheets_v4 } from '@googleapis/sheets/v4'
 
 export class GoogleSpreadsheetApi {
-  private readonly client
+  constructor(private readonly auth: GoogleAuthService) {}
 
-  constructor(private readonly auth: OAuth2Client) {
-    this.client = sheets({
-      auth,
-      version: 'v4',
-    })
-  }
-
-  public async get(id: string): Promise<any> {
-    const response = await this.client.spreadsheets.get({
+  public async get(id: string, refreshToken: string): Promise<any> {
+    const client = await this.getSheetsClient(refreshToken)
+    const response = await client.spreadsheets.get({
       spreadsheetId: id,
     })
     return response.data
+  }
+
+  async getSheetsClient(refreshToken: string): Promise<sheets_v4.Sheets> {
+    const client = await this.auth.getAuthClient(refreshToken)
+    return sheets({
+      auth: client,
+      version: 'v4',
+    })
   }
 }

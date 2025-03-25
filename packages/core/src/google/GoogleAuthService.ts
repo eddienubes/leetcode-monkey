@@ -1,9 +1,12 @@
 import { config } from '@/config'
 import { Credentials, OAuth2Client } from 'google-auth-library'
-import { Injectable } from '@/common'
+import { Injectable, Memo } from '@/common'
 
 @Injectable()
 export class GoogleAuthService {
+  private readonly accessTokenMemo = new Memo({
+    ttlMs: 1000 * 60 * 58, // 58 minutes (to be safe < 60 minutes)
+  })
   private readonly client = new OAuth2Client({
     clientId: config.google.clientId,
     clientSecret: config.google.clientSecret,
@@ -26,12 +29,29 @@ export class GoogleAuthService {
     return tokens
   }
 
-  getClient(accessToken: string): OAuth2Client {
+  getBaseClient(): OAuth2Client {
+    return this.client
+  }
+
+  async getAuthClient(refreshToken: string): Promise<OAuth2Client> {
     const client = new OAuth2Client({
       clientId: config.google.clientId,
       clientSecret: config.google.clientSecret,
       projectId: config.google.projectId,
     })
+
+    client.setCredentials({
+      refresh_token: refreshToken,
+    })
+
+    const accessToken = await this.accessTokenMemo.run(
+      refreshToken,
+      async () => {
+        const res = await client.refreshAccessToken()
+        return res.credentials.access_token!
+      },
+    )
+
     client.setCredentials({
       access_token: accessToken,
     })
