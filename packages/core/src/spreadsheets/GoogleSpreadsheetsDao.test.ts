@@ -23,6 +23,8 @@ describe('GoogleSpreadsheetsDao', () => {
         spreadsheetId: randomAlphaNumStr(10),
         spreadsheetName,
         refreshToken: randomAlphaNumStr(20),
+        isConnected: false,
+        isConnectedToggledAt: new Date(),
       })
 
       expect(spreadsheet).toBeDefined()
@@ -35,6 +37,8 @@ describe('GoogleSpreadsheetsDao', () => {
         spreadsheetId: randomAlphaNumStr(10),
         spreadsheetName: newSpreadsheetName,
         refreshToken: randomAlphaNumStr(20),
+        isConnected: true,
+        isConnectedToggledAt: new Date(),
       })
 
       expect(upserted.spreadsheetName).toBe(newSpreadsheetName)

@@ -12,12 +12,7 @@ describe('SpreadsheetsWorker', () => {
     it('should get', async () => {
       const id = '1S-GVb7bEwfUZR0LnEZjDlKMSevSwF2LlqQRe4eB7UYs'
       try {
-        console.log(
-          await sheetsApi.get(
-            id,
-            refreshToken,
-          ),
-        )
+        console.log(await sheetsApi.get(id, refreshToken))
       } catch (e) {
         console.log(e)
       }

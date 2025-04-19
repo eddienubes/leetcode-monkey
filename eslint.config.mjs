@@ -12,6 +12,13 @@ const compat = new FlatCompat({
 
 export default tseslint.config([
   ...tseslint.configs.recommended,
+  ...compat.extends('next/core-web-vitals').map((c) => ({
+    ...c,
+    files: ['projects/ui/**/*.{ts,tsx,js,jsx,html}'],
+    rules: {
+      'react/display-name': 'warn',
+    },
+  })),
   {
     languageOptions: {
       parser: tseslint.parser,
@@ -42,12 +49,10 @@ export default tseslint.config([
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-this-alias': 'off',
       '@typescript-eslint/no-require-imports': 'warn',
+      '@typescript-eslint/no-empty-object-type': 'warn',
+      '@typescript-eslint/no-namespace': 'off',
     },
   },
-  ...compat.extends('next/core-web-vitals', 'next/typescript').map((c) => ({
-    ...c,
-    files: ['projects/ui/**/*.{ts,tsx,js,jsx,html}'],
-  })),
   {
     // https://eslint.org/docs/latest/use/configure/ignore#ignoring-files
     ignores: [

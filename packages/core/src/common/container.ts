@@ -171,7 +171,7 @@ export const createProvidersContainer = (providers: Provider[]) => {
   }
 
   function get<T extends ClassDependency>(p: T): InstanceType<T>
-  function get<R extends unknown>(p: string | symbol): R
+  function get<R>(p: string | symbol): R
   function get(p: ClassDependency | string | symbol): unknown {
     const instance = instances.get(p)
 

@@ -5,7 +5,7 @@ import { sheets_v4 } from '@googleapis/sheets/v4'
 export class GoogleSpreadsheetApi {
   constructor(private readonly auth: GoogleAuthService) {}
 
-  public async get(id: string, refreshToken: string): Promise<any> {
+  async get(id: string, refreshToken: string): Promise<any> {
     const client = await this.getSheetsClient(refreshToken)
     const response = await client.spreadsheets.get({
       spreadsheetId: id,

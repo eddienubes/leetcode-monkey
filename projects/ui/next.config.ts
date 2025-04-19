@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 import path from 'node:path'
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['*.carnyplant.pro', 'localhost'],
   serverExternalPackages: ['@repo/core'],
   output: 'standalone',
   outputFileTracingRoot: path.resolve(process.cwd(), '../../'),

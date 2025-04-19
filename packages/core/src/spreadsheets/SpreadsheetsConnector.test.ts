@@ -5,8 +5,8 @@ import { GoogleSpreadsheetsDao } from '@/spreadsheets/GoogleSpreadsheetsDao'
 import { PgService } from '@/pg'
 
 describe('SpreadsheetsConnector', () => {
-  let pg = new PgService()
-  let dao = new GoogleSpreadsheetsDao(pg)
+  const pg = new PgService()
+  const dao = new GoogleSpreadsheetsDao(pg)
   let connector: SpreadsheetsConnector
 
   const testConnection: SpreadsheetConnectionSession = {
