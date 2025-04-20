@@ -194,6 +194,9 @@ export const lcProblems = pgTable('lc_problems', {
   ...timestamps,
 })
 
+/**
+ * A table of pointers to the latest notification date to prevent duplicates
+ */
 export const lcTgNotifications = pgTable(
   'lc_tg_notifications',
   {
@@ -236,3 +239,25 @@ export const googleSpreadsheets = pgTable('google_spreadsheets', {
 
   ...timestamps,
 })
+
+/**
+ * A table of pointers to the latest google spreadsheet write to prevent duplicates
+ */
+export const googleSpreadsheetUpdates = pgTable(
+  'google_spreadsheet_updates',
+  {
+    uuid: uuid('uuid').primaryKey().defaultRandom(),
+    lcUserUuid: uuid('lc_user_uuid')
+      .notNull()
+      .references(() => lcUsers.uuid),
+    tgChatUuid: uuid('tg_chat_uuid')
+      .notNull()
+      .references(() => tgChats.uuid),
+    lastUpdatedAt: timestamp('last_updated_at', {
+      withTimezone: true,
+    }).notNull(),
+
+    ...timestamps,
+  },
+  (t) => [unique().on(t.tgChatUuid, t.lcUserUuid)],
+)
