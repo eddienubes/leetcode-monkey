@@ -15,6 +15,10 @@ export class GoogleAuthService {
     redirectUri: config.ui.baseUrl,
   })
 
+  async revoke(token: string): Promise<void> {
+    await this.client.revokeToken(token)
+  }
+
   getAuthUrl(scopes: string[]): string {
     return this.client.generateAuthUrl({
       scope: scopes,
