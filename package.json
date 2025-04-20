@@ -23,7 +23,7 @@
     "eslint": "^9.25.0",
     "eslint-config-next": "^15.3.1",
     "nx": "20.8.0",
-    "prettier": "^3.5.2",
+    "prettier": "^3.5.3",
     "tsc-alias": "^1.8.15",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
@@ -39,7 +39,8 @@
       "esbuild",
       "msgpackr-extract",
       "nx",
-      "sharp"
+      "sharp",
+      "unrs-resolver"
     ],
     "ignoredBuiltDependencies": [
       "nx"

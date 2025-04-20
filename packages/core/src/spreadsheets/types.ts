@@ -2,7 +2,7 @@ import {
   GoogleSpreadsheetInsert,
   GoogleSpreadsheetSelect,
 } from '@/spreadsheets/GoogleSpreadsheetsDao'
-import { LcUserInTgChatSelect, SubmissionSelect } from '@/lc-users'
+import { SubmissionSelect } from '@/lc-users'
 import { LcProblemSelect } from '@/lc'
 
 export type SpreadsheetConnectionSession = {
@@ -20,5 +20,4 @@ export type SpreadsheetToUpdate = GoogleSpreadsheetSelect & {
   newSubmissions: (SubmissionSelect & {
     problem: LcProblemSelect
   })[]
-  lcUserInTgChat: LcUserInTgChatSelect
 }

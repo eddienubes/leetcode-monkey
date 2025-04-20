@@ -7,7 +7,7 @@ import {
 } from '@/lc-users'
 import { LcRecentAcceptedSubmissions } from '@/lc/types/types'
 import { LcProblemSelect } from '@/lc/LcProblemsDao'
-import { GoogleSpreadsheetSelect } from '@/spreadsheets'
+import { GoogleSpreadsheetSelect } from '@/spreadsheets/GoogleSpreadsheetsDao'
 
 export class LcPullSubmissionsQueue extends BullQueue {
   static queueName = 'lc-pull-submissions'

@@ -1,12 +1,5 @@
-import {
-  acceptedSubmissions,
-  googleSpreadsheets,
-  googleSpreadsheetUpdates,
-  lcProblems,
-  lcUsersInTgChats,
-  PgDao,
-  PgService,
-} from '@/pg'
+import { PgDao } from '@/pg/PgDao'
+import { PgService } from '@/pg/PgService'
 import {
   and,
   desc,
@@ -20,6 +13,13 @@ import {
 } from 'drizzle-orm'
 import { Injectable } from '@/common'
 import { SpreadsheetToUpdate } from '@/spreadsheets/types'
+import {
+  acceptedSubmissions,
+  googleSpreadsheets,
+  googleSpreadsheetUpdates,
+  lcProblems,
+  lcUsersInTgChats,
+} from '@/pg/schema'
 
 export type GoogleSpreadsheetSelect = InferSelectModel<
   typeof googleSpreadsheets
@@ -128,7 +128,6 @@ export class GoogleSpreadsheetsDao extends PgDao {
         map.set(sheetUuid, {
           ...hit.google_spreadsheets,
           newSubmissions: [],
-          lcUserInTgChat: hit.lc_users_in_tg_chats,
         })
       }
 

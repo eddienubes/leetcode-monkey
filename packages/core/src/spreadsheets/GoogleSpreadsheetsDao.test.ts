@@ -1,6 +1,5 @@
 import { GoogleSpreadsheetsDao } from '@/spreadsheets/GoogleSpreadsheetsDao'
 import { randomAlphaNumStr } from '@/common'
-import { beforeAll } from 'vitest'
 import { TestSeedDao } from '../../test/TestSeedDao'
 import { SubmissionSelect } from '@/lc-users'
 import { SpreadsheetToUpdate } from '@/spreadsheets/types'
@@ -11,11 +10,11 @@ describe('GoogleSpreadsheetsDao', () => {
   let dao: GoogleSpreadsheetsDao
 
   beforeAll(async () => {
-    const c = createCoreTestContainer()
-    await c.start()
+    const container = createCoreTestContainer()
+    await container.start()
 
-    testSeedDao = c.get(TestSeedDao)
-    dao = c.get(GoogleSpreadsheetsDao)
+    dao = container.get(GoogleSpreadsheetsDao)
+    testSeedDao = container.get(TestSeedDao)
   })
 
   describe('upsert', () => {
@@ -51,7 +50,7 @@ describe('GoogleSpreadsheetsDao', () => {
     })
   })
 
-  describe('pullSpreadsheetsToNotify', () => {
+  describe('pullSpreadsheetsToUpdate', () => {
     it('should pull submissions to notify', async () => {
       const userInChat = await testSeedDao.generateUserInChat()
       const submissions = await testSeedDao.generateSubmissions(
