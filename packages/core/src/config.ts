@@ -7,6 +7,9 @@ console.log(`Migrations path: ${migrationsPath}`)
 console.log(`Schema path: ${dbSchema}`)
 
 export const config = {
+  server: {
+    env: process.env.NODE_ENV as string,
+  },
   bot: {
     token: process.env.TG_BOT_TOKEN as string,
   },

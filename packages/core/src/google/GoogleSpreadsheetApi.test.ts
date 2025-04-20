@@ -1,4 +1,4 @@
-import { GoogleAuthService } from '@/google/GoogleAuthService.test'
+import { GoogleAuthService } from '@/google/GoogleAuthService'
 import { GoogleSpreadsheetApi } from '@/google/GoogleSpreadsheetApi'
 import * as util from 'node:util'
 import { randomAlphaNumStr } from '@/common'

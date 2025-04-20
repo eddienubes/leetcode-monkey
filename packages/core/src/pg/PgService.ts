@@ -59,7 +59,9 @@ export class PgService implements Lifecycle {
 
     console.info(`Connected successfully, version: ${hits[0].version}`)
 
-    await this.migrate()
+    if (config.server.env !== 'test') {
+      await this.migrate()
+    }
   }
 
   /**

@@ -1,5 +1,5 @@
 import { sheets } from '@googleapis/sheets'
-import { GoogleAuthService } from '@/google/GoogleAuthService.test'
+import { GoogleAuthService } from '@/google/GoogleAuthService'
 import { sheets_v4 } from '@googleapis/sheets/v4'
 import { GaxiosError } from 'gaxios'
 import { GoogleSheetsApiError } from '@/spreadsheets/errors'

@@ -1,1 +1,1 @@
-export * from './GoogleAuthService.test'
+export * from './GoogleAuthService'

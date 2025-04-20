@@ -1,25 +1,31 @@
 import { GoogleSpreadsheetsDao } from '@/spreadsheets/GoogleSpreadsheetsDao'
-import { PgService } from '@/pg'
-import { TgChatsDao } from '@/tg'
 import { randomAlphaNumStr } from '@/common'
+import { beforeAll } from 'vitest'
+import { TestSeedDao } from '../../test/TestSeedDao'
+import { SubmissionSelect } from '@/lc-users'
+import { SpreadsheetToUpdate } from '@/spreadsheets/types'
+import { createCoreTestContainer } from '../../test/coreTest'
 
 describe('GoogleSpreadsheetsDao', () => {
-  const pg = new PgService()
-  const tgChatsDao = new TgChatsDao(pg)
-  const dao = new GoogleSpreadsheetsDao(pg)
+  let testSeedDao: TestSeedDao
+  let dao: GoogleSpreadsheetsDao
+
+  beforeAll(async () => {
+    const c = createCoreTestContainer()
+    await c.start()
+
+    testSeedDao = c.get(TestSeedDao)
+    dao = c.get(GoogleSpreadsheetsDao)
+  })
 
   describe('upsert', () => {
     it('should upsert', async () => {
-      const chat = await tgChatsDao.upsert({
-        tgId: randomAlphaNumStr(10),
-        type: 'supergroup',
-        role: 'member',
-      })
+      const userInChat = await testSeedDao.generateUserInChat()
 
       const spreadsheetName = randomAlphaNumStr(10)
 
       const spreadsheet = await dao.upsert({
-        tgChatUuid: chat.uuid,
+        tgChatUuid: userInChat.tgChat.uuid,
         spreadsheetId: randomAlphaNumStr(10),
         spreadsheetName,
         refreshToken: randomAlphaNumStr(20),
@@ -33,7 +39,7 @@ describe('GoogleSpreadsheetsDao', () => {
       const newSpreadsheetName = randomAlphaNumStr(10)
 
       const upserted = await dao.upsert({
-        tgChatUuid: chat.uuid,
+        tgChatUuid: userInChat.tgChat.uuid,
         spreadsheetId: randomAlphaNumStr(10),
         spreadsheetName: newSpreadsheetName,
         refreshToken: randomAlphaNumStr(20),
@@ -42,6 +48,42 @@ describe('GoogleSpreadsheetsDao', () => {
       })
 
       expect(upserted.spreadsheetName).toBe(newSpreadsheetName)
+    })
+  })
+
+  describe('pullSpreadsheetsToNotify', () => {
+    it('should pull submissions to notify', async () => {
+      const userInChat = await testSeedDao.generateUserInChat()
+      const submissions = await testSeedDao.generateSubmissions(
+        userInChat.lcUser.uuid,
+        2,
+      )
+      await testSeedDao.connectSpreadsheet(userInChat.tgChat.uuid)
+
+      const hits = await dao.pullSpreadsheetsToUpdate()
+
+      expect(hits.length).toBeGreaterThanOrEqual(1)
+      expect(hits).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            spreadsheetId: expect.any(String),
+            spreadsheetName: expect.any(String),
+            refreshToken: expect.any(String),
+            isConnected: true,
+            isConnectedToggledAt: expect.any(Date),
+            newSubmissions: expect.arrayContaining([
+              expect.objectContaining({
+                submittedAt: submissions[0].submittedAt,
+                lcProblemUuid: submissions[0].lcProblemUuid,
+              } as SubmissionSelect),
+              expect.objectContaining({
+                submittedAt: submissions[1].submittedAt,
+                lcProblemUuid: submissions[1].lcProblemUuid,
+              } as SubmissionSelect),
+            ]),
+          } as SpreadsheetToUpdate),
+        ]),
+      )
     })
   })
 })

@@ -1,4 +1,9 @@
-import { GoogleSpreadsheetInsert } from '@/spreadsheets/GoogleSpreadsheetsDao'
+import {
+  GoogleSpreadsheetInsert,
+  GoogleSpreadsheetSelect,
+} from '@/spreadsheets/GoogleSpreadsheetsDao'
+import { LcUserInTgChatSelect, SubmissionSelect } from '@/lc-users'
+import { LcProblemSelect } from '@/lc'
 
 export type SpreadsheetConnectionSession = {
   tgChatUuid: string
@@ -10,3 +15,10 @@ export type ConnectSpreadsheetParams = Pick<
   GoogleSpreadsheetInsert,
   'spreadsheetName' | 'spreadsheetId' | 'refreshToken'
 >
+
+export type SpreadsheetToUpdate = GoogleSpreadsheetSelect & {
+  newSubmissions: (SubmissionSelect & {
+    problem: LcProblemSelect
+  })[]
+  lcUserInTgChat: LcUserInTgChatSelect
+}

@@ -16,43 +16,27 @@ import {
   spreadsheetCommand,
 } from '@/bot/commands'
 import { TgSubmissionsCronJob } from '@/bot/TgSubmissionsCronJob'
+import { TgMessagesWorker } from '@/bot/TgMessagesWorker'
 import {
-  GoogleAuthService,
   LcApiClient,
   LcProblemsDao,
   LcProblemsService,
-  LcPullSubmissionsCronJob,
-  LcTgNotificationsDao,
   LcUsersDao,
   PgService,
+  SpreadsheetsConnector,
   TgChatsDao,
   TgUsersDao,
-  SpreadsheetsConnector,
-  createProvidersContainer,
-  GoogleSpreadsheetsDao,
+  createCoreContainer,
 } from '@repo/core'
-import { TgMessagesWorker } from '@/bot/TgMessagesWorker'
 
 export const main = async (): Promise<void> => {
-  const container = createProvidersContainer([
+  const container = createCoreContainer([
     Bot,
     {
       id: CONVO_STORAGE_ID,
       value: createRamConvoStorage(),
     },
-    PgService,
-    LcProblemsDao,
-    TgUsersDao,
-    LcUsersDao,
-    TgChatsDao,
-    LcApiClient,
-    LcProblemsService,
-    LcPullSubmissionsCronJob,
-    LcTgNotificationsDao,
     TgSubmissionsCronJob,
-    GoogleAuthService,
-    SpreadsheetsConnector,
-    GoogleSpreadsheetsDao,
     TgMessagesWorker,
   ]).build()
 

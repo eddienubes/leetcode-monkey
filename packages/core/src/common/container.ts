@@ -52,6 +52,8 @@ export type ClassMetadata = {
   __dependencies: (Dependency | (() => Dependency))[]
 }
 
+export type Container = ReturnType<typeof createProvidersContainer>
+
 export const Injectable =
   (...deps: (Dependency | (() => Dependency))[]) =>
   (target: ClassConstructor<unknown>, context: ClassDecoratorContext) => {
@@ -67,14 +69,18 @@ export const createProvidersContainer = (providers: Provider[]) => {
   const providersMap = new Map<TypedDependencyId, Provider>()
   const instances = new Map<TypedDependencyId, Lifecycle>()
 
-  for (const provider of providers) {
+  const insertProvider = (
+    provider: Provider,
+    providersMap: Map<TypedDependencyId, Provider>,
+    dependencies: Map<TypedDependencyId, TypedDependency[]>,
+  ): void => {
     providersMap.set(providerToDependency(provider).id, provider)
 
     // it's a value provider
-    // Container doesn't support deps of a value providers just yet.
+    // Container doesn't support deps of value providers just yet.
     if ('id' in provider) {
       dependencies.set(providerToDependency(provider).id, [])
-      continue
+      return
     }
 
     const meta = provider[Symbol.metadata as keyof typeof provider] as
@@ -126,6 +132,10 @@ export const createProvidersContainer = (providers: Provider[]) => {
     }
 
     dependencies.set(provider, deps)
+  }
+
+  for (const provider of providers) {
+    insertProvider(provider, providersMap, dependencies)
   }
 
   const buildDependency = (
@@ -187,7 +197,7 @@ export const createProvidersContainer = (providers: Provider[]) => {
   return {
     get,
     build() {
-      for (const provider of providers) {
+      for (const provider of providersMap.values()) {
         const dependency = providerToDependency(provider)
         const instance = buildDependency(dependency, new Map(), dependencies)
 
@@ -200,6 +210,10 @@ export const createProvidersContainer = (providers: Provider[]) => {
         await instance.onModuleInit?.()
       }
     },
+    add(provider: Provider) {
+      insertProvider(provider, providersMap, dependencies)
+      return this
+    },
     async destroy() {
       for (const instance of instances.values()) {
         instance.onModuleDestroy?.()
@@ -211,6 +225,10 @@ export const createProvidersContainer = (providers: Provider[]) => {
 const getDependencyName = (p: Dependency): string => {
   if (typeof p === 'string') {
     return p
+  }
+
+  if (typeof p === 'function') {
+    return p.name
   }
 
   return p.toString()

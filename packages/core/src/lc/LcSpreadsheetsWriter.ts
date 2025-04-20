@@ -4,7 +4,7 @@ import { SpreadsheetsConnector } from '@/spreadsheets/SpreadsheetsConnector'
 import { LcSpreadsheetWriteQueue } from '@/lc/queues'
 
 @Injectable(GoogleSpreadsheetApi, SpreadsheetsConnector)
-export class LcSpreadsheetsWorker implements Lifecycle {
+export class LcSpreadsheetsWriter implements Lifecycle {
   private readonly cron = createCronQueue(
     'spreadsheets-writer-cron',
     this.pull.bind(this),

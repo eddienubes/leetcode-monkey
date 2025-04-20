@@ -369,4 +369,12 @@ export class LcUsersDao extends PgDao {
 
     return hit || null
   }
+
+  async getByUuidIfAny(lcUserUuid: string): Promise<LcUserSelect | null> {
+    const hit = await this.client.query.lcUsers.findFirst({
+      where: eq(lcUsers.uuid, lcUserUuid),
+    })
+
+    return hit || null
+  }
 }
