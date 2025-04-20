@@ -1,15 +1,17 @@
 import { GoogleSpreadsheetApi } from '@/google/GoogleSpreadsheetApi'
 import { createCronQueue, Injectable, JobOfQueue, Lifecycle } from '@/common'
 import { SpreadsheetsConnector } from '@/spreadsheets/SpreadsheetsConnector'
-import { SpreadsheetWriteQueue } from '@/spreadsheets/queues'
+import { LcSpreadsheetWriteQueue } from '@/lc/queues'
 
 @Injectable(GoogleSpreadsheetApi, SpreadsheetsConnector)
-export class SpreadsheetsWorker implements Lifecycle {
+export class LcSpreadsheetsWorker implements Lifecycle {
   private readonly cron = createCronQueue(
     'spreadsheets-writer-cron',
     this.pull.bind(this),
   )
-  private readonly queue = SpreadsheetWriteQueue.connect(this.write.bind(this))
+  private readonly queue = LcSpreadsheetWriteQueue.connect(
+    this.write.bind(this),
+  )
 
   constructor(
     private readonly sheetsApi: GoogleSpreadsheetApi,
@@ -21,7 +23,7 @@ export class SpreadsheetsWorker implements Lifecycle {
     } catch (e) {}
   }
 
-  async write(job: JobOfQueue<SpreadsheetWriteQueue>) {}
+  async write(job: JobOfQueue<LcSpreadsheetWriteQueue>) {}
 
   async onModuleInit() {
     // pull every 30 seconds

@@ -74,6 +74,9 @@ importers:
       drizzle-orm:
         specifier: ^0.40.0
         version: 0.40.1(gel@2.0.1)(postgres@3.4.5)
+      gaxios:
+        specifier: ^6.7.1
+        version: 6.7.1
       google-auth-library:
         specifier: ^9.15.1
         version: 9.15.1

@@ -7,6 +7,7 @@ import {
 } from '@/lc-users'
 import { LcRecentAcceptedSubmissions } from '@/lc/types/types'
 import { LcProblemSelect } from '@/lc/LcProblemsDao'
+import { GoogleSpreadsheetSelect } from '@/spreadsheets'
 
 export class LcPullSubmissionsQueue extends BullQueue {
   static queueName = 'lc-pull-submissions'
@@ -26,4 +27,11 @@ export class TgSubmissionsNotifyQueue extends BullQueue {
   lcUserInChat: LcUserInTgChatSelect
   lcChatSettings: LcChatSettingsSelect
   lcProblem: LcProblemSelect
+}
+
+export class LcSpreadsheetWriteQueue extends BullQueue {
+  static queueName = 'spreadsheets-writer-queue'
+
+  sheet: GoogleSpreadsheetSelect
+  // add solved problems. Plural per spreadsheet
 }
