@@ -5,9 +5,9 @@ import { randomAlphaNumStr } from '@/common'
 
 describe.skip('GoogleSpreadsheetApi', () => {
   const googleAuth = new GoogleAuthService()
-  const refreshToken =
-    '1//094HC3GGqm8rYCgYIARAAGAkSNwF-L9IrgOvfbhdBH7Uqotm4h0yhEyUHniz-lpqFVO-yf7SFqMD69x5q6cTZEu5tS5LzUgEilyE'
-  const spreadsheetId = '1S-GVb7bEwfUZR0LnEZjDlKMSevSwF2LlqQRe4eB7UYs'
+  const refreshToken = ''
+  // sheetId 1S-GVb7bEwfUZR0LnEZjDlKMSevSwF2LlqQRe4eB7UYs
+  const spreadsheetId = ''
   // const accessToken = ''
   const sheetsApi = new GoogleSpreadsheetApi(googleAuth)
 
