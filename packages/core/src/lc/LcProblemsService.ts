@@ -11,6 +11,10 @@ export class LcProblemsService {
     private readonly lcApi: LcApiClient,
   ) {}
 
+  /**
+   * Get LeetCode problem URL using its slug.
+   * @param slug
+   */
   static getLcProblemUrl(slug: string): string {
     return `https://leetcode.com/problems/${slug}`
   }

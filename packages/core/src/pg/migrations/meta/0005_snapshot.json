@@ -1,5 +1,5 @@
 {
-  "id": "ffcb8bf9-d9fd-4b95-b07b-a067aa9a059d",
+  "id": "0b661ca1-fc15-40af-af4c-18de1f8e4588",
   "prevId": "755b472f-2fa6-46db-8fa6-f85f5a98d2c7",
   "version": "7",
   "dialect": "postgresql",
@@ -92,8 +92,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "lc_user_uuid": {
-          "name": "lc_user_uuid",
+        "google_spreadsheet_uuid": {
+          "name": "google_spreadsheet_uuid",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -127,11 +127,11 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "google_spreadsheet_updates_lc_user_uuid_lc_users_uuid_fk": {
-          "name": "google_spreadsheet_updates_lc_user_uuid_lc_users_uuid_fk",
+        "google_spreadsheet_updates_google_spreadsheet_uuid_google_spreadsheets_uuid_fk": {
+          "name": "google_spreadsheet_updates_google_spreadsheet_uuid_google_spreadsheets_uuid_fk",
           "tableFrom": "google_spreadsheet_updates",
-          "tableTo": "lc_users",
-          "columnsFrom": ["lc_user_uuid"],
+          "tableTo": "google_spreadsheets",
+          "columnsFrom": ["google_spreadsheet_uuid"],
           "columnsTo": ["uuid"],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -148,10 +148,10 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "google_spreadsheet_updates_tg_chat_uuid_lc_user_uuid_unique": {
-          "name": "google_spreadsheet_updates_tg_chat_uuid_lc_user_uuid_unique",
+        "google_spreadsheet_updates_tg_chat_uuid_google_spreadsheet_uuid_unique": {
+          "name": "google_spreadsheet_updates_tg_chat_uuid_google_spreadsheet_uuid_unique",
           "nullsNotDistinct": false,
-          "columns": ["tg_chat_uuid", "lc_user_uuid"]
+          "columns": ["tg_chat_uuid", "google_spreadsheet_uuid"]
         }
       },
       "policies": {},

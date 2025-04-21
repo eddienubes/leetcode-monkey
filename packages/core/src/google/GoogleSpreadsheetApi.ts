@@ -5,7 +5,9 @@ import { GaxiosError } from 'gaxios'
 import { GoogleSheetsApiError } from '@/spreadsheets/errors'
 import Schema$BatchUpdateSpreadsheetResponse = sheets_v4.Schema$BatchUpdateSpreadsheetResponse
 import Schema$AppendValuesResponse = sheets_v4.Schema$AppendValuesResponse
+import { Injectable } from '@/common'
 
+@Injectable(GoogleAuthService)
 export class GoogleSpreadsheetApi {
   constructor(private readonly auth: GoogleAuthService) {}
 
@@ -34,7 +36,7 @@ export class GoogleSpreadsheetApi {
       return res.data
     } catch (e) {
       if (e instanceof GaxiosError) {
-        throw new GoogleSheetsApiError(e.message, e)
+        throw GoogleSheetsApiError.fromGaxios(e)
       }
       throw e
     }
@@ -68,7 +70,7 @@ export class GoogleSpreadsheetApi {
       return res.data
     } catch (e) {
       if (e instanceof GaxiosError) {
-        throw new GoogleSheetsApiError(e.message, e)
+        throw GoogleSheetsApiError.fromGaxios(e)
       }
       throw e
     }
@@ -83,7 +85,7 @@ export class GoogleSpreadsheetApi {
       return response.data
     } catch (e) {
       if (e instanceof GaxiosError) {
-        throw new GoogleSheetsApiError(e.message, e)
+        throw GoogleSheetsApiError.fromGaxios(e)
       }
       throw e
     }
@@ -98,7 +100,7 @@ export class GoogleSpreadsheetApi {
       })
     } catch (e) {
       if (e instanceof GaxiosError) {
-        throw new GoogleSheetsApiError(e.message, e)
+        throw GoogleSheetsApiError.fromGaxios(e)
       }
       throw e
     }

@@ -247,9 +247,9 @@ export const googleSpreadsheetUpdates = pgTable(
   'google_spreadsheet_updates',
   {
     uuid: uuid('uuid').primaryKey().defaultRandom(),
-    lcUserUuid: uuid('lc_user_uuid')
+    googleSpreadsheetUuid: uuid('google_spreadsheet_uuid')
       .notNull()
-      .references(() => lcUsers.uuid),
+      .references(() => googleSpreadsheets.uuid),
     tgChatUuid: uuid('tg_chat_uuid')
       .notNull()
       .references(() => tgChats.uuid),
@@ -259,5 +259,5 @@ export const googleSpreadsheetUpdates = pgTable(
 
     ...timestamps,
   },
-  (t) => [unique().on(t.tgChatUuid, t.lcUserUuid)],
+  (t) => [unique().on(t.tgChatUuid, t.googleSpreadsheetUuid)],
 )

@@ -3,11 +3,12 @@ import { GoogleSpreadsheetApi } from '@/google/GoogleSpreadsheetApi'
 import * as util from 'node:util'
 import { randomAlphaNumStr } from '@/common'
 
-describe.skip('GoogleSpreadsheetApi', () => {
+describe('GoogleSpreadsheetApi', () => {
   const googleAuth = new GoogleAuthService()
-  const refreshToken = ''
+  const refreshToken =
+    '1//09xgBtKQJOCLTCgYIARAAGAkSNwF-L9Ir4RxXCFzIK_uDOvzDwlRGxyyfhkoxGTrHsEkLZ71Jp9-3jE9zSXNjlA8PrLGwZrI3AP8'
   // sheetId 1S-GVb7bEwfUZR0LnEZjDlKMSevSwF2LlqQRe4eB7UYs
-  const spreadsheetId = ''
+  const spreadsheetId = '1S-GVb7bEwfUZR0LnEZjDlKMSevSwF2LlqQRe4eB7UYs'
   // const accessToken = ''
   const sheetsApi = new GoogleSpreadsheetApi(googleAuth)
 
@@ -33,7 +34,7 @@ describe.skip('GoogleSpreadsheetApi', () => {
         const sheet = await sheetsApi.get(spreadsheetId, refreshToken)
         const res = await sheetsApi.append(
           sheet.spreadsheetId,
-          'Submissions',
+          'Submissions1',
           refreshToken,
           [
             ['test', 'test', 'test', 'test', 'hello world', 'overwrite'],

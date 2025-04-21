@@ -2,8 +2,9 @@ import {
   GoogleSpreadsheetInsert,
   GoogleSpreadsheetSelect,
 } from '@/spreadsheets/GoogleSpreadsheetsDao'
-import { SubmissionSelect } from '@/lc-users'
+import { LcUserSelect, SubmissionSelect } from '@/lc-users'
 import { LcProblemSelect } from '@/lc'
+import { TgUserSelect } from '@/tg'
 
 export type SpreadsheetConnectionSession = {
   tgChatUuid: string
@@ -19,5 +20,7 @@ export type ConnectSpreadsheetParams = Pick<
 export type SpreadsheetToUpdate = GoogleSpreadsheetSelect & {
   newSubmissions: (SubmissionSelect & {
     problem: LcProblemSelect
+    lcUser: LcUserSelect
+    tgUser: TgUserSelect
   })[]
 }

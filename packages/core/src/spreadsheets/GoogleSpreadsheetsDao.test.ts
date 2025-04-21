@@ -1,7 +1,6 @@
 import { GoogleSpreadsheetsDao } from '@/spreadsheets/GoogleSpreadsheetsDao'
 import { randomAlphaNumStr } from '@/common'
 import { TestSeedDao } from '../../test/TestSeedDao'
-import { SubmissionSelect } from '@/lc-users'
 import { SpreadsheetToUpdate } from '@/spreadsheets/types'
 import { createCoreTestContainer } from '../../test/coreTest'
 
@@ -74,11 +73,23 @@ describe('GoogleSpreadsheetsDao', () => {
               expect.objectContaining({
                 submittedAt: submissions[0].submittedAt,
                 lcProblemUuid: submissions[0].lcProblemUuid,
-              } as SubmissionSelect),
+                lcUser: expect.objectContaining({
+                  uuid: userInChat.lcUser.uuid,
+                }),
+                tgUser: expect.objectContaining({
+                  uuid: userInChat.tgUser.uuid,
+                }),
+              }),
               expect.objectContaining({
                 submittedAt: submissions[1].submittedAt,
                 lcProblemUuid: submissions[1].lcProblemUuid,
-              } as SubmissionSelect),
+                lcUser: expect.objectContaining({
+                  uuid: userInChat.lcUser.uuid,
+                }),
+                tgUser: expect.objectContaining({
+                  uuid: userInChat.tgUser.uuid,
+                }),
+              }),
             ]),
           } as SpreadsheetToUpdate),
         ]),

@@ -11,6 +11,8 @@ import { LcUsersDao } from '@/lc-users'
 import { GoogleAuthService } from '@/google'
 import { GoogleSpreadsheetsDao, SpreadsheetsConnector } from '@/spreadsheets'
 import { Container, createProvidersContainer, Provider } from '@/common'
+import { LcSpreadsheetsWriter } from '@/lc/LcSpreadsheetsWriter'
+import { GoogleSpreadsheetApi } from '@/google/GoogleSpreadsheetApi'
 
 export const createCoreContainer = (providers: Provider[] = []): Container => {
   const container = createProvidersContainer([
@@ -26,6 +28,8 @@ export const createCoreContainer = (providers: Provider[] = []): Container => {
     GoogleAuthService,
     SpreadsheetsConnector,
     GoogleSpreadsheetsDao,
+    GoogleSpreadsheetApi,
+    LcSpreadsheetsWriter,
     ...providers,
   ]).build()
 

@@ -18,7 +18,9 @@ import {
   googleSpreadsheets,
   googleSpreadsheetUpdates,
   lcProblems,
+  lcUsers,
   lcUsersInTgChats,
+  tgUsers,
 } from '@/pg/schema'
 
 export type GoogleSpreadsheetSelect = InferSelectModel<
@@ -26,6 +28,12 @@ export type GoogleSpreadsheetSelect = InferSelectModel<
 >
 export type GoogleSpreadsheetInsert = InferInsertModel<
   typeof googleSpreadsheets
+>
+export type GoogleSpreadsheetUpdateSelect = InferSelectModel<
+  typeof googleSpreadsheetUpdates
+>
+export type GoogleSpreadsheetUpdateInsert = InferInsertModel<
+  typeof googleSpreadsheetUpdates
 >
 
 @Injectable(PgService)
@@ -86,6 +94,8 @@ export class GoogleSpreadsheetsDao extends PgDao {
         lcUsersInTgChats,
         eq(lcUsersInTgChats.tgChatUuid, googleSpreadsheets.tgChatUuid),
       )
+      .innerJoin(tgUsers, eq(tgUsers.uuid, lcUsersInTgChats.tgUserUuid))
+      .innerJoin(lcUsers, eq(lcUsers.uuid, lcUsersInTgChats.lcUserUuid))
       .innerJoin(
         distinctSubmissions,
         eq(distinctSubmissions.lcUserUuid, lcUsersInTgChats.lcUserUuid),
@@ -97,7 +107,10 @@ export class GoogleSpreadsheetsDao extends PgDao {
       .leftJoin(
         googleSpreadsheetUpdates,
         and(
-          eq(lcUsersInTgChats.lcUserUuid, googleSpreadsheetUpdates.lcUserUuid),
+          eq(
+            googleSpreadsheets.uuid,
+            googleSpreadsheetUpdates.googleSpreadsheetUuid,
+          ),
           eq(lcUsersInTgChats.tgChatUuid, googleSpreadsheetUpdates.tgChatUuid),
         ),
       )
@@ -134,9 +147,31 @@ export class GoogleSpreadsheetsDao extends PgDao {
       map.get(sheetUuid)!.newSubmissions.push({
         ...hit.submissions,
         problem: hit.lc_problems,
+        lcUser: hit.lc_users,
+        tgUser: hit.tg_users,
       })
     }
 
     return Array.from(map.values())
+  }
+
+  async upsertSpreadsheetUpdate(
+    upsert: GoogleSpreadsheetUpdateInsert,
+  ): Promise<GoogleSpreadsheetUpdateSelect> {
+    const hits = await this.client
+      .insert(googleSpreadsheetUpdates)
+      .values(upsert)
+      .onConflictDoUpdate({
+        target: [
+          googleSpreadsheetUpdates.tgChatUuid,
+          googleSpreadsheetUpdates.googleSpreadsheetUuid,
+        ],
+        set: {
+          lastUpdatedAt: new Date(),
+        },
+      })
+      .returning()
+
+    return hits[0]
   }
 }
