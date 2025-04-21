@@ -5,8 +5,7 @@ import { randomAlphaNumStr } from '@/common'
 
 describe('GoogleSpreadsheetApi', () => {
   const googleAuth = new GoogleAuthService()
-  const refreshToken =
-    '1//09xgBtKQJOCLTCgYIARAAGAkSNwF-L9Ir4RxXCFzIK_uDOvzDwlRGxyyfhkoxGTrHsEkLZ71Jp9-3jE9zSXNjlA8PrLGwZrI3AP8'
+  const refreshToken = ''
   // sheetId 1S-GVb7bEwfUZR0LnEZjDlKMSevSwF2LlqQRe4eB7UYs
   const spreadsheetId = '1S-GVb7bEwfUZR0LnEZjDlKMSevSwF2LlqQRe4eB7UYs'
   // const accessToken = ''
