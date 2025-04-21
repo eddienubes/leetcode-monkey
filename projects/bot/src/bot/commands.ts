@@ -705,6 +705,9 @@ export const spreadsheetCommand = createHandler(
           await ctx.replyFmt(getDisconnectMsg(sheet.spreadsheetName), {
             reply_to_message_id: ctx.message.message_id,
             reply_markup: disconnectSheetMenu,
+            link_preview_options: {
+              is_disabled: true,
+            },
           })
           return
         }

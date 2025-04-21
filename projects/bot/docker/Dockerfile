@@ -7,10 +7,10 @@ WORKDIR /app
 
 RUN npm install -g corepack@latest && corepack enable
 
-COPY . ./
+COPY . .
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm build
+RUN pnpm build:bot
 RUN pnpm --filter=@repo/bot --prod --legacy deploy deploy
 
 FROM node:22.13.1-alpine

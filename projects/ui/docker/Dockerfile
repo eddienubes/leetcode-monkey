@@ -20,7 +20,7 @@ RUN npm install -g corepack && corepack enable
 COPY . .
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm build
+RUN pnpm build:ui
 #RUN #pnpm config set --location project inject-workspace-packages true
 
 # Production image, copy all the files and run next

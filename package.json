@@ -8,6 +8,8 @@
     "watch:ui": "pnpm run watch:core & nx run @repo/ui:dev",
     "watch": "pnpm run watch:core & nx run @repo/bot:dev & nx run @repo/ui:dev",
     "build": "nx run-many -t build --all --parallel",
+    "build:bot": "nx run @repo/bot:build",
+    "build:ui": "nx run @repo/ui:build",
     "lint:fix": "eslint . --fix",
     "lint": "eslint",
     "format:fix": "nx run-many -t format:fix --all --parallel",
