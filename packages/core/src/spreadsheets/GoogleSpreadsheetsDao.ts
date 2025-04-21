@@ -65,7 +65,7 @@ export class GoogleSpreadsheetsDao extends PgDao {
   /**
    * Pull spreadsheets to notify about new submissions
    */
-  async pullSpreadsheetsToUpdate(since?: Date): Promise<SpreadsheetToUpdate[]> {
+  async getSpreadsheetsToUpdate(since?: Date): Promise<SpreadsheetToUpdate[]> {
     const distinctSubmissions = this.client
       .selectDistinctOn([
         acceptedSubmissions.lcProblemUuid,

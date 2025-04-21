@@ -50,7 +50,7 @@ describe('GoogleSpreadsheetsDao', () => {
     })
   })
 
-  describe('pullSpreadsheetsToUpdate', () => {
+  describe('getSpreadsheetsToUpdate', () => {
     it('should pull submissions to notify', async () => {
       const userInChat = await testSeedDao.generateUserInChat()
       const submissions = await testSeedDao.generateSubmissions(
@@ -59,7 +59,7 @@ describe('GoogleSpreadsheetsDao', () => {
       )
       await testSeedDao.connectSpreadsheet(userInChat.tgChat.uuid)
 
-      const hits = await dao.pullSpreadsheetsToUpdate()
+      const hits = await dao.getSpreadsheetsToUpdate()
 
       expect(hits.length).toBeGreaterThanOrEqual(1)
       expect(hits).toEqual(
