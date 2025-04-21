@@ -20,6 +20,7 @@ import {
   lcProblems,
   lcUsers,
   lcUsersInTgChats,
+  tgChats,
   tgUsers,
 } from '@/pg/schema'
 
@@ -66,6 +67,18 @@ export class GoogleSpreadsheetsDao extends PgDao {
       .set(update)
       .where(eq(googleSpreadsheets.uuid, uuid))
       .returning()
+
+    return hits[0]
+  }
+
+  async updateByChatUuid(
+    tgChatUuid: string,
+    update: Partial<GoogleSpreadsheetInsert>,
+  ): Promise<GoogleSpreadsheetSelect> {
+    const hits = await this.client
+      .update(googleSpreadsheets)
+      .set(update)
+      .where(eq(googleSpreadsheets.tgChatUuid, tgChatUuid))
 
     return hits[0]
   }
@@ -173,5 +186,15 @@ export class GoogleSpreadsheetsDao extends PgDao {
       .returning()
 
     return hits[0]
+  }
+
+  async getByTgChatUuidIfAny(
+    tgChatUuid: string,
+  ): Promise<GoogleSpreadsheetSelect | null> {
+    const hit = await this.client.query.googleSpreadsheets.findFirst({
+      where: eq(googleSpreadsheets.tgChatUuid, tgChatUuid),
+    })
+
+    return hit || null
   }
 }

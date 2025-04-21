@@ -5,9 +5,7 @@ describe('GoogleAuthService', () => {
 
   describe('revoke', () => {
     it('should revoke a token', async () => {
-      await service.revoke(
-        '',
-      )
+      await service.revoke('')
     })
   })
 })

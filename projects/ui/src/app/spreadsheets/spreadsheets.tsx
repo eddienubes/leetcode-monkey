@@ -10,7 +10,7 @@ import './style.scss'
 import { connectSpreadsheet } from '@/server/spreadsheet-connector'
 import { useState } from 'react'
 import { useGoogleAuth } from '@/app/_lib/google-auth-guard'
-import notFound from '@/app/not-found'
+import { clientConfig } from '../config'
 
 interface Props {
   sessionId: string
@@ -23,7 +23,9 @@ export const Spreadsheets = (props: Props) => {
   const [loading, setLoading] = useState(false)
 
   const gotoBot = (payload = '') => {
-    window.location.href = `https://t.me/leetcode_monkey_bot?start=${payload}`
+    const url = new URL(clientConfig.bot.baseUrl)
+    url.searchParams.set('start', payload)
+    window.location.href = url.toString()
   }
 
   const onPick = async (e: PickedEvent) => {
@@ -43,7 +45,7 @@ export const Spreadsheets = (props: Props) => {
       return
     }
 
-    gotoBot()
+    gotoBot('spreadsheet')
   }
 
   if (error) {

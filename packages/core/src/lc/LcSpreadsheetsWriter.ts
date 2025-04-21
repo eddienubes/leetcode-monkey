@@ -15,7 +15,7 @@ import { GoogleSheetsSpreadsheetNotFoundError } from '@/spreadsheets/errors'
 
 @Injectable(GoogleSpreadsheetApi, SpreadsheetsConnector, GoogleSpreadsheetsDao)
 export class LcSpreadsheetsWriter implements Lifecycle {
-  private static submissionsSpreadsheetName = 'Submissions'
+  static submissionsSpreadsheetName = 'Submissions'
   private readonly cron = createCronQueue(
     'spreadsheets-writer-cron',
     this.pull.bind(this),
@@ -83,7 +83,7 @@ export class LcSpreadsheetsWriter implements Lifecycle {
           sheet.spreadsheetId,
           e,
         )
-        await this.connector.disconnectSpreadsheet(sheet.uuid)
+        await this.connector.disconnect(sheet.uuid)
         return
       }
 
@@ -91,7 +91,7 @@ export class LcSpreadsheetsWriter implements Lifecycle {
 
       if (!created) {
         console.error(`Disconnecting the spreadsheet ${sheet.spreadsheetId}...`)
-        await this.connector.disconnectSpreadsheet(sheet.uuid)
+        await this.connector.disconnect(sheet.uuid)
         return
       }
 
@@ -122,8 +122,8 @@ export class LcSpreadsheetsWriter implements Lifecycle {
   }
 
   async onModuleInit() {
-    // pull every 30 seconds
-    await this.cron.schedule('*/10 * * * * *')
+    // pull every 45 seconds
+    await this.cron.schedule('*/50 * * * * *')
     await this.queue.start()
   }
 

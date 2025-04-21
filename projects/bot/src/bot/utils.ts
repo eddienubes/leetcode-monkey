@@ -2,10 +2,21 @@ import { BotCtx } from '@/bot/Bot'
 import { TgMemberStatus } from '@repo/core'
 import { NextFunction } from 'grammy'
 
-export const isTgChatAdmin = (status: TgMemberStatus): boolean => {
-  return status === 'administrator' || status === 'creator'
+export const isTgChatAdminByStatus = (status: TgMemberStatus): boolean => {
+  const tgAdminStatuses = ['administrator', 'creator']
+  return tgAdminStatuses.includes(status)
 }
 
+export const isAdmin = async (ctx: BotCtx): Promise<boolean> => {
+  const author = await ctx.getAuthor()
+  return isTgChatAdminByStatus(author.status)
+}
+
+/**
+ * TODO: Fix, doesn't work when the reply message is deleted
+ * @param ctx
+ * @param next
+ */
 export const isMenuOwner = async (ctx: BotCtx, next: NextFunction) => {
   const menuMsg = ctx.callbackQuery?.message
   const originalMsg = menuMsg?.reply_to_message

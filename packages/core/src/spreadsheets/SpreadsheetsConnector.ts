@@ -11,7 +11,7 @@ import { bold, fmt } from '@grammyjs/parse-mode'
 
 @Injectable(GoogleSpreadsheetsDao)
 export class SpreadsheetsConnector implements Lifecycle {
-  private readonly spreadsheetConnectionSessionExpireTimeSec = 3600 // 1 hour
+  static readonly spreadsheetConnectionSessionExpireTimeMs = 3600 * 1000 // 1 hour
   private readonly redis = new IoRedis({
     host: config.redis.host,
     port: config.redis.port,
@@ -35,8 +35,8 @@ export class SpreadsheetsConnector implements Lifecycle {
     await this.redis.set(
       sessionId,
       JSON.stringify(connection),
-      'EX',
-      this.spreadsheetConnectionSessionExpireTimeSec,
+      'PX',
+      SpreadsheetsConnector.spreadsheetConnectionSessionExpireTimeMs,
     )
     return sessionId
   }
@@ -109,8 +109,15 @@ export class SpreadsheetsConnector implements Lifecycle {
     return url.toString()
   }
 
-  async disconnectSpreadsheet(sheetUuid: string): Promise<void> {
+  async disconnect(sheetUuid: string): Promise<void> {
     await this.googleSpreadsheetsDao.updateByUuid(sheetUuid, {
+      isConnected: false,
+      isConnectedToggledAt: new Date(),
+    })
+  }
+
+  async disconnectByTgChatUuid(tgChatUuid: string): Promise<void> {
+    await this.googleSpreadsheetsDao.updateByChatUuid(tgChatUuid, {
       isConnected: false,
       isConnectedToggledAt: new Date(),
     })

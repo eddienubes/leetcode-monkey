@@ -27,6 +27,7 @@ import {
   TgChatsDao,
   TgUsersDao,
   createCoreContainer,
+  GoogleSpreadsheetsDao,
 } from '@repo/core'
 
 export const main = async (): Promise<void> => {
@@ -52,6 +53,7 @@ export const main = async (): Promise<void> => {
   const lcProblemsDao = container.get(LcProblemsDao)
   const lcProblemsService = container.get(LcProblemsService)
   const spreadsheetsConnector = container.get(SpreadsheetsConnector)
+  const googleSheetsDao = container.get(GoogleSpreadsheetsDao)
 
   await myChatMemberEvent(inject, tgChatsDao)
   await connectLcCommand(inject, lcApi, lcUsersDao, tgUsersDao, tgChatsDao)
@@ -63,6 +65,7 @@ export const main = async (): Promise<void> => {
     tgUsersDao,
     tgChatsDao,
     spreadsheetsConnector,
+    googleSheetsDao,
   )
   await dailyCommand(inject, lcApi)
   await helpCommand(inject)
