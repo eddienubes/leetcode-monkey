@@ -42,9 +42,9 @@ RUN chown nextjs:nodejs .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 #COPY --from=base --chown=node /root/.aws/credentials /root/.aws/credentials
 #COPY --from=base --chown=node /app/projects/ui/.env .env
-COPY --from=base --chown=ndoe /app/projects/ui/public ./standalone/public
 COPY --from=base --chown=nextjs:nodejs /app/projects/ui/.next/standalone ./
-COPY --from=base --chown=nextjs:nodejs /app/projects/ui/.next/static ./.next/static
+COPY --from=base --chown=nextjs:nodejs /app/projects/ui/public ./projects/ui/public
+COPY --from=base --chown=nextjs:nodejs /app/projects/ui/.next/static ./projects/ui/.next/static
 # Resulting image:
 # ./
 # /...standalone stuff
