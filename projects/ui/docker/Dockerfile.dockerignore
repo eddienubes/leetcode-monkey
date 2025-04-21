@@ -2,3 +2,7 @@ node_modules
 .next
 dist
 .yarn
+.nx
+docker
+test
+Dockerfile.dockerignore

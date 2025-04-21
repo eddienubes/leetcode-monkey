@@ -11,6 +11,9 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write ."
   },
+  "files": [
+    ".next"
+  ],
   "dependencies": {
     "@googleworkspace/drive-picker-element": "^0.4.1",
     "@radix-ui/react-slot": "^1.2.0",
