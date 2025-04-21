@@ -1,7 +1,7 @@
 import { FilterQuery, Filter, GrammyError, Context } from 'grammy'
 import { BotCtx, Convo } from '@/bot/Bot'
 import { ConvoStorage } from '@/bot/ramConvoStorage'
-import { TgCannotDeleteMessageError } from '@repo/core'
+import { TgCannotDeleteMessageError } from '@/bot/errors'
 
 export type WaitForOptions<E extends FilterQuery, R> = {
   event: E

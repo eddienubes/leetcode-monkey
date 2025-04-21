@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { ToJsonType } from "./types";
+import type { ToJsonType } from './types'
 
 export const sleepForRandomMs = (min: number, max: number): Promise<void> => {
   const randomMs = Math.floor(Math.random() * (max - min + 1)) + min
@@ -54,30 +54,6 @@ export const diffInWeeks = (date1: Date, date2: Date): number => {
   return Math.floor(diff / (1000 * 60 * 60 * 24 * 7))
 }
 
-/**
- * Parses grammy menu cb data.
- * https://github.com/grammyjs/menu/blob/c276d79a93c9318aeb900fbe9c092e24a2dae642/src/menu.ts#L889
- * @param cbData
- */
-export const extractMenuDataFromCb = (
-  cbData: string,
-): {
-  id: string
-  rowStr: string
-  colStr: string
-  payload: string
-  rest: string[]
-} => {
-  const [id, rowStr, colStr, payload, ...rest] = cbData.split(':')
-  return {
-    id,
-    rowStr,
-    colStr,
-    payload,
-    rest,
-  }
-}
-
 export const parseIntOrDefault = (
   str: string | undefined | null,
   defaultValue: number,
@@ -120,3 +96,12 @@ export const arrToHashTags = (arr: string[]): string => {
     .join(' ')
 }
 
+export const isConstructorFunction = (
+  value: unknown,
+): value is new (...args: any[]) => any => {
+  const isFunction = typeof value === 'function'
+  // @ts-ignore ts doesn't know about the prototype property, since it's unknown
+  const isClass = value?.prototype && value?.prototype?.constructor === value
+
+  return isFunction && isClass
+}

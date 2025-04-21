@@ -9,6 +9,8 @@ export type ConvoStorage<S = any> = ConversationStorage<BotCtx, S> & {
   add: (ctx: BotCtx) => void
 }
 
+export const CONVO_STORAGE_ID = Symbol('Convo Storage')
+
 /**
  * Creates a ram convo storage to disambiguate conversations between bot and multiple users in the same chat group
  */

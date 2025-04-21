@@ -1,6 +1,6 @@
 import { LcApiClient } from './LcApiClient'
 
-describe('lc Api Client', () => {
+describe('LcApiClient', () => {
   const lc = new LcApiClient()
 
   describe('getProfile', () => {

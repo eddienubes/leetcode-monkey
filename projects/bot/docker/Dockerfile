@@ -4,12 +4,14 @@ FROM node:22.13.1-alpine AS base
 RUN apk update && apk --no-cache add git && cat /etc/os-release
 
 WORKDIR /app
-COPY . ./
 
 RUN npm install -g corepack@latest && corepack enable
-RUN pnpm install
-RUN pnpm run build
-RUN pnpm --filter=@repo/bot --prod deploy deploy
+
+COPY . ./
+
+RUN pnpm install --frozen-lockfile
+RUN pnpm build
+RUN pnpm --filter=@repo/bot --prod --legacy deploy deploy
 
 FROM node:22.13.1-alpine
 

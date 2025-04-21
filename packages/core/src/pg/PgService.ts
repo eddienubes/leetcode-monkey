@@ -6,10 +6,12 @@ import { getTableColumns, SQL, sql } from 'drizzle-orm'
 import { PgTable } from 'drizzle-orm/pg-core'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import { config } from '@/config'
+import { Injectable, Lifecycle } from '@/common'
 
 export type PostgresDatabase = PostgresJsDatabase<typeof schema>
 
-export class PgService {
+@Injectable()
+export class PgService implements Lifecycle {
   private readonly client: PostgresDatabase
   private readonly connection
   private readonly storage = new AsyncLocalStorage<PostgresDatabase>()
@@ -23,6 +25,9 @@ export class PgService {
     })
   }
 
+  /**
+   * TODO: Implement locking
+   */
   async migrate(): Promise<void> {
     await migrate(this.client, {
       migrationsFolder: config.pg.migrations.out,
@@ -53,6 +58,10 @@ export class PgService {
     const hits = await this.client.execute(query)
 
     console.info(`Connected successfully, version: ${hits[0].version}`)
+
+    if (config.server.env !== 'test') {
+      await this.migrate()
+    }
   }
 
   /**

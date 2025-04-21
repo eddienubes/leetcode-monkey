@@ -15,3 +15,5 @@ export type ToJsonType<T> = T extends Date
         : T extends object
           ? { [K in keyof T]: ToJsonType<T[K]> }
           : T
+
+export type ClassConstructor<T> = new (...args: any[]) => T

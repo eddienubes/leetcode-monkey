@@ -3,8 +3,8 @@ import { createConversation } from '@grammyjs/conversations'
 import { BotCtx, BotCtxExtra, Convo } from '@/bot/Bot'
 import {
   bold,
-  expandableBlockquote,
   fmt,
+  FormattedString,
   italic,
   link,
   mentionUser,
@@ -13,11 +13,12 @@ import { createConvoHelper } from '@/bot/convoHelper'
 import { tgUsersMiddleware } from '@/bot/middlewares'
 import { createPagination, getPerMessageNamespace } from '@/bot/pagination'
 import { Menu } from '@grammyjs/menu'
-import { Context } from 'grammy'
+import { Context, InlineKeyboard } from 'grammy'
 import {
   buildMentionNameFromCtx,
+  isAdmin,
   isMenuOwner,
-  isTgChatAdmin,
+  isTgChatAdminByStatus,
 } from '@/bot/utils'
 import {
   arrToHashTags,
@@ -31,7 +32,17 @@ import {
   noop,
   TgChatsDao,
   TgUsersDao,
+  SpreadsheetsConnector,
+  GoogleSpreadsheetsDao,
+  LcSpreadsheetsWriter,
 } from '@repo/core'
+import { Chat } from 'grammy/types'
+
+const commandsChatScope = [
+  'private',
+  'group',
+  'supergroup',
+] as const satisfies Chat['type'][]
 
 export const connectLcCommand = createHandler(
   async (
@@ -134,7 +145,6 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
       })
 
       await convo.external(async () => {
-        console.log('Connect leetcode account')
         const tgChat = extra.tgChat!
         const tgUser = extra.user!
 
@@ -163,17 +173,19 @@ Please send me your ${link('username', 'https://leetcode.com/profile')} or profi
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
     bot.filter(
-      Context.has.chatType(['private', 'group', 'supergroup']),
+      Context.has.chatType(commandsChatScope),
       createConversation(convoImpl, name),
     )
 
-    bot.command(['sign', 'sing', 'connect'], m, async (ctx) => {
-      await ctx.conversation.exitAll()
-      await ctx.conversation.enter(name, {
-        user: ctx.user!,
-        tgChat: ctx.tgChat!,
-      } satisfies BotCtxExtra)
-    })
+    bot
+      .chatType(commandsChatScope)
+      .command(['sign', 'sing', 'connect'], m, async (ctx) => {
+        await ctx.conversation.exitAll()
+        await ctx.conversation.enter(name, {
+          user: ctx.user!,
+          tgChat: ctx.tgChat!,
+        } satisfies BotCtxExtra)
+      })
   },
 )
 
@@ -252,11 +264,7 @@ ${
       },
     })
 
-    bot.filter(
-      Context.has.chatType(['private', 'group', 'supergroup']),
-      m,
-      pag.menu,
-    )
+    bot.filter(Context.has.chatType(commandsChatScope), m, pag.menu)
 
     bot.command(
       ['leaderboard', 'lederboard', 'lb', 'ld', 'scoreboard', 'rating'],
@@ -308,7 +316,14 @@ ${arrToHashTags(question.topicTags.map((t) => t.slug))}
 )
 
 export const helpCommand = createHandler(async (bot) => {
-  bot.command(['help', 'start'], async (ctx) => {
+  bot.chatType(commandsChatScope).command(['help', 'start'], async (ctx) => {
+    if (ctx.match.includes('spreadsheet')) {
+      await ctx.replyFmt(fmt`
+     🎉 Connected spreadsheet! Now return to your chat and try solving a few LeetCode problems, and check your spreadsheet again later.
+      `)
+      return
+    }
+
     const message = fmt`
 Hey, I'm a ${bold('LeetCode Monkey')}! 👋
 I make learning algorithms and data structures more fun.
@@ -317,9 +332,10 @@ I'm also ${link('open-source', 'https://github.com/eddienubes/leetcode-monkey')}
 ${bold('How to use me?')}
 1. Connect your LeetCode account with /connect command to receive notifications.
 2. Encourage your top performers with /leaderboard.
-3. Get /daily challenges.
-4. Manage your notification /settings and more.
-5. You have suggestions? Just /feedback me!
+3. Connect Google /spreadsheet to further track your progress!
+4. Get /daily challenges.
+5. Manage your notification /settings and more.
+6. You have suggestions? Just /feedback me!
 
 Additionally, you can promote me to an admin to keep your chat nice and clean.
 
@@ -338,7 +354,7 @@ ${italic('by @carny_plant for FLG')}
 })
 
 export const feedbackCommand = createHandler(async (bot) => {
-  bot.command(['feedback', 'fb'], async (ctx) => {
+  bot.chatType(commandsChatScope).command(['feedback', 'fb'], async (ctx) => {
     const message = fmt`
 Hi! I love feedback. ❤️
 Message me with your suggestions, bugs, or anything you want to share at @carny_plant.
@@ -431,7 +447,7 @@ export const settingsCommand = createHandler(
               isNotificationsEnabledToggledAt: new Date(),
             })
             ctx.match = 'enabled'
-            await ctx.menu.update()
+            ctx.menu.update()
           },
         )
       }
@@ -459,7 +475,7 @@ export const settingsCommand = createHandler(
       range.row()
 
       if (
-        isTgChatAdmin(payload.member.status) &&
+        isTgChatAdminByStatus(payload.member.status) &&
         payload.chatSettings.isNotificationsEnabled
       ) {
         range.text(
@@ -488,7 +504,7 @@ export const settingsCommand = createHandler(
       }
 
       if (
-        isTgChatAdmin(payload.member.status) &&
+        isTgChatAdminByStatus(payload.member.status) &&
         !payload.chatSettings.isNotificationsEnabled
       ) {
         range.text(
@@ -511,7 +527,7 @@ export const settingsCommand = createHandler(
             )
 
             ctx.match = 'enabled-chat-wide'
-            await ctx.menu.update()
+            ctx.menu.update()
           },
         )
       }
@@ -530,14 +546,9 @@ export const settingsCommand = createHandler(
     })
 
     menu.register(disconnectMenuConfirmation)
-    bot.filter(
-      Context.has.chatType(['private', 'group', 'supergroup']),
-      m,
-      isMenuOwner,
-      menu,
-    )
+    bot.filter(Context.has.chatType(commandsChatScope), m, isMenuOwner, menu)
 
-    bot.command(['settings'], async (ctx) => {
+    bot.chatType(commandsChatScope).command(['settings'], async (ctx) => {
       const tgChat = ctx.tgChat!
       const tgUser = ctx.user!
       const member = await ctx.getChatMember(ctx.from!.id)
@@ -557,7 +568,7 @@ export const settingsCommand = createHandler(
 
       await ctx.replyFmt(
         fmt`
-${bold('Your settings')} ${isTgChatAdmin(member.status) ? italic('- Admin access granted') : ''}
+${bold('Your settings')} ${isTgChatAdminByStatus(member.status) ? italic('- Admin access granted') : ''}
 
       `,
         {
@@ -579,25 +590,158 @@ export const disconnectLcCommand = createHandler(
   ) => {
     const m = await tgUsersMiddleware(convoStorage, tgUsersDao, tgChatsDao)
 
-    bot.command(['disconnect', 'signout'], m, async (ctx, next) => {
-      const tgChat = ctx.tgChat!
-      const tgUser = ctx.user!
+    bot
+      .chatType(commandsChatScope)
+      .command(['disconnect', 'signout'], m, async (ctx, next) => {
+        const tgChat = ctx.tgChat!
+        const tgUser = ctx.user!
 
-      await lcUsersDao.disconnectLcUserFromUserInChat(tgUser.uuid, tgChat.uuid)
+        await lcUsersDao.disconnectLcUserFromUserInChat(
+          tgUser.uuid,
+          tgChat.uuid,
+        )
 
-      const username = ctx.message?.from?.username || ''
-      const firstName = ctx.message?.from?.first_name || ''
-      const lastName = ctx.message?.from?.last_name || ''
-      const name = username || `${firstName} ${lastName}`.trim()
+        const username = ctx.message?.from?.username || ''
+        const firstName = ctx.message?.from?.first_name || ''
+        const lastName = ctx.message?.from?.last_name || ''
+        const name = username || `${firstName} ${lastName}`.trim()
 
-      await ctx.replyFmt(
-        fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your lc submissions anymore and your progress won't be tracked.
+        await ctx.replyFmt(
+          fmt`Disconnected! ${mentionUser(name, ctx.message!.from.id)}, you won't get notifications for your lc submissions anymore and your progress won't be tracked.
 Sorry to see you go! 😔
 `,
-        {
-          reply_to_message_id: ctx.message?.message_id,
-        },
+          {
+            reply_to_message_id: ctx.message?.message_id,
+          },
+        )
+      })
+  },
+)
+
+export const spreadsheetCommand = createHandler(
+  async (
+    bot,
+    convoStorage,
+    tgUsers: TgUsersDao,
+    tgChatsDao: TgChatsDao,
+    spreadsheetsConnector: SpreadsheetsConnector,
+    googleSpreadsheetDao: GoogleSpreadsheetsDao,
+  ) => {
+    const m = await tgUsersMiddleware(convoStorage, tgUsers, tgChatsDao)
+    const memo = new Memo({
+      ttlMs: SpreadsheetsConnector.spreadsheetConnectionSessionExpireTimeMs,
+    })
+    const getDisconnectMsg = (sheetName: string): FormattedString =>
+      fmt`${bold(sheetName)} is already attached! Would you like to disconnect it?`
+
+    const ssDisconnectConfirmMenuName = 'ss-conn-conf'
+    const ssDisconnectConfirmMenu = new Menu<BotCtx>(
+      ssDisconnectConfirmMenuName,
+    )
+      .text('Yes', async (ctx) => {
+        const tgChat = ctx.tgChat!
+        const msg = ctx.callbackQuery.message!
+        await spreadsheetsConnector.disconnectByTgChatUuid(tgChat.uuid)
+        const text = `Disconnected! Removed spreadsheet from your chat!`
+        await ctx
+          .deleteMessages([msg.message_id, msg.reply_to_message?.message_id!])
+          .catch(noop)
+
+        await ctx.replyFmt(text)
+        ctx.menu.close()
+      })
+      .text('No', async (ctx) => {
+        const msg = ctx.callbackQuery.message!
+        const sheet = await googleSpreadsheetDao.getByTgChatUuidIfAny(
+          ctx.tgChat!.uuid,
+        )
+
+        await ctx
+          .deleteMessages([msg.message_id, msg.reply_to_message?.message_id!])
+          .catch(async () => {
+            if (sheet) {
+              await ctx.editFmtMessageText(
+                getDisconnectMsg(sheet.spreadsheetName),
+              )
+            }
+            ctx.menu.back()
+          })
+      })
+    const disconnectSheetMenuName = 'ss-connect'
+    const disconnectSheetMenu = new Menu<BotCtx>(
+      disconnectSheetMenuName,
+    ).submenu('🚶Disconnect', ssDisconnectConfirmMenuName, async (ctx) => {
+      const tgChat = ctx.tgChat!
+      const sheet = await googleSpreadsheetDao.getByTgChatUuidIfAny(tgChat.uuid)
+
+      if (!sheet) {
+        ctx.menu.close()
+        return
+      }
+
+      await ctx.editFmtMessageText(
+        fmt`Are you sure you want to disconnect ${bold(sheet.spreadsheetName)} from this chat?`,
       )
     })
+
+    disconnectSheetMenu.register(ssDisconnectConfirmMenu)
+
+    bot
+      .filter(Context.has.chatType(commandsChatScope))
+      .filter(isAdmin, isMenuOwner, m, disconnectSheetMenu)
+
+    bot
+      .filter(Context.has.chatType(commandsChatScope))
+      .filter(isAdmin)
+      .command(['spreadsheet', 'ss'], m, async (ctx) => {
+        const tgChat = ctx.tgChat!
+        const tgUser = ctx.user!
+
+        const sheet = await googleSpreadsheetDao.getByTgChatUuidIfAny(
+          tgChat.uuid,
+        )
+
+        if (sheet?.isConnected) {
+          await ctx.replyFmt(getDisconnectMsg(sheet.spreadsheetName), {
+            reply_to_message_id: ctx.message.message_id,
+            reply_markup: disconnectSheetMenu,
+          })
+          return
+        }
+
+        const fmtmsg = fmt`
+Let's connect your spreadsheet! ${bold('LeetCode Monkey')} will write all submissions to a separate sheet/list called ${italic(LcSpreadsheetsWriter.submissionsSpreadsheetName)}!
+Feel free to use this ${link('template', 'https://docs.google.com/spreadsheets/d/1fMDKZPZPZD83PK5_6InjhyNLYHue261x-ydw1reBVo4/edit?usp=sharing')} to begin with!
+      `
+
+        const msg = await ctx.replyFmt(fmtmsg, {
+          reply_to_message_id: ctx.message.message_id,
+        })
+
+        const sessionId =
+          await spreadsheetsConnector.createSpreadsheetConnectionSession({
+            tgUserUuid: tgUser.uuid,
+            tgChatUuid: tgChat.uuid,
+            tgMessageId: msg.message_id.toString(),
+          })
+
+        const url =
+          await spreadsheetsConnector.getSpreadsheetConnectUrl(sessionId)
+
+        await msg.editText(fmtmsg.text, {
+          entities: fmtmsg.entities,
+          reply_markup: new InlineKeyboard([
+            [
+              {
+                text: 'Connect',
+                url: url.toString(),
+              },
+            ],
+          ]),
+          link_preview_options: {
+            is_disabled: true,
+          },
+        })
+      })
   },
 )

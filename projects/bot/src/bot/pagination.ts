@@ -1,6 +1,7 @@
 import { Menu } from '@grammyjs/menu'
 import { BotCtx } from '@/bot/Bot'
-import { Memo, PageCb } from '@repo/core'
+import { Memo } from '@repo/core'
+import { PageCb } from '@/bot/PageCb'
 
 type FetchResult<T> = {
   total: number

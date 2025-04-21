@@ -1,0 +1,2 @@
+ALTER TABLE "google_spreadsheets" ADD COLUMN "is_connected" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "google_spreadsheets" ADD COLUMN "is_connected_toggled_at" timestamp with time zone NOT NULL;

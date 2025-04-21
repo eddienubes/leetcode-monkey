@@ -7,7 +7,7 @@ import {
 } from 'drizzle-orm'
 import { lcChatSettings, tgChats, tgUsersToTgChats } from '../pg'
 import { PgDao, PgService } from '../pg'
-import { NotFoundError } from '../common'
+import { Injectable, NotFoundError } from '../common'
 
 export type TgChatSelect = InferSelectModel<typeof tgChats>
 export type TgChatInsert = InferInsertModel<typeof tgChats>
@@ -16,9 +16,22 @@ export type TgUsersToTgChatsInsert = InferInsertModel<typeof tgUsersToTgChats>
 export type LcChatSettingsInsert = InferInsertModel<typeof lcChatSettings>
 export type LcChatSettingsSelect = InferSelectModel<typeof lcChatSettings>
 
+@Injectable(PgService)
 export class TgChatsDao extends PgDao {
   constructor(pgService: PgService) {
     super(pgService)
+  }
+
+  async getByUuid(tgChatUuid: string): Promise<TgChatSelect> {
+    const hit = await this.client.query.tgChats.findFirst({
+      where: eq(tgChats.uuid, tgChatUuid),
+    })
+
+    if (!hit) {
+      throw new NotFoundError(`TgChat with uuid ${tgChatUuid} not found`)
+    }
+
+    return hit
   }
 
   async getByTgId(tgId: string): Promise<TgChatSelect> {

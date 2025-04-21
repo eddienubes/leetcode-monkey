@@ -1,8 +1,10 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client/core'
 import { LC_QUERIES } from './queries/lc'
 import { Problem, UserProfile, LeetCode, DailyChallenge } from 'leetcode-query'
-import { LcRecentAcceptedSubmissions } from "./types/types";
+import { LcRecentAcceptedSubmissions } from './types/types'
+import { Injectable } from '@/common'
 
+@Injectable()
 export class LcApiClient {
   static MAX_RECENT_SUBMISSIONS = 20
   private readonly client = new ApolloClient({

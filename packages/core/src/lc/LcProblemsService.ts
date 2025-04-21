@@ -1,14 +1,20 @@
 import { Problem } from 'leetcode-query'
-import { LcProblemsDao, LcProblemSelect } from "./LcProblemsDao";
-import { LcApiClient } from "./LcApiClient";
-import { LcProblemDifficulty } from "../pg/schema";
+import { LcProblemsDao, LcProblemSelect } from './LcProblemsDao'
+import { LcApiClient } from './LcApiClient'
+import { LcProblemDifficulty } from '@/pg'
+import { Injectable } from '@/common'
 
+@Injectable(LcProblemsDao, LcApiClient)
 export class LcProblemsService {
   constructor(
     private readonly lcProblemsDao: LcProblemsDao,
     private readonly lcApi: LcApiClient,
   ) {}
 
+  /**
+   * Get LeetCode problem URL using its slug.
+   * @param slug
+   */
   static getLcProblemUrl(slug: string): string {
     return `https://leetcode.com/problems/${slug}`
   }

@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     reporters: ['verbose'],
-    disableConsoleIntercept: true,
+    disableConsoleIntercept: false,
     include: ['**/*.test.ts', '**/*.test.ts', '**/*.e2e-test.ts'],
     // timeout for test
     testTimeout: 9999999,

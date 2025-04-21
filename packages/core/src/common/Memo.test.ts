@@ -1,4 +1,4 @@
-import { Memo } from "./Memo";
+import { Memo } from './Memo'
 
 describe('Memo', () => {
   beforeAll(() => {

@@ -1,10 +1,12 @@
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm'
-import { lcTgNotifications } from "../pg/schema";
-import { PgDao, PgService } from "../pg";
+import { lcTgNotifications } from '@/pg'
+import { PgDao, PgService } from '@/pg'
+import { Injectable } from '@/common'
 
 export type LcTgNotificationsInsert = InferInsertModel<typeof lcTgNotifications>
 export type LcTgNotificationsSelect = InferSelectModel<typeof lcTgNotifications>
 
+@Injectable(PgService)
 export class LcTgNotificationsDao extends PgDao {
   constructor(pgService: PgService) {
     super(pgService)

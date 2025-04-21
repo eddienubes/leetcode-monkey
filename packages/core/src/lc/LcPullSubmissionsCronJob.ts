@@ -1,36 +1,25 @@
-import { Job, Queue, Worker } from "bullmq";
-import { connection, defaultJobOptions, sleepForRandomMs, ToJsonType, unixTimestampToDate } from "../common";
-import { LcUsersDao } from "../lc-users";
-import { LcApiClient } from "./LcApiClient";
-import { LcProblemsService } from "./LcProblemsService";
-import { LcPullSubmissionJob } from "./types/types";
-import { config } from "../config";
+import { Job } from 'bullmq'
+import {
+  createCronQueue,
+  Injectable,
+  JobOfQueue,
+  Lifecycle,
+  sleepForRandomMs,
+  unixTimestampToDate,
+} from '@/common'
+import { LcUsersDao } from '@/lc-users'
+import { LcApiClient } from './LcApiClient'
+import { LcProblemsService } from './LcProblemsService'
+import { config } from '@/config'
+import { LcPullSubmissionsQueue } from '@/lc/queues'
 
-export class LcPullSubmissionsCronJob {
-  private readonly cronName = 'lc-pull-submissions-cron'
-  private readonly cron = new Queue(this.cronName, {
-    connection,
-    defaultJobOptions,
-  })
-  private readonly cronWorker = new Worker(
-    this.cronName,
+@Injectable(LcUsersDao, LcApiClient, LcProblemsService)
+export class LcPullSubmissionsCronJob implements Lifecycle {
+  private readonly cronQueue = createCronQueue(
+    'lc-pull-submissions-cron',
     this.tick.bind(this),
-    {
-      connection,
-    },
   )
-  private readonly queueName = 'lc-pull-submissions-queue'
-  private readonly queue = new Queue(this.queueName, {
-    connection,
-    defaultJobOptions,
-  })
-  private readonly queueWorker = new Worker(
-    this.queueName,
-    this.run.bind(this),
-    {
-      connection,
-    },
-  )
+  private readonly queue = LcPullSubmissionsQueue.connect(this.run.bind(this))
 
   constructor(
     private readonly lcUsersDao: LcUsersDao,
@@ -39,8 +28,6 @@ export class LcPullSubmissionsCronJob {
   ) {}
 
   async tick(job: Job): Promise<void> {
-    // console.log('Running job', job.id)
-
     const lcUsers = await this.lcUsersDao.getAllActiveLcUsers()
     // console.log('processing', lcUsers.length, 'users')
 
@@ -58,9 +45,9 @@ export class LcPullSubmissionsCronJob {
           unixTimestampToDate(s.timestamp) > latestSubmission.submittedAt,
       )
 
-      console.log(
-        `Got ${newSubmissions.length} new submissions for ${user.lcUser.slug}`,
-      )
+      // console.log(
+      //   `Got ${newSubmissions.length} new submissions for ${user.lcUser.slug}`,
+      // )
 
       const submissionsToSave = newSubmissions.map((s) => ({
         lcUser: user.lcUser,
@@ -68,27 +55,19 @@ export class LcPullSubmissionsCronJob {
         tgUser: user.tgUser,
       }))
 
-      void this.add(submissionsToSave)
+      void this.queue.addBulk(
+        submissionsToSave.map((s) => ({
+          name: `${s.lcUser.slug}-${s.submission.id}`,
+          data: s,
+        })),
+      )
 
       // Random jitter to mitigate accidental rate limits, if any?
       await sleepForRandomMs(400, 1300)
     }
   }
 
-  async add(jobs: LcPullSubmissionJob[]): Promise<void> {
-    if (!jobs.length) {
-      return
-    }
-
-    await this.queue.addBulk(
-      jobs.map((job) => ({
-        name: `${job.lcUser.slug}-${job.submission.id}`,
-        data: job,
-      })),
-    )
-  }
-
-  async run(job: Job<ToJsonType<LcPullSubmissionJob>>): Promise<void> {
+  async run(job: JobOfQueue<LcPullSubmissionsQueue>): Promise<void> {
     const data = job.data
 
     const problem = await this.lcProblemsService.getOrCreate(
@@ -109,10 +88,16 @@ export class LcPullSubmissionsCronJob {
   }
 
   async onModuleInit(): Promise<void> {
-    await this.cron.upsertJobScheduler(`${this.queueName}-scheduler`, {
-      pattern: config.cron.lcCronJobInterval,
-    })
+    await this.cronQueue.schedule(config.cron.lcCronJobInterval)
+    await this.queue.start()
 
     console.log(`${LcPullSubmissionsCronJob.name} started + queue`)
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.cronQueue.stop()
+    await this.queue.stop()
+
+    console.log(`${LcPullSubmissionsCronJob.name} stopped + queue`)
   }
 }

@@ -15,3 +15,6 @@ build
 
 .nx/cache
 .nx/workspace-data
+
+.next
+next-env.d.ts

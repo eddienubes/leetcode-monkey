@@ -2,10 +2,21 @@ import { BotCtx } from '@/bot/Bot'
 import { TgMemberStatus } from '@repo/core'
 import { NextFunction } from 'grammy'
 
-export const isTgChatAdmin = (status: TgMemberStatus): boolean => {
-  return status === 'administrator' || status === 'creator'
+export const isTgChatAdminByStatus = (status: TgMemberStatus): boolean => {
+  const tgAdminStatuses = ['administrator', 'creator']
+  return tgAdminStatuses.includes(status)
 }
 
+export const isAdmin = async (ctx: BotCtx): Promise<boolean> => {
+  const author = await ctx.getAuthor()
+  return isTgChatAdminByStatus(author.status)
+}
+
+/**
+ * TODO: Fix, doesn't work when the reply message is deleted
+ * @param ctx
+ * @param next
+ */
 export const isMenuOwner = async (ctx: BotCtx, next: NextFunction) => {
   const menuMsg = ctx.callbackQuery?.message
   const originalMsg = menuMsg?.reply_to_message
@@ -35,4 +46,28 @@ export const buildMentionNameFromCtx = (ctx: BotCtx): string => {
 
 export const noopCbAnswer = async (ctx: BotCtx): Promise<void> => {
   await ctx.answerCallbackQuery()
+}
+
+/**
+ * Parses grammy menu cb data.
+ * https://github.com/grammyjs/menu/blob/c276d79a93c9318aeb900fbe9c092e24a2dae642/src/menu.ts#L889
+ * @param cbData
+ */
+export const extractMenuDataFromCb = (
+  cbData: string,
+): {
+  id: string
+  rowStr: string
+  colStr: string
+  payload: string
+  rest: string[]
+} => {
+  const [id, rowStr, colStr, payload, ...rest] = cbData.split(':')
+  return {
+    id,
+    rowStr,
+    colStr,
+    payload,
+    rest,
+  }
 }

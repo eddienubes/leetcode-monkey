@@ -26,8 +26,9 @@ import {
   tgChats,
   tgUsers,
 } from '../pg'
-import { GetAllActiveLcChatUsersHit } from './types'
-import { LC_SCORE_COEFFICIENTS } from '../lc'
+import type { GetAllActiveLcChatUsersHit } from './types'
+import { Injectable } from '@/common'
+import { LC_SCORE_COEFFICIENTS } from '@/lc/constants'
 
 export type LcUserSelect = InferSelectModel<typeof lcUsers>
 export type LcUserInsert = InferInsertModel<typeof lcUsers>
@@ -36,6 +37,7 @@ export type LcUserInTgChatInsert = InferInsertModel<typeof lcUsersInTgChats>
 export type SubmissionInsert = InferInsertModel<typeof acceptedSubmissions>
 export type SubmissionSelect = InferSelectModel<typeof acceptedSubmissions>
 
+@Injectable(PgService)
 export class LcUsersDao extends PgDao {
   constructor(pgService: PgService) {
     super(pgService)
@@ -281,7 +283,7 @@ export class LcUsersDao extends PgDao {
       .offset(offset)
       .limit(limit)
 
-    console.log(query.toSQL().sql)
+    // console.log(query.toSQL().sql)
 
     const hits = await query
 
@@ -364,6 +366,14 @@ export class LcUsersDao extends PgDao {
           eq(lcUsersInTgChats.tgChatUuid, tgChatUuid),
         ),
       )
+
+    return hit || null
+  }
+
+  async getByUuidIfAny(lcUserUuid: string): Promise<LcUserSelect | null> {
+    const hit = await this.client.query.lcUsers.findFirst({
+      where: eq(lcUsers.uuid, lcUserUuid),
+    })
 
     return hit || null
   }
