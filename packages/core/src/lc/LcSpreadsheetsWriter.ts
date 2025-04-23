@@ -62,8 +62,15 @@ export class LcSpreadsheetsWriter implements Lifecycle {
             tgUsers.lastName,
           submission.lcUser.slug,
           submission.problem.slug,
-          LcProblemsService.getLcProblemUrl(submission.problem.slug),
           submission.problem.difficulty,
+          LcProblemsService.getLcProblemUrl(submission.problem.slug),
+          // old submissions don't have their lc submission id saved
+          submission.lcSubmissionId
+            ? LcProblemsService.getSubmissionUrl(
+                submission.problem.slug,
+                submission.lcSubmissionId,
+              )
+            : '',
           submission.submittedAt,
         ]),
       )

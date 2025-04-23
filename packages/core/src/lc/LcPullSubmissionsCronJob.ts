@@ -76,6 +76,7 @@ export class LcPullSubmissionsCronJob implements Lifecycle {
 
     const submission = await this.lcUsersDao.addSubmissions([
       {
+        lcSubmissionId: data.submission.id,
         lcProblemUuid: problem.uuid,
         lcUserUuid: data.lcUser.uuid,
         submittedAt: unixTimestampToDate(data.submission.timestamp),

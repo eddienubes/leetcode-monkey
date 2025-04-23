@@ -19,6 +19,10 @@ export class LcProblemsService {
     return `https://leetcode.com/problems/${slug}`
   }
 
+  static getSubmissionUrl(slug: string, submissionId: string): string {
+    return `https://leetcode.com/problems/${slug}/submissions/${submissionId}`
+  }
+
   async getOrCreate(slug: string): Promise<LcProblemSelect> {
     const problem = await this.lcProblemsDao.getBySlug(slug)
 

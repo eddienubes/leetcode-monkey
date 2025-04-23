@@ -170,6 +170,7 @@ export const lcChatSettings = pgTable('lc_chat_settings', {
 
 export const acceptedSubmissions = pgTable('accepted_submissions', {
   uuid: uuid('uuid').primaryKey().defaultRandom(),
+  lcSubmissionId: varchar('lc_submission_id'),
   lcUserUuid: uuid('lc_user_uuid')
     .notNull()
     .references(() => lcUsers.uuid),

@@ -1,0 +1,1 @@
+ALTER TABLE "accepted_submissions" ADD COLUMN "lc_submission_id" varchar;
