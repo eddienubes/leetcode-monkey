@@ -121,6 +121,22 @@ export class LcUsersDao extends PgDao {
     return Array.from(map.values())
   }
 
+  async updateLcUserInChat(
+    tgChatUuid: string,
+    tgUserUuid: string,
+    attrs: Partial<LcUserInTgChatInsert>,
+  ): Promise<void> {
+    await this.client
+      .update(lcUsersInTgChats)
+      .set(attrs)
+      .where(
+        and(
+          eq(lcUsersInTgChats.tgChatUuid, tgChatUuid),
+          eq(lcUsersInTgChats.tgUserUuid, tgUserUuid),
+        ),
+      )
+  }
+
   async upsertLcUserInChat(
     entry: LcUserInTgChatInsert,
   ): Promise<LcUserInTgChatSelect> {

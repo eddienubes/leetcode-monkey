@@ -1,5 +1,5 @@
 import { GoogleSpreadsheetsDao } from '@/spreadsheets/GoogleSpreadsheetsDao'
-import { randomAlphaNumStr } from '@/common'
+import { getDatePlusDays, randomAlphaNumStr } from '@/common'
 import { TestSeedDao } from '../../test/TestSeedDao'
 import { SpreadsheetToUpdate } from '@/spreadsheets/types'
 import { createCoreTestContainer } from '../../test/coreTest'
@@ -55,6 +55,7 @@ describe('GoogleSpreadsheetsDao', () => {
       const submissions = await testSeedDao.generateSubmissions(
         userInChat.lcUser.uuid,
         2,
+        getDatePlusDays(new Date(), 5),
       )
       await testSeedDao.connectSpreadsheet(userInChat.tgChat.uuid)
 

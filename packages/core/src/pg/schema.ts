@@ -134,7 +134,7 @@ export const lcUsersInTgChats = pgTable(
     // Used for spreadsheet push notifications
     isConnectedToggledAt: timestamp('is_connected_toggled_at', {
       withTimezone: true,
-    }),
+    }).notNull(),
     isNotificationsEnabled: boolean('is_notifications_enabled')
       .notNull()
       .default(true),

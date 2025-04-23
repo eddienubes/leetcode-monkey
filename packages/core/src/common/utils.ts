@@ -34,8 +34,12 @@ export const fakeSerialize = <T>(obj: T): ToJsonType<T> => {
   return obj as ToJsonType<T>
 }
 
-export const getDatePlusDays = (days: number, jitter = false): Date => {
-  const date = new Date()
+export const getDatePlusDays = (
+  date = new Date(),
+  days: number,
+  jitter = false,
+): Date => {
+  date = new Date(date)
   date.setDate(date.getDate() + days)
   date.setTime(
     date.getTime() +

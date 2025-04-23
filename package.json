@@ -14,7 +14,8 @@
     "lint": "eslint",
     "format:fix": "nx run-many -t format:fix --all --parallel",
     "format": "nx run-many -t format --all --parallel",
-    "valid": "pnpm run lint:fix && pnpm run format:fix && pnpm run build"
+    "valid": "pnpm run lint:fix && pnpm run format:fix && pnpm run build",
+    "test": "nx run-many -t test --all --parallel"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

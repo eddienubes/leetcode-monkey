@@ -209,7 +209,7 @@ export const leaderboardCommand = createHandler(
 
         const [first, latestTs] = [
           chatSettings.leaderboardStartedAt.getTime(),
-          getDatePlusDays(-7).getTime(),
+          getDatePlusDays(new Date(), -7).getTime(),
         ].sort()
 
         const latestDate = new Date(latestTs)
@@ -332,7 +332,7 @@ I'm also ${link('open-source', 'https://github.com/eddienubes/leetcode-monkey')}
 ${bold('How to use me?')}
 1. Connect your LeetCode account with /connect command to receive notifications.
 2. Encourage your top performers with /leaderboard.
-3. Connect Google /spreadsheet to further track your progress!
+3. ${bold('NEW!')} Connect Google /spreadsheet to further track your progress!
 4. Get /daily challenges.
 5. Manage your notification /settings and more.
 6. You have suggestions? Just /feedback me!
@@ -439,10 +439,7 @@ export const settingsCommand = createHandler(
             payload: 'disable',
           },
           async (ctx) => {
-            await lcUsersDao.upsertLcUserInChat({
-              lcUserUuid: payload.lcUser.lcUser.uuid,
-              tgUserUuid: tgUser.uuid,
-              tgChatUuid: tgChat.uuid,
+            await lcUsersDao.updateLcUserInChat(tgChat.uuid, tgUser.uuid, {
               isNotificationsEnabled: false,
               isNotificationsEnabledToggledAt: new Date(),
             })
@@ -459,10 +456,7 @@ export const settingsCommand = createHandler(
             payload: 'enable',
           },
           async (ctx) => {
-            await lcUsersDao.upsertLcUserInChat({
-              lcUserUuid: payload.lcUser.lcUser.uuid,
-              tgUserUuid: tgUser.uuid,
-              tgChatUuid: tgChat.uuid,
+            await lcUsersDao.updateLcUserInChat(tgChat.uuid, tgUser.uuid, {
               isNotificationsEnabled: true,
               isNotificationsEnabledToggledAt: new Date(),
             })

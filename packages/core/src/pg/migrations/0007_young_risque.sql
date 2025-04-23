@@ -1,0 +1,1 @@
+ALTER TABLE "lc_users_in_tg_chats" ALTER COLUMN "is_connected_toggled_at" SET NOT NULL;

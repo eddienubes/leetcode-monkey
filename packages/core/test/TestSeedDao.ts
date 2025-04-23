@@ -63,6 +63,7 @@ export class TestSeedDao extends PgDao {
   async generateSubmissions(
     lcUserUuid: string,
     count = 1,
+    since = new Date(),
   ): Promise<SubmissionSelect[]> {
     // const lcUser = await this.lcUsersTestDao.getByUuidIfAny(lcUserUuid)
     const problems = await Promise.all(
@@ -73,13 +74,17 @@ export class TestSeedDao extends PgDao {
 
     const map = new Map(problems.map((p, i) => [i, p]))
 
-    return await this.lcUsersTestDao.addSubmissions(
-      Array.from({ length: count }).map((_, i) => ({
+    const submissions = Array.from({ length: count }).map((_, i) => {
+      const sAt = getDatePlusDays(since, -i, true)
+      return {
+        lcSubmissionId: `lc-submission-${i}`,
         lcUserUuid,
         lcProblemUuid: map.get(i)!.uuid,
-        submittedAt: getDatePlusDays(-i, true),
-      })),
-    )
+        submittedAt: sAt,
+      }
+    })
+
+    return await this.lcUsersTestDao.addSubmissions(submissions)
   }
 
   async connectSpreadsheet(
