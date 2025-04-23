@@ -151,6 +151,7 @@ export class GoogleSpreadsheetsDao extends PgDao {
           ),
         ),
       )
+      .orderBy(distinctSubmissions.submittedAt)
 
     const hits = await query
 
