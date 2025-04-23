@@ -131,6 +131,7 @@ export const lcUsersInTgChats = pgTable(
       .references(() => lcUsers.uuid),
     // Per user per chat settings
     isConnected: boolean('is_connected').notNull().default(false),
+    // Used for spreadsheet push notifications
     isConnectedToggledAt: timestamp('is_connected_toggled_at', {
       withTimezone: true,
     }),

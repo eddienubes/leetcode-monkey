@@ -56,6 +56,5 @@ services:
 #      - lm-pg
 #      - lm-redis
 
-
 volumes:
   lm-pg-data:

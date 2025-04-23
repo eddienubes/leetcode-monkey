@@ -86,7 +86,7 @@ export class GoogleSpreadsheetsDao extends PgDao {
   /**
    * Pull spreadsheets to notify about new submissions
    */
-  async getSpreadsheetsToUpdate(since?: Date): Promise<SpreadsheetToUpdate[]> {
+  async getSpreadsheetsToUpdate(): Promise<SpreadsheetToUpdate[]> {
     const distinctSubmissions = this.client
       .selectDistinctOn([
         acceptedSubmissions.lcProblemUuid,
@@ -103,15 +103,26 @@ export class GoogleSpreadsheetsDao extends PgDao {
     const query = this.client
       .select()
       .from(googleSpreadsheets)
+      // get all spreadsheets with connected lc users
       .innerJoin(
         lcUsersInTgChats,
-        eq(lcUsersInTgChats.tgChatUuid, googleSpreadsheets.tgChatUuid),
+        and(
+          eq(lcUsersInTgChats.tgChatUuid, googleSpreadsheets.tgChatUuid),
+          eq(lcUsersInTgChats.isConnected, true),
+        ),
       )
       .innerJoin(tgUsers, eq(tgUsers.uuid, lcUsersInTgChats.tgUserUuid))
       .innerJoin(lcUsers, eq(lcUsers.uuid, lcUsersInTgChats.lcUserUuid))
+      // get distinct submissions only after connection date
       .innerJoin(
         distinctSubmissions,
-        eq(distinctSubmissions.lcUserUuid, lcUsersInTgChats.lcUserUuid),
+        and(
+          eq(distinctSubmissions.lcUserUuid, lcUsersInTgChats.lcUserUuid),
+          gte(
+            distinctSubmissions.submittedAt,
+            lcUsersInTgChats.isConnectedToggledAt,
+          ),
+        ),
       )
       .innerJoin(
         lcProblems,
@@ -138,7 +149,6 @@ export class GoogleSpreadsheetsDao extends PgDao {
               googleSpreadsheetUpdates.lastUpdatedAt,
             ),
           ),
-          since ? gte(distinctSubmissions.submittedAt, since) : undefined,
         ),
       )
 
