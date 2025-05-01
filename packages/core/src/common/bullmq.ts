@@ -1,4 +1,11 @@
-import { Queue, QueueOptions, WorkerOptions, Worker, Job } from 'bullmq'
+import {
+  Queue,
+  QueueOptions,
+  WorkerOptions,
+  Worker,
+  Job,
+  BulkJobOptions,
+} from 'bullmq'
 import { config } from '@/config'
 import { ToJsonType } from '@/common/types'
 
@@ -81,12 +88,18 @@ export abstract class BullQueue {
       add: async (name: string, data: InstanceType<T>) => {
         await queue.add(name, data)
       },
-      addBulk: async (jobs: { name: string; data: InstanceType<T> }[]) => {
+      addBulk: async (
+        jobs: { name: string; data: InstanceType<T>; opts?: BulkJobOptions }[],
+      ) => {
         if (!jobs.length) {
           return
         }
         await queue.addBulk(
-          jobs.map((job) => ({ name: job.name, data: job.data })),
+          jobs.map((job) => ({
+            name: job.name,
+            data: job.data,
+            opts: job.opts,
+          })),
         )
       },
     }

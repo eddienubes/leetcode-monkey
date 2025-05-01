@@ -40,6 +40,13 @@ export class LcSpreadsheetsWriter implements Lifecycle {
           data: {
             sheet,
           },
+          opts: {
+            attempts: 5,
+            backoff: {
+              type: 'exponential',
+              delay: 3500,
+            },
+          },
         })),
       )
     } catch (e) {
@@ -47,6 +54,10 @@ export class LcSpreadsheetsWriter implements Lifecycle {
     }
   }
 
+  /**
+   * The job may write duplicates to the spreadsheet, but we don't care
+   * @param job
+   */
   async write(job: JobOfQueue<LcSpreadsheetWriteQueue>) {
     console.log('Writing spreadsheet:', job.data.sheet.spreadsheetId)
     const sheet = job.data.sheet
