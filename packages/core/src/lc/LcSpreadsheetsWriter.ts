@@ -98,13 +98,8 @@ export class LcSpreadsheetsWriter implements Lifecycle {
       await write()
     } catch (e) {
       if (!(e instanceof GoogleSheetsSpreadsheetNotFoundError)) {
-        console.error(
-          'Unknown error writing to spreadsheet, disconnecting',
-          sheet.spreadsheetId,
-          e,
-        )
-        await this.connector.disconnect(sheet.uuid)
-        return
+        console.error('Unknown error writing to the spreadsheet...', e)
+        throw e
       }
 
       const created = await this.createSpreadsheetSafe(sheet)
