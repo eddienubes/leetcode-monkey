@@ -13,6 +13,8 @@ import { tgUsers } from '@/pg'
 import { LcProblemsService } from '@/lc/LcProblemsService'
 import { GoogleSheetsSpreadsheetNotFoundError } from '@/spreadsheets/errors'
 
+const MAX_RETRY_ATTEMPTS = 5
+
 @Injectable(GoogleSpreadsheetApi, SpreadsheetsConnector, GoogleSpreadsheetsDao)
 export class LcSpreadsheetsWriter implements Lifecycle {
   static submissionsSpreadsheetName = 'Submissions'
@@ -41,7 +43,7 @@ export class LcSpreadsheetsWriter implements Lifecycle {
             sheet,
           },
           opts: {
-            attempts: 5,
+            attempts: MAX_RETRY_ATTEMPTS,
             backoff: {
               type: 'exponential',
               delay: 3500,
@@ -107,16 +109,19 @@ export class LcSpreadsheetsWriter implements Lifecycle {
 
       const created = await this.createSpreadsheetSafe(sheet)
 
-      if (!created) {
-        console.error(`Disconnecting the spreadsheet ${sheet.spreadsheetId}...`)
-        await this.connector.disconnect(sheet.uuid)
+      // if spreadsheet created, try to write once again
+      if (created) {
+        console.log(
+          `2nd attempt to write to the spreadsheet: ${sheet.spreadsheetId}`,
+        )
+        await write()
         return
       }
 
-      console.log(
-        `2nd attempt to write to the spreadsheet: ${sheet.spreadsheetId}`,
-      )
-      await write()
+      if (job.attemptsMade >= MAX_RETRY_ATTEMPTS - 1) {
+        console.error(`Disconnecting the spreadsheet ${sheet.spreadsheetId}...`)
+        await this.connector.disconnect(sheet.uuid)
+      }
     }
   }
 
