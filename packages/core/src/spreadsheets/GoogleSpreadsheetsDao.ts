@@ -17,6 +17,7 @@ import {
   acceptedSubmissions,
   googleSpreadsheets,
   googleSpreadsheetUpdates,
+  lcChatSettings,
   lcProblems,
   lcUsers,
   lcUsersInTgChats,
@@ -113,14 +114,18 @@ export class GoogleSpreadsheetsDao extends PgDao {
       )
       .innerJoin(tgUsers, eq(tgUsers.uuid, lcUsersInTgChats.tgUserUuid))
       .innerJoin(lcUsers, eq(lcUsers.uuid, lcUsersInTgChats.lcUserUuid))
-      // get distinct submissions only after connection date
+      .innerJoin(
+        lcChatSettings,
+        eq(lcUsersInTgChats.tgChatUuid, lcChatSettings.tgChatUuid),
+      )
+      // get distinct submissions only after leaderboard started_at
       .innerJoin(
         distinctSubmissions,
         and(
           eq(distinctSubmissions.lcUserUuid, lcUsersInTgChats.lcUserUuid),
           gte(
             distinctSubmissions.submittedAt,
-            lcUsersInTgChats.isConnectedToggledAt,
+            lcChatSettings.leaderboardStartedAt,
           ),
         ),
       )
