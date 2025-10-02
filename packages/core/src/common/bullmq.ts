@@ -5,6 +5,7 @@ import {
   Worker,
   Job,
   BulkJobOptions,
+  QueueEvents,
 } from 'bullmq'
 import { config } from '@/config'
 import { ToJsonType } from '@/common/types'

@@ -97,12 +97,16 @@ export class LcSpreadsheetsWriter implements Lifecycle {
     try {
       await write()
     } catch (e) {
+      let created = false
+
+      if (e instanceof GoogleSheetsSpreadsheetNotFoundError) {
+        created = await this.createSpreadsheetSafe(sheet)
+      }
+
       if (!(e instanceof GoogleSheetsSpreadsheetNotFoundError)) {
         console.error('Unknown error writing to the spreadsheet...', e)
         throw e
       }
-
-      const created = await this.createSpreadsheetSafe(sheet)
 
       // if spreadsheet created, try to write once again
       if (created) {
@@ -110,12 +114,6 @@ export class LcSpreadsheetsWriter implements Lifecycle {
           `2nd attempt to write to the spreadsheet: ${sheet.spreadsheetId}`,
         )
         await write()
-        return
-      }
-
-      if (job.attemptsMade >= MAX_RETRY_ATTEMPTS - 1) {
-        console.error(`Disconnecting the spreadsheet ${sheet.spreadsheetId}...`)
-        await this.connector.disconnect(sheet.uuid)
       }
     }
   }
@@ -137,6 +135,18 @@ export class LcSpreadsheetsWriter implements Lifecycle {
       )
       return false
     }
+  }
+
+  private async handleError(
+    job: JobOfQueue<LcSpreadsheetWriteQueue>,
+    sheet: SpreadsheetToUpdate,
+  ): Promise<void> {
+    if (job.attemptsMade < MAX_RETRY_ATTEMPTS - 1) {
+      return
+    }
+
+    console.error(`Disconnecting the spreadsheet ${sheet.spreadsheetId}...`)
+    await this.connector.disconnect(sheet.uuid)
   }
 
   async onModuleInit() {
